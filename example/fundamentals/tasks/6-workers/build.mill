@@ -83,7 +83,7 @@ import java.util.zip.GZIPOutputStream
 
 def data = Task.Source("data")
 
-def compressWorker = Task.Worker { new CompressWorker(Task.dest) }
+def compressWorker = Task.Worker { CompressWorker(Task.dest) }
 
 def compressedData = Task {
   println("Evaluating compressedData")
@@ -123,8 +123,8 @@ class CompressWorker(dest: os.Path) {
 }
 
 def compressBytes(input: Array[Byte]) = {
-  val bos = new ByteArrayOutputStream(input.length)
-  val gzip = new GZIPOutputStream(bos)
+  val bos = ByteArrayOutputStream(input.length)
+  val gzip = GZIPOutputStream(bos)
   gzip.write(input)
   gzip.close()
   bos.toByteArray
@@ -197,7 +197,7 @@ class MyWorker() extends AutoCloseable {
   override def close() = { /* cleanup and free resources */ }
 }
 
-def myWorker = Task.Worker { new MyWorker() }
+def myWorker = Task.Worker { MyWorker() }
 
 // === `CachedFactory` Workers
 //
@@ -225,13 +225,13 @@ import java.lang.AutoCloseable
 import mill.util.CachedFactory
 import java.io.ByteArrayOutputStream
 
-def cachedCompressWorker = Task.Worker { new CachedCompressWorker(Task.dest) }
+def cachedCompressWorker = Task.Worker { CachedCompressWorker(Task.dest) }
 class CachedCompressWorker(dest: os.Path) // <1>
     extends CachedFactory[Unit, ByteArrayOutputStream] {
 
   def setup(key: Unit): ByteArrayOutputStream = { // <2>
     println("setup ByteArrayOutputStream")
-    new ByteArrayOutputStream()
+    ByteArrayOutputStream()
   }
 
   def maxCacheSize = 2 // <3>
@@ -258,7 +258,7 @@ class CachedCompressWorker(dest: os.Path) // <1>
 def compressBytes2(bos: ByteArrayOutputStream, input: Array[Byte]) = {
   bos.reset()
   Thread.sleep(1000) // Simulate a slow operation
-  val gzip = new GZIPOutputStream(bos)
+  val gzip = GZIPOutputStream(bos)
   gzip.write(input)
   gzip.close()
   bos.toByteArray

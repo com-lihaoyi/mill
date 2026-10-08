@@ -34,5 +34,5 @@ class ArtifactoryHttpApi(
   }
 
   private def base64(s: String) =
-    new String(Base64.getEncoder.encode(s.getBytes))
+    String(Base64.getEncoder.encode(s.getBytes))
 }

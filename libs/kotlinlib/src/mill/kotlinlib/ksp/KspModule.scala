@@ -122,7 +122,7 @@ trait KspModule extends KotlinModule { outer =>
     sources()
   }
 
-  override def kotlinUseEmbeddableCompiler: Task[Boolean] = kspModuleMode match {
+  override def kotlinUseEmbeddableCompiler: T[Boolean] = kspModuleMode match {
     case KspModuleMode.Ksp1 => Task { true }
     case KspModuleMode.Ksp2Cli | KspModuleMode.Ksp2 => Task { super.kotlinUseEmbeddableCompiler() }
   }
@@ -152,7 +152,7 @@ trait KspModule extends KotlinModule { outer =>
    */
   def ksp1KotlincOptions: T[Seq[String]] = Task {
     if (!kspLanguageVersion().startsWith("1.")) {
-      throw new RuntimeException("KSP needs a compatible language version <= 1.9 to be set!")
+      throw RuntimeException("KSP needs a compatible language version <= 1.9 to be set!")
     }
     kotlincOptions() ++ Seq(
       "-Xallow-unstable-dependencies",
@@ -245,6 +245,7 @@ trait KspModule extends KotlinModule { outer =>
     val compiledSources = Task.dest / "compiled"
     os.makeDir.all(compiledSources)
 
+    val compileClasspathRefs = kspClasspath().filter(ref => os.exists(ref.path))
     val classpath = Seq(
       // destdir
       "-d",
@@ -258,12 +259,22 @@ trait KspModule extends KotlinModule { outer =>
 
     Task.log.info(s"KSP arguments: ${compilerArgs.mkString(" ")}")
 
-    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
+    val useBtApi = kotlincUseBtApi() && kotlinUseEmbeddableCompiler()
+    if (kotlincUseBtApi() && !kotlinUseEmbeddableCompiler()) {
+      Task.log.warn(
+        "Kotlin Build Tools API requires kotlinUseEmbeddableCompiler=true; " +
+          "falling back to CLI compiler backend for KSP generation."
+      )
+    }
+
+    val kotlinWorkerManager = KotlinWorkerManager.kotlinWorker()
+    kotlinWorkerManager.withValue(kotlinCompilerClasspath()) {
       _.compile(
         target = KotlinWorkerTarget.Jvm,
-        useBtApi = kotlincUseBtApi(),
+        useBtApi = useBtApi,
         args = compilerArgs,
-        sources = sourceFiles
+        sources = sourceFiles,
+        classpath = compileClasspathRefs
       )
     }
 

@@ -57,6 +57,8 @@ object CycloneDXModuleTests extends TestSuite {
       assert(components.exists(_.name == "logback-classic"))
       assert(components.exists(_.name == "logback-core"))
       assert(components.exists(_.name == "slf4j-api"))
+      assert(components.forall(_.purl.startsWith("pkg:maven/")))
+      assert(components.forall(c => c.purl == c.`bom-ref`))
 
       assertSameAsReference("withDeps.sbom.json", file.value)
     }

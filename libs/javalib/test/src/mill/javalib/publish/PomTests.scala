@@ -282,7 +282,7 @@ object PomTests extends TestSuite {
     seq
       .map(_.text)
       .headOption
-      .getOrElse(throw new RuntimeException("seq was empty"))
+      .getOrElse(throw RuntimeException("seq was empty"))
 
   def optText(seq: NodeSeq) = seq.map(_.text).headOption
 

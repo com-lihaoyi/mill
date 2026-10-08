@@ -25,7 +25,7 @@ import scala.math.Ordering.Implicits.*
     if (os.isDir(base)) {
       os.walk.stream(base).filter(_.ext == "class").map(_.relativeTo(base).toString)
     } else {
-      val zip = new ZipInputStream(Files.newInputStream(base.toNIO))
+      val zip = ZipInputStream(Files.newInputStream(base.toNIO))
       geny.Generator.selfClosing(
         (
           Iterator.continually(zip.getNextEntry)
@@ -41,12 +41,13 @@ import scala.math.Ordering.Implicits.*
   def discoverTests(
       cl: ClassLoader,
       framework: Framework,
-      classpath: Seq[os.Path]
+      classpath: Seq[os.Path],
+      discoveredTestClasses: Option[Seq[(String, Int)]]
   ): Seq[ClassWithFingerprint] = {
 
     val fingerprints = framework.fingerprints()
 
-    val testClasses = classpath
+    def foundTestClasses = classpath
       // Don't blow up if there are no classfiles representing
       // the tests to run Instead just don't run anything
       .filter(os.exists(_))
@@ -83,7 +84,16 @@ import scala.math.Ordering.Implicits.*
       // https://stackoverflow.com/a/17468590
       .filter { case (c, _) => !c.isMemberClass && !c.isAnonymousClass }
 
-    testClasses
+    discoveredTestClasses match {
+      case Some(discoveredTestClasses0) =>
+        discoveredTestClasses0.map {
+          case (clsName, fingerprintIdx) =>
+            val cls = cl.loadClass(clsName)
+            (cls, fingerprints(fingerprintIdx))
+        }
+      case None =>
+        foundTestClasses
+    }
   }
 
   def matchFingerprints(
@@ -116,30 +126,37 @@ import scala.math.Ordering.Implicits.*
       args: Seq[String],
       classFilter: Class[?] => Boolean,
       cl: ClassLoader,
-      testClassfilePath: Seq[Path]
+      testClassfilePath: Seq[Path],
+      discoveredTestClasses: Option[Seq[(String, Int)]]
   ): (Runner, Array[Array[Task]]) = {
 
     val runner = framework.runner(args.toArray, Array[String](), cl)
-    val testClasses = discoverTests(cl, framework, testClassfilePath)
+    try {
+      val testClasses = discoverTests(cl, framework, testClassfilePath, discoveredTestClasses)
 
-    val tasks = runner.tasks(
-      for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
-        yield new TaskDef(
-          cls.getName.stripSuffix("$"),
-          fingerprint,
-          false,
-          Array(new SuiteSelector)
-        )
-    )
+      val tasks = runner.tasks(
+        for ((cls, fingerprint) <- testClasses.iterator.toArray if classFilter(cls))
+          yield TaskDef(
+            cls.getName.stripSuffix("$"),
+            fingerprint,
+            false,
+            Array(new SuiteSelector)
+          )
+      )
 
-    def nameOpt(t: Task) = Option(t.taskDef()).map(_.fullyQualifiedName())
-    val groupedTasks = tasks
-      .groupBy(nameOpt)
-      .values
-      .toArray
-      .sortBy(_.headOption.map(nameOpt))
+      def nameOpt(t: Task) = Option(t.taskDef()).map(_.fullyQualifiedName())
+      val groupedTasks = tasks
+        .groupBy(nameOpt)
+        .values
+        .toArray
+        .sortBy(_.headOption.map(nameOpt))
 
-    (runner, groupedTasks)
+      (runner, groupedTasks)
+    } catch {
+      case e: Throwable =>
+        runner.done()
+        throw e
+    }
   }
 
   private def executeTasks(
@@ -148,7 +165,7 @@ import scala.math.Ordering.Implicits.*
       events: ConcurrentLinkedQueue[Event],
       systemOut: PrintStream
   ): Boolean = {
-    val taskStatus = new AtomicBoolean(true)
+    val taskStatus = AtomicBoolean(true)
     val taskQueue = tasks.to(mutable.Queue)
     while (taskQueue.nonEmpty) {
       val next =
@@ -241,7 +258,7 @@ import scala.math.Ordering.Implicits.*
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
     val systemOut = System.out
-    val events = new ConcurrentLinkedQueue[Event]()
+    val events = ConcurrentLinkedQueue[Event]()
 
     var successCounter = 0L
     var failureCounter = 0L
@@ -271,12 +288,14 @@ import scala.math.Ordering.Implicits.*
       classFilter: Class[?] => Boolean,
       cl: ClassLoader,
       testReporter: TestReporter,
+      discoveredTestClasses: Option[Seq[(String, Int)]],
       resultPathOpt: Option[os.Path] = None
   ): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
 
-    val (runner, tasksArr) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
+    val (runner, tasksArr) =
+      getTestTasks(framework, args, classFilter, cl, testClassfilePath, discoveredTestClasses)
 
     val (doneMessage, results) =
       runTasks(tasksArr.view.map(_.toSeq).toSeq, testReporter, runner, resultPathOpt)
@@ -296,7 +315,7 @@ import scala.math.Ordering.Implicits.*
     // Capture this value outside of the task event handler so it
     // isn't affected by a test framework's stream redirects
     val systemOut = System.out
-    val events = new ConcurrentLinkedQueue[Event]()
+    val events = ConcurrentLinkedQueue[Event]()
     val globSelectorCache = testClasses.view
       .map { case (cls, fingerprint) => cls.getName.stripSuffix("$") -> (cls, fingerprint) }
       .toMap
@@ -311,7 +330,7 @@ import scala.math.Ordering.Implicits.*
         .get(testClassName)
         .map { case (cls, fingerprint) =>
           val clsName = cls.getName.stripSuffix("$")
-          new TaskDef(clsName, fingerprint, false, Array(new SuiteSelector))
+          TaskDef(clsName, fingerprint, false, Array(new SuiteSelector))
         }
 
       val tasks = runner.tasks(taskDefs.toArray)
@@ -360,14 +379,15 @@ import scala.math.Ordering.Implicits.*
       claimFolder: os.Path,
       cl: ClassLoader,
       testReporter: TestReporter,
-      resultPath: os.Path
+      resultPath: os.Path,
+      discoveredTestClasses: Option[Seq[(String, Int)]]
   ): (String, Seq[TestResult]) = {
 
     val framework = frameworkInstances(cl)
 
     val runner = framework.runner(args.toArray, Array[String](), cl)
 
-    val testClasses = discoverTests(cl, framework, testClassfilePath)
+    val testClasses = discoverTests(cl, framework, testClassfilePath, discoveredTestClasses)
 
     val (doneMessage, results) = runTasksFromQueue(
       startingTestClass,
@@ -387,12 +407,14 @@ import scala.math.Ordering.Implicits.*
       testClassfilePath: Seq[Path],
       args: Seq[String],
       classFilter: Class[?] => Boolean,
-      cl: ClassLoader
+      cl: ClassLoader,
+      discoveredTestClasses: Option[Seq[(String, Int)]]
   ): Array[String] = {
     val framework = frameworkInstances(cl)
-    val ( /*runner*/ _, tasksArr) =
-      getTestTasks(framework, args, classFilter, cl, testClassfilePath)
-    tasksArr.flatten.map(_.taskDef()).filter(_ != null).map(_.fullyQualifiedName())
+    val (runner, tasksArr) =
+      getTestTasks(framework, args, classFilter, cl, testClassfilePath, discoveredTestClasses)
+    try tasksArr.flatten.map(_.taskDef()).filter(_ != null).map(_.fullyQualifiedName())
+    finally runner.done()
   }
 
   def matchesGlob(glob: String): String => Boolean =

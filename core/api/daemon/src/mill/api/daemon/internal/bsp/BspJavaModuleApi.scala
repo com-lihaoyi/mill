@@ -26,6 +26,11 @@ trait BspJavaModuleApi extends ModuleApi {
           generatedSources: Seq[java.nio.file.Path]
       )]
 
+  private[mill] def bspBuildTargetWrappedSources
+      : TaskApi[(
+        Seq[(java.nio.file.Path, java.nio.file.Path)]
+      )]
+
   private[mill] def bspBuildTargetResources: TaskApi[Seq[java.nio.file.Path]]
 
   private[mill] def bspBuildTargetJavacOptions(

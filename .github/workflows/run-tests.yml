@@ -13,7 +13,7 @@
 #    runs-on: ubuntu-latest
 ##    runs-on: windows-latest
 #    steps:
-#      - uses: actions/checkout@v5
+#      - uses: actions/checkout@v7
 #        with: { fetch-depth: 1 }
 #
 #      - run: "echo temurin:11 > .mill-jvm-version"
@@ -66,7 +66,7 @@ jobs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     uses: ./.github/workflows/pre-build.yml
     with:
-      java-version: 21
+      java-version: 25
       os: ubuntu-latest
       shell: bash
 
@@ -74,18 +74,19 @@ jobs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     uses: ./.github/workflows/pre-build.yml
     with:
-      java-version: 21
+      java-version: 25
       os: windows-latest
       shell: powershell
 
-  test-docs:
+  test-dist:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-        with: { fetch-depth: 1 }
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
-      - run: ./mill website.fastPages + website.checkBrokenLinks
+      - run: ./mill website.fastPages + website.checkBrokenLinks + dist.test
 
   cross-plat:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
@@ -107,7 +108,7 @@ jobs:
             millargs: "'example.thirdparty.{jimfs,commons-io}.native.daemon'"
             java-version: 23
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with: { fetch-depth: 1 }
 
       - uses: ./.github/actions/pre-build-setup
@@ -141,7 +142,7 @@ jobs:
           # on the opposite version on Windows below, so we get decent coverage of
           # each test on each Java version and each operating system
           # We also try to group tests together to manually balance out the runtimes of each jobs
-          - millargs: "'{contrib,core,testkit,runner,dist}.__.test'"
+          - millargs: "'{contrib,core,testkit,runner,dist.scripts}.__.test'"
 
           - millargs: "'libs.scalalib.__.test'"
 
@@ -161,7 +162,10 @@ jobs:
           - millargs: "example.thirdparty.android-compose-samples.packaged.daemon"
             setup-android: true
 
-          - millargs: "example.migrating.scalalib._"
+          - millargs: "example.thirdparty.koin-androidx-samples.packaged.daemon"
+            setup-android: true
+
+          - millargs: "example.migrating._._.testForked"
             install-sbt: true
 
           - millargs: "'example.{groovylib,pythonlib,javascriptlib}._._'"
@@ -190,7 +194,7 @@ jobs:
       setup-android: ${{ matrix.setup-android || false }}
       install-sbt: ${{ matrix.install-sbt || false }}
       install-xvfb: ${{ matrix.install-xvfb || false }}
-      java-version: 21
+      java-version: 25
       millargs: ${{ matrix.millargs }}
       extra: ${{ matrix.extra || '' }}
       shell: bash
@@ -218,7 +222,7 @@ jobs:
     uses: ./.github/workflows/post-build-selective.yml
     with:
       os: windows-latest
-      java-version: 21
+      java-version: 25
       millargs: ${{ matrix.millargs }}
       extra: ${{ matrix.extra || '' }}
       shell: powershell

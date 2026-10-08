@@ -31,12 +31,13 @@ class Modeler(
 
   /** Returns the [[ModelBuildingResult]] for `pomFile`. */
   def build(pomFile: File): ModelBuildingResult = {
-    val request = new DefaultModelBuildingRequest()
+    val request = DefaultModelBuildingRequest()
     request.setPomFile(pomFile)
     request.setModelResolver(resolver)
     request.setSystemProperties(systemProperties)
     request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL)
     request.setTwoPhaseBuilding(true)
+    request.setLocationTracking(true)
     try {
       val result1 = builder.build(request)
       val depMgmt1 = Option(result1.getEffectiveModel.getDependencyManagement).map(_.clone)
@@ -60,26 +61,26 @@ object Modeler {
       context: String = "",
       systemProperties: Properties = null
   ): Modeler = {
-    val builder = new DefaultModelBuilderFactory().newInstance()
-    val system = new RepositorySystemSupplier().get()
+    val builder = DefaultModelBuilderFactory().newInstance()
+    val system = RepositorySystemSupplier().get()
     val session = MavenRepositorySystemUtils.newSession()
     session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, local))
-    val resolver = new Resolver(system, session, remotes, context)
+    val resolver = Resolver(system, session, remotes, context)
     val properties = Option(systemProperties).getOrElse(defaultSystemProperties(mvnWorkspace))
     new Modeler(mvnWorkspace, builder, resolver, properties)
   }
 
   def defaultLocalRepository: LocalRepository =
-    new LocalRepository((os.home / ".m2/repository").toIO)
+    LocalRepository((os.home / ".m2/repository").toIO)
 
   def defaultRemoteRepositories: Seq[RemoteRepository] =
     Seq(
-      new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2")
+      RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2")
         .build()
     )
 
   def defaultSystemProperties(mvnWorkspace: os.Path): Properties = {
-    val props = new Properties()
+    val props = Properties()
     System.getenv().forEach((k, v) => props.put(s"env.$k", v))
     System.getProperties.forEach((k, v) => props.put(k, v))
     props.put("maven.multiModuleProjectDirectory", mvnWorkspace.toString)

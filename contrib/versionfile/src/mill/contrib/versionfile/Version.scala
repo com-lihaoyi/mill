@@ -30,7 +30,7 @@ sealed trait Version {
       case Bump.minor => (major, minor + 1, 0)
       case Bump.patch => (major, minor, patch + 1)
       case _ =>
-        throw new RuntimeException(s"Valid arguments for bump are: ${Bump.values.mkString(", ")}")
+        throw RuntimeException(s"Valid arguments for bump are: ${Bump.values.mkString(", ")}")
     }
 
     this match {

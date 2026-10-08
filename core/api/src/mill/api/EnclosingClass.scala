@@ -26,7 +26,7 @@ object EnclosingClass {
 
       val cls = enclosingClass(owner).typeRef
       val res =
-        '{ new EnclosingClass(${ Ref(defn.Predef_classOf).appliedToType(cls).asExprOf[Class[?]] }) }
+        '{ EnclosingClass(${ Ref(defn.Predef_classOf).appliedToType(cls).asExprOf[Class[?]] }) }
       res
     }
 }

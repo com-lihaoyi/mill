@@ -9,11 +9,12 @@ object CodeSig {
       ignoreCall: (Option[MethodDef], MethodSig) => Boolean,
       logger: Logger,
       prevTransitiveCallGraphHashesOpt: () => Option[Map[String, Int]],
-      prevMethodCodeHashesOpt: () => Option[Map[String, Int]] = () => None
+      prevMethodCodeHashesOpt: () => Option[Map[String, Int]] = () => None,
+      ctx: Option[mill.api.TaskCtx] = None
   ): CallGraphAnalysis = {
-    implicit val st: SymbolTable = new SymbolTable()
+    implicit val st: SymbolTable = SymbolTable()
 
-    val localSummary = LocalSummary.apply(classFiles.iterator.map(os.read.inputStream(_)))
+    val localSummary = LocalSummary.apply(classFiles.iterator.map(os.read.inputStream(_)), ctx)
     logger.log(localSummary)
 
     val externalSummary = ExternalSummary.apply(localSummary, upstreamClasspath)
@@ -22,7 +23,7 @@ object CodeSig {
     val resolvedMethodCalls = ResolvedCalls.apply(localSummary, externalSummary)
     logger.log(resolvedMethodCalls)
 
-    new CallGraphAnalysis(
+    CallGraphAnalysis(
       localSummary,
       resolvedMethodCalls,
       externalSummary,

@@ -66,7 +66,6 @@ object CompileRunTests extends TestSuite {
     object inherited extends ScalaNativeModule {
       val (scala, scalaNative, _) = matrix.head
       def scalacOptions = Seq("-deprecation")
-      def scalaOrganization = "org.example"
       def scalaVersion = scala
       def scalaNativeVersion = scalaNative
       object test extends ScalaNativeTests with TestModule.Utest
@@ -124,7 +123,7 @@ object CompileRunTests extends TestSuite {
             ReleaseMode.ReleaseFast
           ).jar).runtimeChecked
         val jar = result.value.path
-        val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
+        val entries = JarFile(jar.toIO).entries().asScala.map(_.getName)
         assert(entries.contains("hello/Main$.nir"))
       }
     }

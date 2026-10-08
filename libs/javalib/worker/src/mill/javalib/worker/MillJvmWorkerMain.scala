@@ -61,8 +61,8 @@ object MillJvmWorkerMain {
       val serverName = s"$className{${connectionData.socketName}}"
       val transport = MillRpcWireTransport(
         name = serverName,
-        serverToClient = new BufferedReader(new InputStreamReader(connectionData.clientToServer)),
-        clientToServer = new PrintStream(connectionData.serverToClient, true),
+        serverToClient = BufferedReader(InputStreamReader(connectionData.clientToServer)),
+        clientToServer = PrintStream(connectionData.serverToClient, true),
         writeSynchronizer = new Object
       )
       JvmWorkerServerData(transport)
@@ -93,7 +93,8 @@ object MillJvmWorkerMain {
     override def endConnection(
         connectionData: ConnectionData,
         data: Option[JvmWorkerServerData],
-        result: Option[Unit]
+        result: Option[Unit],
+        externalShutdownReason: Option[String]
     ): Unit = {
       // Close the transport to release resources
       data.foreach { d =>

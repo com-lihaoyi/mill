@@ -45,10 +45,12 @@ trait BuildGen {
         imports = (a.imports ++ b.imports).distinct.filter(!_.startsWith("millbuild.")),
         supertypes = a.supertypes.intersect(b.supertypes) match {
           case Nil => hierarchy.take(1)
-          case seq if hierarchy.contains(seq.head) => seq
+          case seq if seq.exists(hierarchy.contains) => seq
           case seq => hierarchy.head +: seq
         },
         repositories = parentValues(a.repositories, b.repositories),
+        springBootPlatformVersion =
+          parentValue(a.springBootPlatformVersion, b.springBootPlatformVersion),
         forkArgs = parentValues(a.forkArgs, b.forkArgs),
         forkWorkingDir = parentValue(a.forkWorkingDir, b.forkWorkingDir),
         mandatoryMvnDeps = parentValues(a.mandatoryMvnDeps, b.mandatoryMvnDeps),
@@ -98,7 +100,12 @@ trait BuildGen {
           parentValues(a.mimaForwardIssueFilters, b.mimaForwardIssueFilters),
         mimaExcludeAnnotations = parentValues(a.mimaExcludeAnnotations, b.mimaExcludeAnnotations),
         mimaReportSignatureProblems =
-          parentValue(a.mimaReportSignatureProblems, b.mimaReportSignatureProblems)
+          parentValue(a.mimaReportSignatureProblems, b.mimaReportSignatureProblems),
+        annotationProcessorsMvnDeps =
+          parentValues(a.annotationProcessorsMvnDeps, b.annotationProcessorsMvnDeps),
+        kotlinVersion = parentValue(a.kotlinVersion, b.kotlinVersion),
+        kotlincOptions = parentValues(a.kotlincOptions, b.kotlincOptions),
+        kotlincPluginMvnDeps = parentValues(a.kotlincPluginMvnDeps, b.kotlincPluginMvnDeps)
       )
 
     def extendValue[A](a: Value[A], parent: Value[A]) = a.copy(
@@ -119,6 +126,8 @@ trait BuildGen {
     def extendModule(a: ModuleSpec, parent: ModuleSpec): ModuleSpec = a.copy(
       supertypes = (parent.name +: a.supertypes).diff(parent.supertypes),
       repositories = extendValues(a.repositories, parent.repositories),
+      springBootPlatformVersion =
+        extendValue(a.springBootPlatformVersion, parent.springBootPlatformVersion),
       forkArgs = extendValues(a.forkArgs, parent.forkArgs),
       forkWorkingDir = extendValue(a.forkWorkingDir, parent.forkWorkingDir),
       mandatoryMvnDeps = extendValues(a.mandatoryMvnDeps, parent.mandatoryMvnDeps),
@@ -170,7 +179,12 @@ trait BuildGen {
       mimaExcludeAnnotations =
         extendValues(a.mimaExcludeAnnotations, parent.mimaExcludeAnnotations),
       mimaReportSignatureProblems =
-        extendValue(a.mimaReportSignatureProblems, parent.mimaReportSignatureProblems)
+        extendValue(a.mimaReportSignatureProblems, parent.mimaReportSignatureProblems),
+      annotationProcessorsMvnDeps =
+        extendValues(a.annotationProcessorsMvnDeps, parent.annotationProcessorsMvnDeps),
+      kotlinVersion = extendValue(a.kotlinVersion, parent.kotlinVersion),
+      kotlincOptions = extendValues(a.kotlincOptions, parent.kotlincOptions),
+      kotlincPluginMvnDeps = extendValues(a.kotlincPluginMvnDeps, parent.kotlincPluginMvnDeps)
     )
 
     val (baseHierarchy, testHierarchy) = baseTestHierarchy.unzip

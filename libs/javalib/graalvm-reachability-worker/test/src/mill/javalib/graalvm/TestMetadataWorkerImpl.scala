@@ -8,7 +8,7 @@ object TestMetadataWorkerImpl extends TestSuite {
 
   val workDir = os.temp.dir()
 
-  val metadata: GraalVMMetadataWorker = new GraalVMMetadataWorkerImpl()
+  val metadata: GraalVMMetadataWorker = GraalVMMetadataWorkerImpl()
 
   val rootDir = metadata.downloadRepo(workDir, version)
 

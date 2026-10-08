@@ -35,7 +35,7 @@ object BSP {
 
   private def bspConnectionJson(jobs: Int, debug: Boolean): String = {
     val millPath = sys.env.get("MILL_EXECUTABLE_PATH")
-      .getOrElse(throw new IllegalStateException("Env 'MILL_EXECUTABLE_PATH' not set"))
+      .getOrElse(throw IllegalStateException("Env 'MILL_EXECUTABLE_PATH' not set"))
 
     upickle.write(
       BspConfigJson(

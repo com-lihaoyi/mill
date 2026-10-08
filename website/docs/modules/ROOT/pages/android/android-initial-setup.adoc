@@ -92,11 +92,23 @@ If you want to exclude the default arguments provided by Mill, you can set the `
 If setting the `--excludeDefaultArgs` flag, make sure to provide it first before any additional arguments.
 ====
 
-=== Install your application on the running emulator
-This will install apk built by the `app.androidApk` command.
+=== Install and run your application on the running emulator
+The `androidInstall` command installs the apk built by the `app.androidApk` command.
 [source,console]
 ----
 > ./mill app.androidInstall
+----
+
+The `run` command installs the apk and also starts the main activity of the application.
+[source,console]
+----
+> ./mill app.run
+----
+
+If you want to start a specific activity, you can use the `androidRun` command with the `--activity` flag by providing the fully qualified name of the activity. If `--activity` is not provided, it defaults to the main activity detected from the manifest file.
+[source,console]
+----
+> ./mill app.androidRun --activity com.example.MainActivity
 ----
 
 === Stop the emulator

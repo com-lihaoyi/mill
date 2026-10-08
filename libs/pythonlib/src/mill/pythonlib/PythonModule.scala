@@ -8,7 +8,7 @@ import mill.api.TaskCtx
 import mill.javalib.JavaHomeModule
 import mill.api.BuildCtx
 
-trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule { outer =>
+trait PythonModule extends UvModule with DefaultTaskModule with JavaHomeModule { outer =>
 
   /**
    *  The direct dependencies of this module.
@@ -17,8 +17,7 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   def moduleDeps: Seq[PythonModule] = Nil
 
   /**
-   * Python interpreter found on the host system. This will be used to create a
-   * new virtual environment, which will be used by all tasks in this module.
+   * Python version request passed to uv when creating the virtual environment.
    *
    * If you'd like to use a specific python version, override this task to
    * point to a specific python executable.
@@ -26,17 +25,64 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    * Examples:
    *
    * ```
-   * // use whatever python version is installed on the host system (default)
-   * def hostPythonCommand = T{ "python3" }
+   * // use Mill's default modern Python version
+   * def pythonVersion = T{ "3.12" }
    *
    * // use a specific minor release
-   * def hostPythonCommand = T{ "python3.12" }
+   * def pythonVersion = T{ "3.13" }
    *
    * // use a specific executable file
-   * def hostPythonCommand = T{ "/usr/bin/python3" }
+   * def pythonVersion = T{ "/usr/bin/python3" }
    * ```
    */
-  def hostPythonCommand: T[String] = Task { "python3" }
+  def pythonVersion: T[String] = Task { "3.12" }
+
+  private def venvBinPath(venv: os.Path): os.Path =
+    venv / (if (mill.constants.Util.isWindows) "Scripts" else "bin")
+
+  private def venvExecutable(venv: os.Path, name: String): os.Path =
+    venvBinPath(venv) / (name + (if (mill.constants.Util.isWindows) ".exe" else ""))
+
+  /*
+   * Initialize a virtual environment for this module, and install all libraries and tools
+   * needed by this module and its dependencies.
+   */
+  def venv: T[PathRef] = Task {
+    val venv = Task.dest / "venv"
+    val uvEnv = uvEnvTask()
+    os.call(
+      (uvExe().path, "venv", "--python", pythonVersion(), venv),
+      env = uvEnv,
+      stdout = os.Inherit
+    )
+    val python = venvExecutable(venv, "python")
+    val installArgs = uvInstallArgs().args
+    if (installArgs != uvIndexArgs()) {
+      os.call(
+        (
+          uvExe().path,
+          "pip",
+          "install",
+          "--python",
+          python,
+          "--strict",
+          installArgs
+        ),
+        env = uvEnv,
+        stdout = os.Inherit
+      )
+    }
+    PathRef(venv)
+  }
+
+  /*
+   * The path to the binary directory of the virtual environment which has been
+   * initialized to contain all libraries and tools needed by this module and its
+   * dependencies.
+   */
+  def venvBin: T[PathRef] = Task {
+    PathRef(venvBinPath(venv().path))
+  }
 
   /**
    * An executable python interpreter. This interpreter is set up to run in a
@@ -44,16 +90,15 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    * tools needed by this module and its dependencies.
    */
   def pythonExe: T[PathRef] = Task {
-    os.call((hostPythonCommand(), "-m", "venv", Task.dest / "venv"))
-    val python = Task.dest / "venv/bin/python3"
-    os.call((python, "-m", "pip", "install", pipInstallArgs().args), stdout = os.Inherit)
-    PathRef(python)
+    PathRef(venvExecutable(venv().path, "python"))
   }
 
   /**
-   * The folders where the source files for this mill module live.
+   * The paths where the source files for this Mill module live.
    *
-   * Python modules will be defined relative to these directories.
+   * Standard [[PythonModule]]s return source directories, while
+   * [[BarePythonModule]] returns individual files whose import names are based
+   * on their paths relative to the workspace root.
    */
   def sources: T[Seq[PathRef]] = Task.Sources("src")
 
@@ -67,12 +112,11 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    */
   def mainScript: T[PathRef] = Task.Source("src/main.py")
 
-  override def pythonToolDeps: T[Seq[String]] = Task {
-    super.pythonToolDeps() ++ Seq(
-      "mypy==1.13.0",
-      "pex==2.24.1"
-    )
-  }
+  /** The isolated ty tool environment managed and cached by uv. */
+  def tyTool: T[String] = Task { "ty==0.0.84" }
+
+  /** The isolated PEX tool environment managed and cached by uv. */
+  def pexTool: T[String] = Task { "pex==2.103.4" }
 
   /**
    * Additional directories to include in the PYTHONPATH directly. These paths
@@ -117,6 +161,9 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    */
   def pythonOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
+  /** Additional interpreter options for a second and later related invocation. */
+  protected def repeatedPythonOptions: T[Seq[String]] = Task { Seq.empty[String] }
+
   /**
    * Command-line options to pass as bundle configuration defined by the user.
    */
@@ -133,12 +180,36 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
     )
   }
 
-  private def runnerEnvTask = Task.Anon {
+  /** A runner for invoking uv with the module environment. */
+  def uvRunner: Task[PythonModule.Runner] = Task.Anon {
+    new PythonModule.RunnerImpl(
+      command0 = uvExe().path.toString,
+      options = Nil,
+      env0 = uvEnvTask(),
+      workingDir0 = Task.dest
+    )
+  }
+
+  private def processEnvTask = Task.Anon {
     Map(
-      "PYTHONPATH" -> transitivePythonPath().map(_.path).mkString(java.io.File.pathSeparator),
-      "PYTHONPYCACHEPREFIX" -> (Task.dest / "cache").toString,
       if (Task.log.prompt.colored) { "FORCE_COLOR" -> "1" }
       else { "NO_COLOR" -> "1" }
+    ) ++ javaHome().map(javaHome => "JAVA_HOME" -> javaHome.path.toString)
+  }
+
+  private def uvEnvTask = Task.Anon {
+    PythonModule.uvEnvironment(processEnvTask(), forkEnv(), Task.offline)
+  }
+
+  private def runnerEnvTask = Task.Anon {
+    processEnvTask() ++ Map(
+      "PYTHONPATH" -> transitivePythonPath().map(_.path).mkString(java.io.File.pathSeparator),
+      "PYTHONPYCACHEPREFIX" -> (Task.dest / "cache").toString,
+      "VIRTUAL_ENV" -> venv().path.toString,
+      "PATH" -> (
+        venvBin().path.toString + java.io.File.pathSeparator +
+          PythonModule.pathEnvironmentValue(Task.env)
+      )
     )
   }
 
@@ -146,12 +217,18 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    * Run a typechecker on this module.
    */
   def typeCheck: T[Unit] = Task {
-    runner().run(
+    uvRunner().run(
       (
         // format: off
-        "-m", "mypy",
-        "--strict",
-        "--cache-dir", (Task.dest / "mypycache").toString,
+        "tool", "run",
+        uvIndexArgs(),
+        "--from", tyTool(),
+        "ty",
+        "check",
+        "--python", pythonExe().path,
+        transitivePythonPath().filter(path => os.exists(path.path)).flatMap(path =>
+          Seq("--extra-search-path", path.path.toString)
+        ),
         sources().map(_.path)
         // format: on
       )
@@ -186,12 +263,11 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
         mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
         classPath = mill.javalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
-        env = runnerEnvTask(),
+        env = runnerEnvTask() ++ forkEnv(),
         mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
-          pythonExe().path.toString,
-          mainScript().path.toString
-        ) ++ args.value,
+          pythonExe().path.toString
+        ) ++ pythonOptions() ++ Seq(mainScript().path.toString) ++ args.value,
         cwd = BuildCtx.workspaceRoot,
         stdin = "",
         // Hack to forward the background subprocess output to the Mill server process
@@ -220,34 +296,123 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
     }
   }
 
-  /** Bundles the project into a single PEX executable(bundle.pex). */
+  /** Bundles the project into a self-contained native PEX SCIE executable. */
   def bundle = Task {
-    val pexFile = Task.dest / "bundle.pex"
-    runner().run(
+    if (Task.offline) {
+      Task.fail(
+        "PEX SCIE bundles cannot be built with --offline because PEX may need to download " +
+          "the science launcher and portable Python assets"
+      )
+    }
+    val bundleFile = Task.dest / (if (mill.constants.Util.isWindows) "bundle.exe" else "bundle")
+    val sciePythonVersion = os.call(
+      (
+        pythonExe().path,
+        "-c",
+        "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
+      )
+    ).out.trim()
+    val projectWheels = transitivePythonProjectDeps().distinctBy(_.path).zipWithIndex.map {
+      case (project, index) =>
+        val outputDir = Task.dest / "project-wheels" / index.toString
+        uvRunner().run(
+          (
+            "build",
+            "--python",
+            pythonVersion(),
+            uvIndexArgs(),
+            "--wheel",
+            "--clear",
+            "--no-create-gitignore",
+            "--out-dir",
+            outputDir,
+            project.path
+          ),
+          workingDir = Task.dest
+        )
+        os.list(outputDir).filter(_.ext == "whl") match {
+          case Seq(wheel) => wheel
+          case artifacts =>
+            Task.fail(
+              s"Expected exactly one wheel for local Python project ${project.path}, " +
+                s"found: ${artifacts.mkString(", ")}"
+            )
+        }
+    }
+    val requirements = transitivePythonDeps() ++
+      transitiveUnmanagedWheels().map(_.path.toString) ++
+      projectWheels.map(_.toString)
+    val requirementFiles = transitivePythonRequirementFiles().filter { path =>
+      os.exists(path.path) && os.read.lines(path.path).exists { line =>
+        val trimmed = line.trim
+        trimmed.nonEmpty && !trimmed.startsWith("#")
+      }
+    }
+    val venvRepositoryArgs =
+      if (requirements.nonEmpty || requirementFiles.nonEmpty)
+        Seq("--venv-repository", venv().path.toString)
+      else Nil
+    uvRunner().run(
       (
         // format: off
-        "-m", "pex",
-        transitivePythonDeps().toSeq,
+        "tool", "run",
+        uvIndexArgs(),
+        "--from", pexTool(),
+        "pex",
+        requirements,
+        requirementFiles.flatMap(path => Seq("-r", path.path.toString)),
+        venvRepositoryArgs,
         transitivePythonPath().flatMap(pr =>
           Seq("-D", pr.path.toString)
         ),
         "--exe", mainScript().path,
-        "-o", pexFile,
+        "--scie", "eager",
+        "--scie-python-version", sciePythonVersion,
+        "--scie-only",
+        "-o", bundleFile,
         bundleOptions()
         // format: on
       ),
       workingDir = Task.dest
     )
-    PathRef(pexFile)
+    PathRef(bundleFile)
   }
 
   trait PythonTests extends PythonModule {
     override def moduleDeps: Seq[PythonModule] = Seq(outer)
+
+    override def pythonVersion: T[String] = outer.pythonVersion
+    override def uvVersion: T[String] = outer.uvVersion
+    override def uvDownloadUrl: T[String] = outer.uvDownloadUrl
+    override def uvChecksumUrl: T[String] = outer.uvChecksumUrl
+    override def uvExe: T[PathRef] = outer.uvExe
+    override def indexes: T[Seq[String]] = outer.indexes
+
+    override def jvmId: T[String] = outer.jvmId
+    override def jvmVersion: T[String] = outer.jvmVersion
+    override def jvmIndexVersion: T[String] = outer.jvmIndexVersion
+    override def javaHome: T[Option[PathRef]] = outer.javaHome
   }
 
 }
 
 object PythonModule {
+
+  /** A [[BarePythonModule]] available as `PythonModule.Bare`. */
+  trait Bare extends BarePythonModule
+
+  private[pythonlib] def pathEnvironmentValue(env: collection.Map[String, String]): String =
+    env.collectFirst { case (key, value) if key.equalsIgnoreCase("PATH") => value }.getOrElse("")
+
+  private[pythonlib] def uvEnvironment(
+      defaults: Map[String, String],
+      forkEnv: Map[String, String],
+      offline: Boolean
+  ): Map[String, String] = {
+    val environment = defaults ++ forkEnv
+    if (offline) environment.updated("UV_OFFLINE", "1") else environment
+  }
+
   trait Runner {
     def run(
         args: os.Shellable = Seq(),
@@ -271,7 +436,7 @@ object PythonModule {
     )(using ctx: TaskCtx): Unit = {
       os.call(
         cmd = Seq(Option(command).getOrElse(command0)) ++ options ++ args.value,
-        env = Option(env).getOrElse(env0),
+        env = env0 ++ Option(env).getOrElse(Map.empty),
         cwd = Option(workingDir).getOrElse(workingDir0),
         stdin = os.Inherit,
         stdout = os.Inherit,

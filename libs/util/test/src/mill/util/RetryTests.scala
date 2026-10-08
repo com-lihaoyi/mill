@@ -10,7 +10,7 @@ object RetryTests extends TestSuite {
       try {
         Retry(logger = Retry.printStreamLogger(System.err)) {
           count += 1
-          throw new Exception("boom")
+          throw Exception("boom")
         }
       } catch {
         case ex =>
@@ -23,7 +23,7 @@ object RetryTests extends TestSuite {
       var count = 0
       Retry(logger = Retry.printStreamLogger(System.err)) {
         count += 1
-        if (count < 3) throw new Exception("boom")
+        if (count < 3) throw Exception("boom")
       }
       assert(count == 3)
     }
@@ -38,8 +38,8 @@ object RetryTests extends TestSuite {
           }
         ) {
           count += 1
-          if (count < 3) throw new RuntimeException("boom")
-          else throw new Exception("foo")
+          if (count < 3) throw RuntimeException("boom")
+          else throw Exception("foo")
         }
       } catch {
         case e: Exception =>

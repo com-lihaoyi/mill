@@ -47,7 +47,7 @@ private[mill] object ParseArgs {
     fastparse.parse(input, parser(using _)) match {
       case Parsed.Success(result, _) => result
       case f: Parsed.Failure =>
-        throw new IllegalArgumentException(s"Failed to parse shell args: ${f.msg}")
+        throw IllegalArgumentException(s"Failed to parse shell args: ${f.msg}")
     }
   }
 

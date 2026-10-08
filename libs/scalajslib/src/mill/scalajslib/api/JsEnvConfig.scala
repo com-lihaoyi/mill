@@ -154,7 +154,7 @@ object JsEnvConfig {
         debug = debug,
         launchOptions = launchOptions
       )
-      new Playwright(options)
+      Playwright(options)
 
     case class ChromeOptions(
         headless: Boolean = true,
@@ -192,7 +192,7 @@ object JsEnvConfig {
         debug = debug,
         firefoxUserPrefs = firefoxUserPrefs
       )
-      new Playwright(options)
+      Playwright(options)
     case class FirefoxOptions(
         headless: Boolean = true,
         showLogs: Boolean = false,
@@ -219,7 +219,7 @@ object JsEnvConfig {
                 json.numOpt
               ).orElse(
                 json.strOpt.map(_.toString)
-              ).getOrElse(throw new Exception("Invalid value"))
+              ).getOrElse(throw Exception("Invalid value"))
         )
       given rw: RW[FirefoxOptions] = macroRW
 
@@ -246,7 +246,7 @@ object JsEnvConfig {
         debug = debug,
         launchOptions = launchOptions
       )
-      new Playwright(options)
+      Playwright(options)
 
     case class WebkitOptions(
         headless: Boolean = true,

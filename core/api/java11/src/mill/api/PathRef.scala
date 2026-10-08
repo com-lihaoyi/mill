@@ -38,16 +38,8 @@ case class PathRef private[mill] (
   def withRevalidate(revalidate: PathRef.Revalidate): PathRef = copy(revalidate = revalidate)
   def withRevalidateOnce: PathRef = copy(revalidate = PathRef.Revalidate.Once)
 
-  override def toString: String = {
-    val quick = if (this.quick) "qref:" else "ref:"
-    val valid = revalidate match {
-      case PathRef.Revalidate.Never => "v0:"
-      case PathRef.Revalidate.Once => "v1:"
-      case PathRef.Revalidate.Always => "vn:"
-    }
-    val sig = String.format("%08x", this.sig: Integer)
-    quick + valid + sig + ":" + path.toString()
-  }
+  override def toString: String =
+    PathRef.PathRefFormat.render(quick, revalidate, sig, path.toString())
 }
 
 object PathRef {
@@ -73,7 +65,7 @@ object PathRef {
         case Revalidate.Once | Revalidate.Always =>
           val changedSig = PathRef.apply(pathRef.path, pathRef.quick).sig
           if (pathRef.sig != changedSig) {
-            throw new PathRefValidationException(pathRef)
+            throw PathRefValidationException(pathRef)
           }
           val _ = map.put(mapKey(pathRef), pathRef)
       }
@@ -82,10 +74,10 @@ object PathRef {
   }
 
   private[mill] val validatedPaths: DynamicVariable[ValidatedPaths] =
-    new DynamicVariable[ValidatedPaths](new ValidatedPaths())
+    DynamicVariable[ValidatedPaths](ValidatedPaths())
 
   private[mill] val serializedPaths: DynamicVariable[List[PathRef]] =
-    new DynamicVariable(null)
+    DynamicVariable(null)
 
   class PathRefValidationException(val pathRef: PathRef)
       extends RuntimeException(s"Invalid path signature detected: ${pathRef}")
@@ -118,7 +110,7 @@ object PathRef {
     val sig = {
       val isPosix = path.wrapped.getFileSystem.supportedFileAttributeViews().contains("posix")
       val digest = MessageDigest.getInstance("MD5")
-      val digestOut = new DigestOutputStream(DummyOutputStream, digest)
+      val digestOut = DigestOutputStream(DummyOutputStream, digest)
 
       def updateWithInt(value: Int): Unit = {
         digest.update((value >>> 24).toByte)
@@ -171,7 +163,7 @@ object PathRef {
       java.util.Arrays.hashCode(digest.digest())
     }
 
-    new PathRef(path, quick, sig, revalidate)
+    PathRef(path, quick, sig, revalidate)
   }
 
   private[mill] def withSerializedPaths[T](block: => T): (T, Seq[PathRef]) = {
@@ -197,41 +189,81 @@ object PathRef {
       storeSerializedPaths(p)
       p.toString()
     },
-    {
-      case s"$prefix:$valid0:$hex:$pathString" if prefix == "ref" || prefix == "qref" =>
+    { s =>
+      PathRefFormat.parse(s) match {
+        case Some(parsed) =>
+          val path = os.Path(parsed.pathString)
+          val pr = PathRef(path, parsed.quick, parsed.sig, revalidate = parsed.revalidate)
+          validatedPaths.value.revalidateIfNeededOrThrow(pr)
+          storeSerializedPaths(pr)
+          pr
+        case None =>
+          val path =
+            if (s.startsWith("//")) os.Path(s.substring(2), BuildCtx.workspaceRoot)
+            else os.Path(s, currentOverrideModulePath.value)
 
-        val path = os.Path(pathString)
-        val quick = prefix match {
-          case "qref" => true
-          case "ref" => false
-        }
-        val validOrig = valid0 match {
-          case "v0" => Revalidate.Never
-          case "v1" => Revalidate.Once
-          case "vn" => Revalidate.Always
-        }
-        // Parsing to a long and casting to an int is the only way to make
-        // round-trip handling of negative numbers work =(
-        val sig = java.lang.Long.parseLong(hex, 16).toInt
-        val pr = PathRef(path, quick, sig, revalidate = validOrig)
-        validatedPaths.value.revalidateIfNeededOrThrow(pr)
-        storeSerializedPaths(pr)
-        pr
-      case s =>
-        val path = s match {
-          case s"//$rest" => os.Path(rest, BuildCtx.workspaceRoot)
-          case _ => os.Path(s, currentOverrideModulePath.value)
-        }
-
-        mill.api.BuildCtx.withFilesystemCheckerDisabled(PathRef(path))
+          mill.api.BuildCtx.withFilesystemCheckerDisabled(PathRef(path))
+      }
     }
   )
+
+  /**
+   * The single encode/decode codec for the [[PathRef.toString]] wire format
+   * (`{qref|ref}:{v0|v1|vn}:{08x-sig}:{path}`). Owns the token tables and the
+   * signed-hex convention so encode ([[render]]) and decode ([[parse]]) can never
+   * drift. This format is an on-disk + remote-cache contract, pinned byte-for-byte
+   * by `PathRefTests.json`.
+   */
+  private[mill] object PathRefFormat {
+    final case class Parsed(quick: Boolean, revalidate: Revalidate, sig: Int, pathString: String)
+
+    private def quickToken(quick: Boolean): String = if (quick) "qref" else "ref"
+
+    private def revalidateToken(revalidate: Revalidate): String = revalidate match {
+      case Revalidate.Never => "v0"
+      case Revalidate.Once => "v1"
+      case Revalidate.Always => "vn"
+    }
+
+    private def parseRevalidate(token: String): Revalidate = token match {
+      case "v0" => Revalidate.Never
+      case "v1" => Revalidate.Once
+      case "vn" => Revalidate.Always
+    }
+
+    private def renderSig(sig: Int): String = String.format("%08x", sig: Integer)
+
+    // Parsing to a long and casting to an int is the only way to make
+    // round-trip handling of negative numbers work =(
+    private def parseSig(hex: String): Int = java.lang.Long.parseLong(hex, 16).toInt
+
+    def render(quick: Boolean, revalidate: Revalidate, sig: Int, pathString: String): String =
+      s"${quickToken(quick)}:${revalidateToken(revalidate)}:${renderSig(sig)}:$pathString"
+
+    def parse(s: String): Option[Parsed] = {
+      val firstColon = s.indexOf(':')
+      if (firstColon < 0) None
+      else {
+        val prefix = s.substring(0, firstColon)
+        if (prefix != "ref" && prefix != "qref") None
+        else {
+          val secondColon = s.indexOf(':', firstColon + 1)
+          val thirdColon = if (secondColon < 0) -1 else s.indexOf(':', secondColon + 1)
+          if (secondColon < 0 || thirdColon < 0) None
+          else Some(Parsed(
+            quick = prefix == "qref",
+            revalidate = parseRevalidate(s.substring(firstColon + 1, secondColon)),
+            sig = parseSig(s.substring(secondColon + 1, thirdColon)),
+            pathString = s.substring(thirdColon + 1)
+          ))
+        }
+      }
+    }
+  }
   private[mill] val currentOverrideModulePath = DynamicVariable[os.Path](null)
 
-  // scalafix:off; we want to hide the unapply method
   @nowarn("msg=unused")
   private def unapply(pathRef: PathRef): Option[(os.Path, Boolean, Int, Revalidate)] = {
     Some((pathRef.path, pathRef.quick, pathRef.sig, pathRef.revalidate))
   }
-  // scalalfix:on
 }

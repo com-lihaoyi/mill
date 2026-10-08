@@ -17,7 +17,7 @@ object foo extends JavaModule {
     val context = new Context
     context.setVariable("heading", "hello")
     context.setVariable("paragraph", "world")
-    new TemplateEngine().process(
+    TemplateEngine().process(
       """<div><h1 th:text="${heading}"></h1><p th:text="${paragraph}"></p></div>""",
       context
     )

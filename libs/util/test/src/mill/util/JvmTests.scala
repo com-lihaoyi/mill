@@ -22,7 +22,7 @@ object JvmTests extends TestSuite {
       Jvm.createClasspathPassingJar(aJar, Seq(dep1, dep2))
       assert(os.exists(aJar))
 
-      val jar = new JarFile(aJar.toIO)
+      val jar = JarFile(aJar.toIO)
       assert(jar.getManifest().getMainAttributes().containsKey(Attributes.Name.CLASS_PATH))
       assert(jar.getManifest().getMainAttributes().getValue(Attributes.Name.CLASS_PATH) ==
         Seq(dep1, dep2).map(_.toURL.toExternalForm()).mkString(" "))

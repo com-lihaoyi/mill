@@ -37,7 +37,7 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi, AutoCloseable {
       ZincOp.CompileJava(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
-        compileClasspath = compileClasspath,
+        compileClasspath = compileClasspath.map(PathRef(_, quick = true)),
         javacOptions = jOpts.compiler,
         incrementalCompilation = incrementalCompilation,
         workDir = workDir
@@ -73,7 +73,7 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi, AutoCloseable {
       ZincOp.CompileMixed(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
-        compileClasspath = compileClasspath,
+        compileClasspath = compileClasspath.map(PathRef(_, quick = true)),
         javacOptions = jOpts.compiler,
         scalaVersion = scalaVersion,
         scalaOrganization = scalaOrganization,

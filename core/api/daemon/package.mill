@@ -1,5 +1,6 @@
 package build.core.api.daemon
 
+import com.github.lolgab.mill.mima.{Problem, ProblemFilter}
 import mill.contrib.buildinfo.BuildInfo
 import mill.*
 import millbuild.*
@@ -18,17 +19,25 @@ object `package` extends MillStableScalaModule with BuildInfo with MillJava11Sca
   def buildInfoMembers = Seq(
     BuildInfo.Value(
       "semanticDBVersion",
-      Deps.semanticDBscala.version,
+      Deps.semanticDBscala_runtime.version,
       "SemanticDB version."
     ),
     BuildInfo.Value(
       "semanticDbJavaVersion",
-      Deps.semanticDbJava.version,
+      Deps.semanticDbJava_runtime.version,
       "Java SemanticDB plugin version."
     )
   )
 
   def mvnDeps = Seq(
-    Deps.sbtTestInterface
+    Deps.sbtTestInterface_api
   )
+
+  def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] =
+    super.mimaBinaryIssueFilters() ++ Seq(
+      // internal APIs
+      ProblemFilter.exclude[Problem](
+        "mill.api.daemon.internal.bsp.BspJavaModuleApi.*"
+      )
+    )
 }

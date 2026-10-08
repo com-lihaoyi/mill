@@ -62,7 +62,7 @@ object InstrumentalOutputReportTest extends TestSuite {
            |INSTRUMENTATION_CODE: -1
         """.stripMargin
 
-      val reader = new BufferedReader(new StringReader(testOutput))
+      val reader = BufferedReader(StringReader(testOutput))
 
       val (_, testResults) = parseTestOutputStream(reader)(DummyLogger)
 

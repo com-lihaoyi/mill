@@ -1,11 +1,10 @@
 package mill.rpc
 
 import mill.api.daemon.{Logger, Result}
+import mill.api.daemon.internal.NonFatal
 import mill.constants.EnvVars
 import pprint.TPrint
 import upickle.{Reader, Writer}
-
-import scala.util.Try
 
 /** Connects and communicates with [[MillRpcServer]]. */
 trait MillRpcClient[
@@ -59,8 +58,8 @@ object MillRpcClient {
 
               case None => s" Connection ${wireTransport.name}"
             }
-            throw new IllegalStateException(
-              s"Worker wire broken, worker likely crashed.$logDirMsg"
+            throw IllegalStateException(
+              s"Mill daemon terminated unexpectedly.$logDirMsg"
             )
           case Some(MillRpcServerToClient.Ask(dataJson)) =>
             val data = upickle.read[ServerToClient](dataJson)
@@ -78,13 +77,13 @@ object MillRpcClient {
 
       responseReceived match {
         case Some(value) => value
-        case None => throw new IllegalStateException("this should never happen")
+        case None => throw IllegalStateException("this should never happen")
       }
     }
 
     def handleServerMessage(msg: ServerToClient): Unit = {
-      val response =
-        Try(currentServerMessageHandler(msg)).toEither.left.map(RpcThrowable.fromThrowable)
+      val response = NonFatal.Try(currentServerMessageHandler(msg))
+        .toEither.left.map(RpcThrowable.fromThrowable)
       wireTransport.writeSerialized(MillRpcClientToServer.Response(response))
     }
 

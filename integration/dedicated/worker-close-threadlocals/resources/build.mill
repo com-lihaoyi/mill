@@ -12,7 +12,7 @@ object demo extends Module {
   }
 
   def myWorker = Task.Worker {
-    new MyWorker(workerEnvConfig())
+    MyWorker(workerEnvConfig())
   }
 
   def demoCrash = Task {

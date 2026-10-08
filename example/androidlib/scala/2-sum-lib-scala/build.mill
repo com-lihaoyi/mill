@@ -1,0 +1,103 @@
+//| mill-jvm-version: zulu:21
+package build
+
+import mill.*, androidlib.*, scalalib.*
+import coursier.maven.MavenRepository
+import publish.*
+
+object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = "35.0.0"
+}
+
+object lib extends AndroidScalaModule, AndroidLibModule {
+  def scalaVersion = "3.3.4"
+  def artifactName = "sumlib-scala"
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+  def androidMinSdk = 26
+  def androidCompileSdk = 34
+  def androidLibPackage = "com.example.lib"
+
+  def publishVersion = "0.0.1"
+  def pomSettings = PomSettings(
+    description = "sumlib-scala",
+    organization = "com.example.sumlib",
+    url = "https://github.com/lihaoyi/mill",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "mill"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+  )
+
+  object test extends AndroidScalaTestModule, TestModule.ScalaTest {
+    def scalaTestVersion = "3.2.19"
+  }
+}
+
+object app extends AndroidAppScalaModule {
+  def scalaVersion = "3.3.4"
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+  def androidMinSdk = 26
+  def androidCompileSdk = 34
+  def androidApplicationId = "com.example.app"
+  def androidApplicationNamespace = "com.example.app"
+
+  override def repositoriesTask = Task.Anon {
+    super.repositoriesTask() ++ Seq(
+      MavenRepository("file://" + sys.props("user.home") + "/.m2/repository")
+    )
+  }
+
+  def mvnDeps = Seq(
+    mvn"com.example.sumlib:sumlib-scala_3:0.0.1"
+  )
+
+  object test extends AndroidAppScalaTests, TestModule.ScalaTest {
+    def scalaTestVersion = "3.2.19"
+  }
+}
+
+/** Usage
+
+> ./mill show lib.test
+{
+  "msg": "...All tests passed...",
+  "results": [
+    {
+      "fullyQualifiedName": "com.example.lib.SumTests",
+      "selector": "add",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+> ./mill lib.publishM2Local
+Publish sumlib-scala_3-0.0.1 to /home/.../.m2/repository/...
+
+> ./mill show lib.publishArtifacts
+{
+  "meta": {
+    "group": "com.example.sumlib",
+    "id": "sumlib-scala_3",
+    "version": "0.0.1"
+  },
+  "payload": [
+    [
+      ".../out/lib/androidAar.dest/library.aar",
+      "sumlib-scala_3-0.0.1.aar"
+    ],
+...
+
+> ./mill show app.test
+{
+  "msg": "...All tests passed...",
+  "results": [
+    {
+      "fullyQualifiedName": "com.example.app.CalculatorTests",
+      "selector": "add",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+*/

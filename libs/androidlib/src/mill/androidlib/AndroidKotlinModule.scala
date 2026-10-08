@@ -3,7 +3,7 @@ package mill.androidlib
 import mill.*
 import mill.api.{ModuleRef, PathRef, Result}
 import mill.javalib.{CoursierModule, Dep}
-import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
+import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.{T, Task}
 import mill.androidlib.databinding.{
   AndroidDataBindingWorker,
@@ -16,6 +16,11 @@ import mill.util.Jvm
 // TODO expose Compose configuration options
 // https://kotlinlang.org/docs/compose-compiler-options.html possible options
 trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
+
+  private def kotlinSources = Task.Sources("src/main/kotlin")
+
+  override def sources: T[Seq[PathRef]] =
+    super[AndroidModule].sources() ++ kotlinSources()
 
   /**
    * Enable Jetpack Compose support in the module. Default is `false`.
@@ -39,12 +44,11 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
   private def isBindingEnabled: Boolean = androidEnableViewBinding || androidEnableDataBinding
 
   def androidDataBindingCompilerVersion: T[String] = Task {
-    isBindingEnabled match {
-      case true => throw new Exception(
-          "androidDataBindingCompilerVersion must be set (e.g. \"8.13.0\") when view or data binding is enabled."
-        )
-      case false => ""
-    }
+    if (isBindingEnabled)
+      Task.fail(
+        "androidDataBindingCompilerVersion must be set (e.g. \"8.13.0\") when view or data binding is enabled."
+      )
+    else ""
   }
 
   def androidDataBindingCompilerDeps: T[Seq[Dep]] = Task {
@@ -81,6 +85,45 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
       .asInstanceOf[AndroidDataBindingWorker]
   }
 
+  /**
+   * Gathers all resources top directories as defined in [[androidResources]]
+   * under a single directory to be passed to the xml layout processor
+   * via [[androidProcessedLayoutXmls]]. If there are conflicting files
+   * the task fails. If there is only one directory in androidResources,
+   * it is passed as the input dir so copying is avoided.
+   */
+  def androidProcessedLayoutInputDir: T[PathRef] = Task {
+    val resInputDir = Task.dest / "staged/res"
+    os.makeDir.all(resInputDir)
+
+    val qualifiedResDirs = androidResources().filter(pr => os.exists(pr.path) && os.isDir(pr.path))
+    val nonQualifiedResDirs =
+      androidResources().filter(pr => os.exists(pr.path) && !os.isDir(pr.path))
+
+    nonQualifiedResDirs.foreach {
+      pr =>
+        Task.log.warn(
+          s"Dropped $pr because is not a directory. Please note that androidResources should only point to top level directories"
+        )
+    }
+    if (qualifiedResDirs.size > 1) {
+      qualifiedResDirs.foreach(pathRef =>
+        val filesToCopy = os.list(pathRef.path)
+        filesToCopy.foreach(f =>
+          os.copy.into(
+            f,
+            resInputDir,
+            createFolders = true,
+            mergeFolders = true
+          )
+        )
+      )
+      PathRef(resInputDir)
+    } else {
+      qualifiedResDirs.headOption.getOrElse(PathRef(resInputDir))
+    }
+  }
+
   def androidProcessedLayoutXmls: T[PathRef] = Task {
 
     val resOutputDir = Task.dest / "resources"
@@ -89,8 +132,8 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     os.makeDir.all(resOutputDir)
     os.makeDir.all(layoutInfoOutputDir)
     val args = ProcessResourcesArgs(
-      applicationPackageName = androidNamespace,
-      resInputDir = androidResources().head.path.toString,
+      applicationPackageName = androidNamespace(),
+      resInputDir = androidProcessedLayoutInputDir().path.toString,
       resOutputDir = resOutputDir.toString,
       layoutInfoOutputDir = layoutInfoOutputDir.toString,
       enableViewBinding = androidEnableViewBinding,
@@ -110,7 +153,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     os.makeDir.all(outputDir)
     os.makeDir.all(classInfoDir)
     val args = GenerateBindingSourcesArgs(
-      applicationPackageName = androidNamespace,
+      applicationPackageName = androidNamespace(),
       layoutInfoDir = (androidProcessedLayoutXmls().path / "layout_info").toString,
       classInfoDir = classInfoDir.toString,
       outputDir = outputDir.toString,
@@ -133,30 +176,29 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
    * If data binding or view binding is enabled, aapt2 needs the processed resources
    * https://android.googlesource.com/platform/frameworks/data-binding/+/85dd11e6e0da7a35ca0c154beaf02b7f7217bd2f/exec/src/main/java/android/databinding/cli/ProcessXmlOptions.java#39
    */
-  override def androidCompiledModuleResources: T[Seq[PathRef]] = isBindingEnabled match {
-    case true => Task {
-        val moduleResources = Seq(androidProcessedLayoutXmls().path / "resources")
+  override def androidCompiledModuleResources: T[Seq[PathRef]] = if (isBindingEnabled)
+    Task {
+      val moduleResources = Seq(androidProcessedLayoutXmls().path / "resources")
 
-        val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
+      val aapt2Compile = Seq(androidSdkModule().aapt2Exe().path.toString(), "compile")
 
-        for (libResDir <- moduleResources) {
-          val segmentsSeq = libResDir.segments.toSeq
-          val libraryName = segmentsSeq.dropRight(1).last
-          val dirDest = Task.dest / libraryName
-          os.makeDir(dirDest)
-          val aapt2Args = Seq(
-            "--dir",
-            libResDir.toString,
-            "-o",
-            dirDest.toString
-          )
+      for (libResDir <- moduleResources) {
+        val segmentsSeq = libResDir.segments.toSeq
+        val libraryName = segmentsSeq.dropRight(1).last
+        val dirDest = Task.dest / libraryName
+        os.makeDir(dirDest)
+        val aapt2Args = Seq(
+          "--dir",
+          libResDir.toString,
+          "-o",
+          dirDest.toString
+        )
 
-          os.call(aapt2Compile ++ aapt2Args)
-        }
-        androidTransitiveCompiledResources() ++ Seq(PathRef(Task.dest))
+        os.call(aapt2Compile ++ aapt2Args)
       }
-    case false => super.androidCompiledModuleResources()
-  }
+      androidTransitiveCompiledResources() ++ Seq(PathRef(Task.dest))
+    }
+  else super.androidCompiledModuleResources()
 
   override def kotlincPluginMvnDeps: T[Seq[Dep]] = Task {
     val kv = kotlinVersion()

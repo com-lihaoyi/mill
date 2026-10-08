@@ -7,12 +7,17 @@ import mill.api.ExecResult
 import mill.api.Discover
 import utest.*
 
-import java.io.{ByteArrayOutputStream, PrintStream}
-
 object HelloKotlinTests extends TestSuite {
 
+  // Older Kotlin versions don't support running on JDK 25+ (their JdkVersion enum
+  // can't parse "25.0.2"), so filter them out when running tests on JDK 25+.
+  import scala.math.Ordering.Implicits.{seqOrdering, infixOrderingOps}
+  def supportsCurrentJdk(v: String) = Runtime.version().feature() < 25 ||
+    v.split("[.-]").take(3).flatMap(_.toIntOption).toSeq >= Seq(2, 2, 20)
   val crossMatrix = for {
-    kotlinVersion <- Seq("1.9.24", "2.0.20", "2.1.20", Versions.kotlinVersion).distinct
+    kotlinVersion <-
+      Seq("1.9.24", "2.0.20", "2.1.20", "2.3.0", "2.4.0", Versions.kotlinVersion).distinct
+    if supportsCurrentJdk(kotlinVersion)
     embeddable <- Seq(false, true)
   } yield (kotlinVersion, embeddable)
 
@@ -24,7 +29,7 @@ object HelloKotlinTests extends TestSuite {
     trait KotlinVersionCross extends KotlinModule with Cross.Module2[String, Boolean] {
       def kotlinVersion = crossValue
 
-      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { crossValue2 }
+      override def kotlinUseEmbeddableCompiler: T[Boolean] = Task { crossValue2 }
 
       override def mainClass = Some("hello.HelloKt")
 
@@ -54,6 +59,13 @@ object HelloKotlinTests extends TestSuite {
       if (embeddable) "org.jetbrains.kotlin" -> "kotlin-compiler-embeddable"
       else "org.jetbrains.kotlin" -> "kotlin-compiler"
 
+    def btApiSupported(kotlinVersion: String): Boolean = {
+      val parts = kotlinVersion.split("[.-]").toSeq
+      val major = parts.headOption.flatMap(_.toIntOption).getOrElse(0)
+      val minor = parts.lift(1).flatMap(_.toIntOption).getOrElse(0)
+      major > 2 || (major == 2 && minor >= 3)
+    }
+
     test("compile") {
       testEval().scoped { eval =>
         HelloKotlin.main.crossModules.foreach(m => {
@@ -70,6 +82,35 @@ object HelloKotlinTests extends TestSuite {
           assert(
             os.walk(result.value.classes.path).exists(_.last == "HelloKt.class")
           )
+        })
+      }
+    }
+
+    test("btApiAndCompilerDeps") {
+      testEval().scoped { eval =>
+        HelloKotlin.main.crossModules.foreach(m => {
+          val expectedBtApi = btApiSupported(m.crossValue) && m.crossValue2
+
+          val Right(useBtApi) = eval.apply(m.kotlincUseBtApi).runtimeChecked
+          assert(useBtApi.value == expectedBtApi)
+
+          val Right(compilerDeps) = eval.apply(m.kotlinCompilerMvnDeps).runtimeChecked
+          val modules = compilerDeps.value.map(_.dep.module)
+            .map(mod => mod.organization.value -> mod.name.value)
+            .toSet
+
+          assert(modules.contains(compilerDep(m.crossValue2)))
+
+          val btApiModules = Set(
+            "org.jetbrains.kotlin" -> "kotlin-build-tools-api",
+            "org.jetbrains.kotlin" -> "kotlin-build-tools-impl"
+          )
+
+          if (expectedBtApi) {
+            assert(btApiModules.subsetOf(modules))
+          } else {
+            assert(btApiModules.intersect(modules).isEmpty)
+          }
         })
       }
     }
@@ -133,107 +174,97 @@ object HelloKotlinTests extends TestSuite {
     }
 
     test("incrementalCompilation") {
-      // Enable Kotlin Build Tools API debug logging to verify incremental compilation
-      System.setProperty("kotlin.build-tools-api.log.level", "debug")
-
-      // Capture output to verify which files are marked dirty
-      val outStream = new ByteArrayOutputStream()
-      val errStream = new ByteArrayOutputStream()
-
-      def getDirtyFiles(out: ByteArrayOutputStream, err: ByteArrayOutputStream): Seq[String] = {
-        val output = (out.toString + err.toString).linesIterator.toSeq
-        output
-          .filter(_.contains("is marked dirty"))
-          .map(_.split("/").last.split(" ").head) // Extract filename from path
-          .toSeq
-      }
-
       UnitTester(
         HelloKotlin,
         resourcePath,
-        outStream = new PrintStream(outStream, true),
-        errStream = new PrintStream(errStream, true),
         debugEnabled = true
       ).scoped { eval =>
-        // Test only Kotlin 2.1+ which uses the Build Tools API with incremental compilation
-        // Use only one module (non-embeddable) to simplify output parsing
-        val btApiModule = HelloKotlin.main.crossModules.find(m =>
-          m.crossValue.startsWith("2.1") && !m.crossValue2
-        ).get
-
-        val srcDir = eval.evaluator.workspace / "main/src/hello"
-        os.makeDir.all(srcDir)
-
-        // Create an additional source file for incremental compilation testing
-        val extraFile = srcDir / "Extra.kt"
-        os.write(
-          extraFile,
-          """package hello
-            |
-            |fun getExtraString(): String = "Extra"
-            |""".stripMargin,
-          createFolders = true
+        // Build Tools API is enabled for Kotlin 2.3+ with the embeddable compiler. Exercise every
+        // such version: 2.3.x uses the legacy factory backend, 2.4.0+ the dedicated builder-API worker.
+        val btApiModules = HelloKotlin.main.crossModules.filter(m =>
+          btApiSupported(m.crossValue) && m.crossValue2
         )
 
-        // First compile - full compilation (both files should be marked dirty)
-        outStream.reset()
-        errStream.reset()
-        val Right(result1) = eval.apply(btApiModule.compile).runtimeChecked
-        assert(
-          os.walk(result1.value.classes.path).exists(_.last == "HelloKt.class"),
-          os.walk(result1.value.classes.path).exists(_.last == "ExtraKt.class")
-        )
-        // On first compile, both files should be marked dirty
-        val dirty1 = getDirtyFiles(outStream, errStream)
-        assert(dirty1.sorted == Seq("Extra.kt", "Hello.kt"))
+        btApiModules.foreach { btApiModule =>
+          val srcDir = eval.evaluator.workspace / "main/src/hello"
+          os.makeDir.all(srcDir)
 
-        // Second compile without changes - should be cached by Mill
-        val Right(result2) = eval.apply(btApiModule.compile).runtimeChecked
-        assert(result2.evalCount == 0)
+          def classPath(result: mill.javalib.api.CompilationResult, className: String): os.Path =
+            result.classes.path / os.RelPath(className)
 
-        // Modify the extra file - should trigger incremental compilation
-        os.write.over(
-          extraFile,
-          """package hello
-            |
-            |fun getExtraString(): String = "Extra Modified"
-            |""".stripMargin
-        )
+          def fileMtimeMillis(path: os.Path): Long = os.mtime(path)
 
-        outStream.reset()
-        errStream.reset()
-        val Right(result3) = eval.apply(btApiModule.compile).runtimeChecked
-        assert(result3.evalCount > 0)
-        assert(os.walk(result3.value.classes.path).exists(_.last == "ExtraKt.class"))
+          // Create an additional source file for incremental compilation testing
+          val extraFile = srcDir / "Extra.kt"
+          os.write(
+            extraFile,
+            """package hello
+              |
+              |fun getExtraString(): String = "Extra"
+              |""".stripMargin,
+            createFolders = true
+          )
 
-        // Only Extra.kt should be marked dirty, Hello.kt should NOT be recompiled
-        val dirty3 = getDirtyFiles(outStream, errStream)
-        assert(dirty3 == Seq("Extra.kt"))
+          // First compile - full compilation
+          val Right(result1) = eval.apply(btApiModule.compile).runtimeChecked
+          val helloClass = classPath(result1.value, "hello/HelloKt.class")
+          val extraClass = classPath(result1.value, "hello/ExtraKt.class")
+          assert(
+            os.exists(helloClass),
+            os.exists(extraClass)
+          )
+          val helloMtime1 = fileMtimeMillis(helloClass)
+          val extraMtime1 = fileMtimeMillis(extraClass)
 
-        // Add a new file - should trigger incremental compilation
-        val anotherFile = srcDir / "Another.kt"
-        os.write(
-          anotherFile,
-          """package hello
-            |
-            |fun getAnotherString(): String = "Another"
-            |""".stripMargin,
-          createFolders = true
-        )
+          // Second compile without changes - should be cached by Mill
+          val Right(result2) = eval.apply(btApiModule.compile).runtimeChecked
+          assert(result2.evalCount == 0)
 
-        outStream.reset()
-        errStream.reset()
-        val Right(result4) = eval.apply(btApiModule.compile).runtimeChecked
-        assert(result4.evalCount > 0)
-        assert(os.walk(result4.value.classes.path).exists(_.last == "AnotherKt.class"))
+          // Modify the extra file - should trigger incremental compilation
+          Thread.sleep(1100L)
+          os.write.over(
+            extraFile,
+            """package hello
+              |
+              |fun getExtraString(): String = "Extra Modified"
+              |""".stripMargin
+          )
 
-        // Only Another.kt should be marked dirty (new file)
-        val dirty4 = getDirtyFiles(outStream, errStream)
-        assert(dirty4 == Seq("Another.kt"))
+          val Right(result3) = eval.apply(btApiModule.compile).runtimeChecked
+          assert(result3.evalCount > 0)
+          assert(os.exists(extraClass))
 
-        // Clean up
-        os.remove(extraFile)
-        os.remove(anotherFile)
+          val helloMtime2 = fileMtimeMillis(helloClass)
+          val extraMtime2 = fileMtimeMillis(extraClass)
+          assert(extraMtime2 > extraMtime1)
+          assert(helloMtime2 == helloMtime1)
+
+          // Add a new file - should trigger incremental compilation
+          val anotherFile = srcDir / "Another.kt"
+          Thread.sleep(1100L)
+          os.write(
+            anotherFile,
+            """package hello
+              |
+              |fun getAnotherString(): String = "Another"
+              |""".stripMargin,
+            createFolders = true
+          )
+
+          val Right(result4) = eval.apply(btApiModule.compile).runtimeChecked
+          assert(result4.evalCount > 0)
+          val anotherClass = classPath(result4.value, "hello/AnotherKt.class")
+          assert(os.exists(anotherClass))
+
+          val helloMtime3 = fileMtimeMillis(helloClass)
+          val extraMtime3 = fileMtimeMillis(extraClass)
+          assert(helloMtime3 == helloMtime2)
+          assert(extraMtime3 == extraMtime2)
+
+          // Clean up
+          os.remove(extraFile)
+          os.remove(anotherFile)
+        }
       }
     }
   }

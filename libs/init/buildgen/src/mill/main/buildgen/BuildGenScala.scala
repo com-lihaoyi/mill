@@ -26,7 +26,8 @@ object BuildGenScala extends BuildGen {
         depManagement,
         errorProneDeps,
         scalacPluginMvnDeps,
-        scalafixIvyDeps
+        scalafixIvyDeps,
+        annotationProcessorsMvnDeps
       )
     }.flatMap { values =>
       values.base ++ values.cross.flatMap(_._2)
@@ -58,7 +59,8 @@ object BuildGenScala extends BuildGen {
           depManagement = withRefs(depManagement),
           errorProneDeps = withRefs(errorProneDeps),
           scalacPluginMvnDeps = withRefs(scalacPluginMvnDeps),
-          scalafixIvyDeps = withRefs(scalafixIvyDeps)
+          scalafixIvyDeps = withRefs(scalafixIvyDeps),
+          annotationProcessorsMvnDeps = withRefs(annotationProcessorsMvnDeps)
         )
       })
     )
@@ -154,6 +156,9 @@ object BuildGenScala extends BuildGen {
     val lines = Seq.newBuilder[String]
     for (a <- alias) lines += s"$a =>"
     lines += renderDefValue("moduleDir", moduleDir, identity[String])
+    lines += renderDefValue("springBootPlatformVersion", springBootPlatformVersion, encodeString)
+    lines += renderDefValue("quarkusPlatformVersion", quarkusPlatformVersion, encodeString)
+    lines += renderDefValue("artifactGroupId", artifactGroupId, encodeString)
     lines += renderDefValues("moduleDeps", moduleDeps, encodeModuleDep, isTask = false)
     lines += renderDefValues(
       "compileModuleDeps",
@@ -176,6 +181,34 @@ object BuildGenScala extends BuildGen {
     lines += renderDefValues("scalacOptions", scalacOptions, encodeLiteralOpt)
     lines += renderDefValues("scalacPluginMvnDeps", scalacPluginMvnDeps, encodeMvnDep)
     lines += renderDefValues("javacOptions", javacOptions, encodeOpt)
+    lines += renderDefValue("kotlinVersion", kotlinVersion, encodeString)
+    lines += renderDefValues("kotlincOptions", kotlincOptions, encodeLiteralOpt)
+    lines += renderDefValues("kotlincPluginMvnDeps", kotlincPluginMvnDeps, encodeMvnDep)
+    lines += renderDefValue("micronautPackage", micronautPackage, encodeString)
+    lines += renderDefValue("micronautAotConfigFile", micronautAotConfigFile, encodePathRef)
+    lines += renderDefValue(
+      "micronautAotConfigProperties",
+      micronautAotConfigProperties,
+      encodeStringMap
+    )
+    lines += renderDefValue(
+      "androidApplicationNamespace",
+      androidApplicationNamespace,
+      encodeString
+    )
+    lines += renderDefValue("androidNamespace", androidNamespace, encodeString)
+    lines += renderDefValue("androidApplicationId", androidApplicationId, encodeString)
+    lines += renderDefValue("androidCompileSdk", androidCompileSdk, _.toString)
+    lines += renderDefValue("androidMinSdk", androidMinSdk, _.toString)
+    lines += renderDefValue("androidTargetSdk", androidTargetSdk, _.toString)
+    lines += renderDefValue("androidVersionCode", androidVersionCode, _.toString)
+    lines += renderDefValue("androidVersionName", androidVersionName, encodeString)
+    lines += renderDefValue("buildToolsVersion", androidBuildToolsVersion, encodeString)
+    lines += renderDefValue(
+      "androidSdkModule",
+      androidSdkModuleDep,
+      dep => s"mill.api.ModuleRef(${encodeModuleDep(dep)})"
+    )
     lines += renderDefValues(
       "sourcesRootFolders",
       sourcesRootFolders,
@@ -202,6 +235,11 @@ object BuildGenScala extends BuildGen {
     lines += renderDefValue("jmhCoreVersion", jmhCoreVersion, encodeString)
     lines += renderDefValue("scalafixConfig", scalafixConfig, encodeSome)
     lines += renderDefValues("scalafixIvyDeps", scalafixIvyDeps, encodeMvnDep)
+    lines += renderDefValues(
+      "annotationProcessorsMvnDeps",
+      annotationProcessorsMvnDeps,
+      encodeMvnDep
+    )
     lines += renderDefValue("scoverageVersion", scoverageVersion, encodeString)
     lines += renderDefValue("branchCoverageMin", branchCoverageMin, encodeSome)
     lines += renderDefValue("statementCoverageMin", statementCoverageMin, encodeSome)
@@ -434,4 +472,7 @@ object BuildGenScala extends BuildGen {
   private def encodeSome(a: Any) = s"Some($a)"
   private def encodeIssueFiltersTuple(k: String, v: Seq[String]) =
     s"""("$k", ${if (v.isEmpty) "Seq.empty[ProblemFilter]" else v.mkString("Seq(", ", ", ")")})"""
+  private def encodePathRef(s: String) = s"PathRef(moduleDir / \"$s\")"
+  private def encodeStringMap(map: Map[String, String]) =
+    map.toSeq.sortBy(_._1).map { case (k, v) => s"\"$k\" -> \"$v\"" }.mkString("Map(", ", ", ")")
 }

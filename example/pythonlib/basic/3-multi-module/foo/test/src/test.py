@@ -1,5 +1,5 @@
 import unittest
-from foo import main  # type: ignore
+from foo import main
 
 
 class TestScript(unittest.TestCase):

@@ -39,18 +39,18 @@ scoverage.validateCoverageMinimums
 > ./mill scoverage.validateCoverageMinimums
 ...
 Coverage Minimums Met. Minimums set: {Statements: 10.00% Branches: 90.00%}
-Statement coverage.: 19.05%
+Statement coverage.: 40.00%
 Branch coverage....: 100.00%
 
 > ./mill scoverage.consoleReport
 ...
-Statement coverage.: 19.05%
+Statement coverage.: 40.00%
 Branch coverage....: 100.00%
 
-> sed -i.bak 's/10.00/20.00/' build.mill.yaml
+> sed -i.bak 's/10.00/50.00/' build.mill.yaml
 
 > ./mill scoverage.validateCoverageMinimums
 error: Exception while validating coverage minimums. Coverage minimums violated:
-error: This project's statement coverage (19.05) did not meet the minimum desired by the project. (20.0)
+error: This project's statement coverage (40.00) did not meet the minimum desired by the project. (50.0)
 
 */

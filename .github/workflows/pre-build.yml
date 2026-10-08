@@ -28,7 +28,7 @@ jobs:
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       # For normal PR jobs, just checkout the base_ref the PR is against
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with: { fetch-depth: 1 }
 
       - uses: ./.github/actions/pre-build-setup
@@ -39,7 +39,7 @@ jobs:
 
       - run: ./mill -k ${{ inputs.compileargs }}
 
-      - uses: actions/upload-artifact@v6.0.0
+      - uses: actions/upload-artifact@v7.0.1
         with:
           path: .
           name: ${{ inputs.os }}-artifact

@@ -73,7 +73,7 @@ class ToFormatterStep(charset: Charset, provisioner: Provisioner)
         .build()
     case step: NativeCmd =>
       import step.*
-      NativeCmdStep.create(name, new File(pathToExe), arguments.asJava)
+      NativeCmdStep.create(name, File(pathToExe), arguments.asJava)
     case step: ReplaceRegex =>
       import step.*
       ReplaceRegexStep.create(name, regex, replacement)

@@ -7,7 +7,7 @@ mvnDeps:
 - io.micronaut:micronaut-http-client
 - io.micronaut.serde:micronaut-serde-jackson
 
-jvmVersion: graalvm-community:21.0.2
+jvmVersion: graalvm-community:25.0.1
 finalMainClass: hello.world.Application
 annotationProcessorsMvnDeps:
 - io.micronaut:micronaut-http-validation

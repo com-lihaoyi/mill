@@ -4,7 +4,6 @@ import upickle.{ReadWriter, readwriter, stringKeyRW}
 
 import scala.annotation.switch
 import scala.collection.immutable.ArraySeq
-import scala.collection.mutable.LinkedHashMap
 
 // This file contains typed data structures representing the types and values
 // found in the JVM bytecode: various kinds of types, method signatures, method
@@ -23,8 +22,8 @@ object JvmModel {
   class SymbolTable {
     abstract class Table[K, V] {
       def create: K => V
-      val lookup: LinkedHashMap[K, V] = LinkedHashMap.empty[K, V]
-      def get(k: K): V = lookup.getOrElseUpdate(k, create(k))
+      val lookup = new java.util.concurrent.ConcurrentHashMap[K, V]()
+      def get(k: K): V = lookup.computeIfAbsent(k, k => create(k))
     }
 
     object MethodDef extends Table[(JType.Cls, MethodSig), MethodDef] {
@@ -45,7 +44,7 @@ object JvmModel {
     }
 
     object JCls extends Table[String, JType.Cls] {
-      def create: String => JType.Cls = new JType.Cls(_)
+      def create: String => JType.Cls = JType.Cls(_)
       def apply(name: String): JType.Cls = get(name)
     }
 
@@ -225,7 +224,7 @@ object JvmModel {
         args.addOne(JType.read(s.substring(index, split + 1)))
         index = split + 1
       }
-      new Desc(
+      Desc(
         ArraySeq.unsafeWrapArray(args.result()),
         JType.read(s.substring(closeParenIndex + 1))
       )

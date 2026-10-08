@@ -136,7 +136,7 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
   ): Option[Entry] = {
     val idx = activeValues.indexWhere(predicate)
     if (idx < 0) {
-      throw new IllegalArgumentException(s"Unknown key: $key (internal key = $internalKey)")
+      throw IllegalArgumentException(s"Unknown key: $key (internal key = $internalKey)")
     }
 
     val entry = activeValues(idx)

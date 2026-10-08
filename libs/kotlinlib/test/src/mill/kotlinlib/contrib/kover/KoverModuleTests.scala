@@ -12,7 +12,7 @@ import scala.xml.{Node, XML}
 
 object KoverModuleTests extends TestSuite {
 
-  val kotlinVersion = "1.9.24"
+  val kotlinVersion = "2.2.20"
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "contrib/kover"
 

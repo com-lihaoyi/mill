@@ -2,11 +2,11 @@ package mill.util
 
 import com.lihaoyi.unroll
 import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
-import coursier.core.{BomDependency, VariantSelector}
+import coursier.core.{BomDependency, ResolutionProcess, VariantSelector}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
-import coursier.maven.{MavenRepository, MavenRepositoryLike}
+import coursier.maven.MavenRepositoryLike
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.util.Task
@@ -26,6 +26,34 @@ import scala.util.chaining.scalaUtilChainingOps
  * launcher scripts, etc.
  */
 object Jvm {
+
+  private def mavenCompatibleFetcher(
+      fetch: ResolutionProcess.Fetch0[Task]
+  ): ResolutionProcess.Fetch0[Task] = { moduleVersions =>
+    fetch(moduleVersions).map(_.map {
+      case (moduleVersion, Right((source: MavenRepositoryLike, project))) =>
+        val hasManagedOptionality = project.dependencyManagement0.exists(_._2.optional) ||
+          project.profiles.exists(_.dependencyManagement.exists(_._2.optional))
+        val mavenProject =
+          if (!hasManagedOptionality) project
+          else {
+            val dependencyManagement = project.dependencyManagement0.map {
+              case (variant, dependency) => variant -> dependency.withOptional(false)
+            }
+            val profiles = project.profiles.map { profile =>
+              profile.withDependencyManagement(profile.dependencyManagement.map {
+                case (configuration, dependency) =>
+                  configuration -> dependency.withOptional(false)
+              })
+            }
+            project
+              .withDependencyManagement0(dependencyManagement)
+              .withProfiles(profiles)
+          }
+        moduleVersion -> Right(source -> mavenProject)
+      case result => result
+    })
+  }
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
@@ -179,8 +207,8 @@ object Jvm {
       .map(_.toString())
       .orElse(sys.props.get("java.home"))
       .map(h =>
-        if (isWin) new File(h, s"bin\\${toolName}.exe")
-        else new File(h, s"bin/${toolName}")
+        if (isWin) File(h, s"bin\\${toolName}.exe")
+        else File(h, s"bin/${toolName}")
       )
       .filter(f => f.exists())
       .fold(toolName)(_.getAbsolutePath())
@@ -222,11 +250,41 @@ object Jvm {
     if (cwd != null) os.makeDir.all(cwd)
 
     Vector(javaExe(javaHome)) ++
+      jdk23PlusUnsafeOpts(javaHome) ++
       jvmArgs.value ++
       Option.when(cp.nonEmpty)(Vector("-cp", cp.mkString(java.io.File.pathSeparator)))
         .getOrElse(Vector.empty) ++
       Vector(mainClass) ++
       mainArgs.value
+  }
+
+  // Suppress JDK 23+ first-call warnings for deprecated `sun.misc.Unsafe`
+  // methods (notably `objectFieldOffset`, used by Scala's `LazyVals`). Only
+  // emitted when the target JVM is JDK 23+; older JDKs reject the flags.
+  private val jdk23PlusFlags =
+    Vector("--sun-misc-unsafe-memory-access=allow", "--enable-native-access=ALL-UNNAMED")
+
+  private val jdkMajorCache = new java.util.concurrent.ConcurrentHashMap[os.Path, Option[Int]]
+
+  private def jdk23PlusUnsafeOpts(javaHome: Option[os.Path]): Vector[String] = {
+    val major = javaHome match {
+      case None => Some(Runtime.version().feature())
+      case Some(home) =>
+        jdkMajorCache.computeIfAbsent(
+          home,
+          _ =>
+            try {
+              val out = os.proc(home / "bin" / "java", "-version").call(
+                check = false,
+                stderr = os.Pipe,
+                mergeErrIntoOut = true
+              ).out.text()
+              """version "(?:1\.)?(\d+)""".r.unanchored.findFirstMatchIn(out)
+                .flatMap(_.group(1).toIntOption)
+            } catch { case _: Throwable => None }
+        )
+    }
+    if (major.exists(_ >= 23)) jdk23PlusFlags else Vector.empty
   }
 
   /**
@@ -418,8 +476,8 @@ object Jvm {
     val seen = mutable.Set.empty[os.RelPath]
     val _ = seen.add(os.sub / "META-INF/MANIFEST.MF")
 
-    val jarStream = new JarOutputStream(
-      new BufferedOutputStream(Files.newOutputStream(jar.toNIO)),
+    val jarStream = JarOutputStream(
+      BufferedOutputStream(Files.newOutputStream(jar.toNIO)),
       manifest.build
     )
 
@@ -428,7 +486,7 @@ object Jvm {
 
       if (includeDirs) {
         val _ = seen.add(os.sub / "META-INF")
-        val entry = new JarEntry("META-INF/")
+        val entry = JarEntry("META-INF/")
         entry.setTime(curTime)
         jarStream.putNextEntry(entry)
         jarStream.closeEntry()
@@ -444,7 +502,7 @@ object Jvm {
       } {
         val _ = seen.add(mapping)
         val name = mapping.toString() + (if (os.isDir(file)) "/" else "")
-        val entry = new JarEntry(name)
+        val entry = JarEntry(name)
         entry.setTime(mTime(file))
         jarStream.putNextEntry(entry)
         if (os.isFile(file)) jarStream.write(os.read.bytes(file))
@@ -500,8 +558,20 @@ object Jvm {
       jvmArgs: os.Shellable,
       shebang: Boolean = false,
       shellJvmArgs: os.Shellable = Nil,
-      cmdJvmArgs: os.Shellable = Nil
+      cmdJvmArgs: os.Shellable = Nil,
+      @unroll suppressJdk23PlusUnsafeWarnings: Boolean = false
   ): String = {
+
+    // JDK 23+ emits stderr warnings the first time `sun.misc.Unsafe.objectFieldOffset`
+    // is called (e.g. by Scala's `LazyVals$`). When opted in, the launcher
+    // detects the JVM major version at startup and prepends silencing flags
+    // for JDK 23+; older JDKs reject the flags so the detection is required.
+    // (`dist/package.mill`'s `launcherScript` inlines the same logic until
+    // the bootstrap Mill is rebootstrapped onto a build shipping this param.)
+    val (shellJdk23Detect, shellJdk23Inject) =
+      jdk23PlusUnsafeShellSnippet(suppressJdk23PlusUnsafeWarnings)
+    val (cmdJdk23Detect, cmdJdk23Inject) =
+      jdk23PlusUnsafeCmdSnippet(suppressJdk23PlusUnsafeWarnings)
 
     universalScript(
       shellCommands = {
@@ -514,17 +584,18 @@ object Jvm {
            |  JAVACMD="$$JAVA_HOME/bin/java"
            |fi
            |
-           |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" '$mainClass' "$$@"
+           |${shellJdk23Detect}exec "$$JAVACMD"$shellJdk23Inject $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" '$mainClass' "$$@"
            |""".stripMargin
       },
       cmdCommands = {
         val jvmArgsStr = (jvmArgs.value ++ cmdJvmArgs.value).mkString(" ")
         val classpathStr = cmdClassPath.mkString(";")
+        val javaCmdRef = if (suppressJdk23PlusUnsafeWarnings) "!JAVACMD!" else "%JAVACMD%"
         s"""setlocal EnableDelayedExpansion
            |set "JAVACMD=java.exe"
            |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
            |
-           |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" "$mainClass" %*
+           |$cmdJdk23Detect"$javaCmdRef"$cmdJdk23Inject $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" "$mainClass" %*
            |
            |endlocal
            |""".stripMargin
@@ -532,6 +603,29 @@ object Jvm {
       shebang = shebang
     )
   }
+
+  private def jdk23PlusUnsafeShellSnippet(enabled: Boolean): (String, String) =
+    if (!enabled) ("", "")
+    else (
+      """JAVA_VER_MAJOR="$("$JAVACMD" -version 2>&1 | awk -F'"' '/version/ {print $2; exit}' | awk -F. '{print ($1=="1"?$2:$1)}')"
+        |MILL_JDK23_OPTS=""
+        |case "$JAVA_VER_MAJOR" in ''|*[!0-9]*) ;; *) [ "$JAVA_VER_MAJOR" -ge 23 ] && MILL_JDK23_OPTS="--sun-misc-unsafe-memory-access=allow --enable-native-access=ALL-UNNAMED" ;; esac
+        |""".stripMargin,
+      " $MILL_JDK23_OPTS"
+    )
+
+  private def jdk23PlusUnsafeCmdSnippet(enabled: Boolean): (String, String) =
+    if (!enabled) ("", "")
+    else (
+      """for /f "tokens=3" %%g in ('"!JAVACMD!" -version 2^>^&1 ^| findstr /i "version"') do set "JAVA_VER_RAW=%%~g"
+        |set "JAVA_VER_RAW=!JAVA_VER_RAW:"=!"
+        |for /f "tokens=1 delims=." %%g in ("!JAVA_VER_RAW!") do set "JAVA_VER_MAJOR=%%g"
+        |if "!JAVA_VER_MAJOR!"=="1" for /f "tokens=2 delims=." %%g in ("!JAVA_VER_RAW!") do set "JAVA_VER_MAJOR=%%g"
+        |set MILL_JDK23_OPTS=
+        |if not "!JAVA_VER_MAJOR!"=="" if !JAVA_VER_MAJOR! GEQ 23 set "MILL_JDK23_OPTS=--sun-misc-unsafe-memory-access=allow --enable-native-access=ALL-UNNAMED"
+        |""".stripMargin,
+      " !MILL_JDK23_OPTS!"
+    )
 
   def createLauncher(
       mainClass: String,
@@ -566,11 +660,14 @@ object Jvm {
       .withCredentials(config.credentials)
       .withTtl(config.ttl)
       .withCachePolicies(config.cachePolicies)
+      .copy(userAgent = config.userAgent)
+      // Apply Mill's default logger first, then the user customizer, so that
+      // overrides in coursierCacheCustomizer (e.g. a custom logger) take precedence.
       .pipe { cache =>
-        coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
+        ctx.fold(cache)(c => cache.withLogger(CoursierTickerResolutionLogger(c)))
       }
       .pipe { cache =>
-        ctx.fold(cache)(c => cache.withLogger(new CoursierTickerResolutionLogger(c)))
+        coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
       }
       .pipe { cache =>
         if (ctx.fold(false)(_.offline)) cache.withCachePolicies(Seq(CachePolicy.LocalOnly))
@@ -847,30 +944,18 @@ object Jvm {
       else
         repositories
 
-    def testOverridesReposFor(envVar: String) =
-      Option(System.getenv(envVar))
-        .toSeq
-        .flatMap(_.split(File.pathSeparator).toSeq)
-        .filter(_.nonEmpty)
-        .map { path =>
-          MavenRepository(os.Path(path).toURI.toASCIIString)
-            .withCheckModule(checkGradleModules)
-        }
-
-    val testOverridesRepos =
-      testOverridesReposFor("MILL_LOCAL_TEST_REPO") ++
-        testOverridesReposFor("MILL_USER_TEST_REPO")
-
     val resolve = Resolve()
       .withCache(coursierCache0)
       .withDependencies(rootDeps)
-      // repositories0 (which includes mill-repositories) comes first so user config takes precedence
-      .withRepositories(repositories0 ++ testOverridesRepos)
+      .withRepositories(repositories0)
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
       .withBoms(boms.iterator.toSeq)
       .withConfFiles(config.confFiles.map(_.toNIO))
       .withMirrors(config.mirrors)
+      // Maven dependency management does not make explicit dependencies optional.
+      // https://github.com/coursier/coursier/issues/3731
+      .transformFetcher(mavenCompatibleFetcher)
 
     resolve.either() match {
       case Left(error) =>

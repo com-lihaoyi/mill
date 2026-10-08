@@ -1,10 +1,11 @@
 mill-jvm-version: 17
-extends: JavaModule
+extends: spring.boot.SpringBootModule
+springBootPlatformVersion: 3.2.5
 mvnDeps:
-- org.springframework.boot:spring-boot-starter-web:2.5.6
-- org.springframework.boot:spring-boot-starter-actuator:2.5.6
+  - org.springframework.boot:spring-boot-starter-web
+  - org.springframework.boot:spring-boot-starter-actuator
 
 object test:
-  extends: [JavaTests, TestModule.Junit5]
+  extends: [SpringBootTestsModule, TestModule.Junit5]
   mvnDeps:
-  - org.springframework.boot:spring-boot-starter-test:2.5.6
+    - org.springframework.boot:spring-boot-starter-test

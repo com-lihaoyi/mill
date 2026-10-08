@@ -28,7 +28,7 @@ object TestRunnerUtestTests extends TestSuite {
       expected
     }
     test("testOnly") - {
-      scala.util.Using.resource(new TestOnlyTester(_.utest)) { tester =>
+      scala.util.Using.resource(TestOnlyTester(_.utest)) { tester =>
         // suffix
         tester.testOnly(Seq("*arTests"), 2)
         // prefix

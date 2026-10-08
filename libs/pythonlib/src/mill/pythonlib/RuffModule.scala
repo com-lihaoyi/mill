@@ -9,9 +9,8 @@ import mill.util.Tasks
  */
 trait RuffModule extends PythonModule {
 
-  override def pythonToolDeps = Task {
-    super.pythonToolDeps() ++ Seq("ruff>=0.9.3")
-  }
+  /** The isolated Ruff tool environment managed and cached by uv. */
+  def ruffTool: T[String] = Task { "ruff==0.16.10" }
 
   /**
    * Configuration file to use when running ruff. If this file does not exist,
@@ -39,10 +38,10 @@ trait RuffModule extends PythonModule {
    * - see format diff: `--diff`
    */
   def ruffFormat(args: String*): Command[Unit] = Task.Command {
-    runner().run(
+    uvRunner().run(
       // format: off
       (
-        "-m", "ruff",
+        "tool", "run", uvIndexArgs(), "--from", ruffTool(), "ruff",
         "format",
         configArgs(),
         ruffOptions(),
@@ -61,10 +60,10 @@ trait RuffModule extends PythonModule {
    * attempt to automatically fix any linting errors: `--fix`.
    */
   def ruffCheck(args: String*): Command[Unit] = Task.Command {
-    runner().run(
+    uvRunner().run(
       // format: off
       (
-        "-m", "ruff",
+        "tool", "run", uvIndexArgs(), "--from", ruffTool(), "ruff",
         "check",
         "--cache-dir", Task.dest / "cache",
         configArgs(),
@@ -87,10 +86,10 @@ object RuffModule extends ExternalModule with RuffModule with DefaultTaskModule 
       sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources"),
       @mainargs.arg(positional = true) ruffArgs: Args
   ): Command[Unit] = Task.Command {
-    runner().run(
+    uvRunner().run(
       // format: off
       (
-        "-m", "ruff",
+        "tool", "run", uvIndexArgs(), "--from", ruffTool(), "ruff",
         "format",
         configArgs(),
         ruffOptions(),
@@ -106,10 +105,10 @@ object RuffModule extends ExternalModule with RuffModule with DefaultTaskModule 
       sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources"),
       @mainargs.arg(positional = true) ruffArgs: Args
   ): Command[Unit] = Task.Command {
-    runner().run(
+    uvRunner().run(
       // format: off
       (
-        "-m", "ruff",
+        "tool", "run", uvIndexArgs(), "--from", ruffTool(), "ruff",
         "check",
         "--cache-dir", Task.dest / "cache",
         configArgs(),

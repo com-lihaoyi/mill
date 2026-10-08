@@ -51,7 +51,7 @@
 
 *Others*
 
-* xref:javalib/module-config.adoc#_annotation_processors[Java Annotation Processors], xref:kotlinlib/module-config.adoc#_kotlin_compiler_plugins[Kotlin Compiler Plugins],  xref:kotlinlib/module-config.adoc#_dependency_injection_with_dagger_and_ksp[KSP], xref:scalalib/module-config.adoc#_scala_compiler_plugins[Scala Compiler Plugins]
+* xref:javalib/module-config.adoc#_annotation_processors[Java Annotation Processors], xref:kotlinlib/module-config.adoc#_kotlin_compiler_plugins[Kotlin Compiler Plugins],  xref:kotlinlib/module-config.adoc#_annotation_processing_with_kapt[Kapt], xref:kotlinlib/module-config.adoc#_dependency_injection_with_dagger_and_ksp[KSP], xref:scalalib/module-config.adoc#_scala_compiler_plugins[Scala Compiler Plugins]
 * xref:javalib/module-config.adoc#_native_c_code_with_jni[JNI]
 * xref:scalalib/spark.adoc[Apache Spark], xref:scalalib/native-examples.adoc[Scala-Native]
 * xref:large/selective-execution.adoc[Selective Test Execution], xref:large/multi-language-builds.adoc[Multi-Language Builds]

@@ -1,11 +1,14 @@
 package mill
 package scalalib
 
+import coursier.params.ResolutionParams
+import coursier.version.VersionConstraint
 import mill.util.JarManifest
 import mill.api.{BuildCtx, ModuleRef, PathRef, Result, Task}
 import mill.util.BuildInfo
 import mill.util.Jvm
-import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
+import mill.javalib.api.{CompilationResult, Versions}
+import mill.javalib.api.JvmWorkerUtil.{scalaOrganization => scalaOrganization0, *}
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
 import mill.api.daemon.internal.{ScalaModuleApi, ScalaPlatform, internal}
@@ -26,6 +29,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     with ScalaModuleApi { outer =>
   // Keep in sync with ScalaModule.ScalaTests0, duplicated due to binary compatibility concerns
   trait ScalaTests extends JavaTests with ScalaModule {
+    @deprecated("This is now ignored", "Mill after 1.1.2")
     override def scalaOrganization: T[String] = outer.scalaOrganization()
     override def scalaVersion: T[String] = outer.scalaVersion()
     override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
@@ -44,22 +48,27 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   }
 
   /**
-   * What Scala organization to use
-   *
-   * @return
+   * Ignored
    */
+  @deprecated("This is now ignored", "Mill after 1.1.2")
   def scalaOrganization: T[String] = Task {
-    if (JvmWorkerUtil.isDotty(scalaVersion()))
-      "ch.epfl.lamp"
-    else
-      "org.scala-lang"
+    if (isDotty(scalaVersion())) "ch.epfl.lamp"
+    else "org.scala-lang"
   }
+
+  override protected def sourceFileExtensions: Seq[String] = Seq("scala", "java")
 
   /**
    * All individual source files fed into the Zinc compiler.
    */
   override def allSourceFiles: T[Seq[PathRef]] = Task {
-    Lib.findSourceFiles(allSources(), Seq("scala", "java")).map(PathRef(_))
+    // Exact same implementation as JavaModule#allSourceFiles, which is super.allSourceFiles
+    // This can be removed once we can break bin compat
+    val allSources0 = allSources() ++ wrappedSources().map(_.generated)
+    val toExclude = wrappedSources().map(_.original.path)
+    Lib.findSourceFiles(allSources0, sourceFileExtensions)
+      .filterNot(toExclude.contains)
+      .map(PathRef(_))
   }
 
   /**
@@ -67,24 +76,23 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaVersion: T[String]
 
+  // override kept for binary compatibility
   override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
-    super.mapDependencies().andThen { (d: coursier.Dependency) =>
-      val artifacts =
-        if (JvmWorkerUtil.isDotty(scalaVersion()))
-          Set("dotty-library", "dotty-compiler")
-        else if (JvmWorkerUtil.isScala3(scalaVersion()))
-          Set("scala3-library", "scala3-compiler")
-        else
-          Set("scala-library", "scala-compiler", "scala-reflect")
-      if (!artifacts(d.module.name.value)) d
-      else
-        d.withModule(
-          d.module.withOrganization(
-            coursier.Organization(scalaOrganization())
-          )
-        )
-          .withVersion(scalaVersion())
-    }
+    super.mapDependencies()
+  }
+  protected[mill] override def actualResolutionParamsOverride(baseParams: ResolutionParams)
+      : Task[ResolutionParams] = Task.Anon {
+    def moduleFor(name: String) =
+      coursier.Module(
+        coursier.Organization(scalaOrganization0(scalaVersion())),
+        coursier.ModuleName(name),
+        Map.empty
+      )
+    val sv0 = VersionConstraint(scalaVersion())
+    baseParams.addForceVersion0(
+      Lib.scalaArtifacts(scalaVersion()).toVector.sorted
+        .map(name => moduleFor(name) -> sv0)*
+    )
   }
 
   def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>
@@ -96,7 +104,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       publish.Artifact.fromDep(
         _: Dep,
         scalaVersion(),
-        JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        scalaBinaryVersion(scalaVersion()),
         platformSuffix()
       )
     }
@@ -215,7 +223,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaDocOptions: T[Seq[String]] = Task {
     val defaults =
-      if (JvmWorkerUtil.isDottyOrScala3(scalaVersion()))
+      if (isDottyOrScala3(scalaVersion()))
         Seq(
           "-project",
           artifactName()
@@ -244,27 +252,24 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaCompilerBridge: T[Option[PathRef]] = Task {
     val sv = scalaVersion()
-    val so = scalaOrganization()
+    val so = scalaOrganization0(sv)
 
     // For Scala versions where a binary bridge is available (Scala 3, some Scala 2.x),
     // resolve the bridge using this module's resolver so that custom repositories
     // (e.g., for nightly builds) are respected.
-    if (JvmWorkerUtil.isBinaryBridgeAvailable(sv)) {
-      val (bridgeDep0, bridgeName, bridgeVersion) = JvmWorkerUtil.scalaCompilerBridgeDep(sv, so)
+    if (isBinaryBridgeAvailable(sv)) {
+      val (bridgeDep0, bridgeName, bridgeVersion) = scalaCompilerBridgeDep(sv, so)
       val bridgeDep = Dep.parse(bridgeDep0)
 
       val deps = defaultResolver().classpath(
         Seq(bridgeDep),
         sources = false,
-        mapDependencies = Some { (dep: coursier.Dependency) =>
-          if (dep.module.name.value == "scala-library") {
-            dep.withModule(dep.module.withOrganization(coursier.Organization(so)))
-              .withVersion(sv)
-          } else dep
+        resolutionParamsMapOpt = Some { params =>
+          params.withScalaVersion(sv)
         }
       )
 
-      Some(JvmWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, sources = false))
+      Some(grepJar(deps, bridgeName, bridgeVersion, sources = false))
     } else {
       // For older Scala versions that require compiling the bridge from sources,
       // let the JvmWorkerModule handle it
@@ -277,7 +282,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaDocClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Lib.scalaDocMvnDeps(scalaOrganization(), scalaVersion())
+      Lib.scalaDocMvnDeps(scalaOrganization0(scalaVersion()), scalaVersion())
     )
   }
 
@@ -291,7 +296,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   }
 
   def scalaLibraryMvnDeps: T[Seq[Dep]] = Task {
-    Lib.scalaRuntimeMvnDeps(scalaOrganization(), scalaVersion())
+    Lib.scalaRuntimeMvnDeps(scalaOrganization0(scalaVersion()), scalaVersion())
   }
 
   /** Adds the Scala Library is a mandatory dependency. */
@@ -300,11 +305,22 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   }
 
   /**
+   * For Scala 3.8+, filter out scala3-library_3 from resolved dependencies.
+   * Scala 3.8+ uses scala-library instead, and having both on the classpath
+   * causes conflicts (both define scala.caps package).
+   */
+  override def resolvedMvnDeps: T[Seq[PathRef]] = Task {
+    val deps = super[JavaModule].resolvedMvnDeps()
+    if (!usesScalaLibraryOnly(scalaVersion())) deps
+    else deps.filterNot(_.path.last.startsWith("scala3-library_3-"))
+  }
+
+  /**
    * Classpath of the Scala Compiler & any compiler plugins
    */
   def scalaCompilerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Lib.scalaCompilerMvnDeps(scalaOrganization(), scalaVersion()) ++
+      Lib.scalaCompilerMvnDeps(scalaOrganization0(scalaVersion()), scalaVersion()) ++
         scalaLibraryMvnDeps()
     )
   }
@@ -330,10 +346,10 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       ZincOp.CompileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
-        compileClasspath = compileClasspath().map(_.path),
+        compileClasspath = compileClasspath(),
         javacOptions = jOpts.compiler,
         scalaVersion = sv,
-        scalaOrganization = scalaOrganization(),
+        scalaOrganization = scalaOrganization0(sv),
         scalacOptions = allScalacOptions(),
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
@@ -350,7 +366,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   }
 
   override def docSources: T[Seq[PathRef]] = Task {
-    if (JvmWorkerUtil.isScala3(scalaVersion()) && !JvmWorkerUtil.isScala3Milestone(scalaVersion()))
+    if (isScala3(scalaVersion()) && !isScala3Milestone(scalaVersion()))
       Seq(compile().classes)
     else allSources()
   }
@@ -377,7 +393,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         worker.apply(
           ZincOp.ScaladocJar(
             scalaVersion(),
-            scalaOrganization(),
+            scalaOrganization0(scalaVersion()),
             scalaDocClasspath(),
             scalacPluginClasspath(),
             scalaCompilerBridge(),
@@ -392,7 +408,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       }
     }
 
-    if (JvmWorkerUtil.isScala3(scalaVersion())) { // scaladoc 3
+    if (isScala3(scalaVersion())) { // scaladoc 3
       val javadocDir = Task.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
@@ -460,7 +476,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaConsoleClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Lib.scalaConsoleMvnDeps(scalaOrganization(), scalaVersion())
+      Lib.scalaConsoleMvnDeps(scalaOrganization0(scalaVersion()), scalaVersion())
     )
   }
 
@@ -545,7 +561,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         try {
           Jvm.callInteractiveProcess(
             mainClass =
-              if (JvmWorkerUtil.isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
+              if (isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
               else "scala.tools.nsc.MainGenericRunner",
             classPath = classPath,
             jvmArgs = forkArgs() ++ Jvm.getJvmSuppressionArgs(javaHome().map(_.path)),
@@ -555,7 +571,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             cwd = forkWorkingDir()
           )
         } catch {
-          // Workaround for Scala 3.8.1 which doesn't trap Ctrl-C properly, which is fixed in
+          // Workaround for Scala 3.8.2 which doesn't trap Ctrl-C properly, which is fixed in
           // https://github.com/scala/scala3/pull/24842 which should land in Scala 3.8.2
           case _: java.io.IOError => // ignore
         }
@@ -573,12 +589,12 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def artifactScalaVersion: T[String] = Task {
     if (crossFullScalaVersion()) scalaVersion()
-    else JvmWorkerUtil.scalaBinaryVersion(scalaVersion())
+    else scalaBinaryVersion(scalaVersion())
   }
 
   override def zincAuxiliaryClassFileExtensions: T[Seq[String]] = Task {
     super.zincAuxiliaryClassFileExtensions() ++ (
-      if (JvmWorkerUtil.isScala3(scalaVersion())) Seq("tasty")
+      if (isScala3(scalaVersion())) Seq("tasty")
       else Seq.empty[String]
     )
   }
@@ -609,7 +625,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           (
             jvmWorker().scalaCompilerBridgeJarV2(
               scalaVersion(),
-              scalaOrganization(),
+              scalaOrganization0(scalaVersion()),
               defaultResolver()
             ).fullClasspath
           ) ++
@@ -637,9 +653,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     Some((
       "scala",
       ScalaBuildTarget(
-        scalaOrganization = scalaOrganization(),
+        scalaOrganization = scalaOrganization0(scalaVersion()),
         scalaVersion = scalaVersion(),
-        scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
+        scalaBinaryVersion = scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JVM,
         jars = scalaCompilerClasspath().map(_.path.toURI.toString).iterator.toSeq,
         jvmBuildTarget = Some(bspJvmBuildTargetTask())
@@ -659,7 +675,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     Task(persistent = true) {
       val sv = scalaVersion()
 
-      val additionalScalacOptions = if (JvmWorkerUtil.isScala3(sv)) {
+      val additionalScalacOptions = if (isScala3(sv)) {
         Seq("-Xsemanticdb", s"-sourceroot:${BuildCtx.workspaceRoot}")
       } else {
         Seq("-Yrangepos", s"-P:semanticdb:sourceroot:${BuildCtx.workspaceRoot}")
@@ -687,10 +703,10 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           compileClasspath =
             (compileClasspathTask(
               CompileFor.SemanticDb
-            )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
+            )() ++ resolvedSemanticDbJavaPluginMvnDeps()),
           javacOptions = jOpts.compiler,
           scalaVersion = sv,
-          scalaOrganization = scalaOrganization(),
+          scalaOrganization = scalaOrganization0(sv),
           scalacOptions = scalacOptions,
           compilerClasspath = scalaCompilerClasspath(),
           scalacPluginClasspath = semanticDbPluginClasspath(),
@@ -730,6 +746,7 @@ object ScalaModule {
   // Keep in sync with ScalaModule#ScalaTests, duplicated due to binary compatibility concerns
   trait ScalaTests0 extends JavaModule.JavaTests0 with ScalaModule {
     private val outer = moduleDeps.head.asInstanceOf[ScalaModule]
+    @deprecated("This is now ignored", "Mill after 1.1.2")
     override def scalaOrganization: T[String] = outer.scalaOrganization()
     override def scalaVersion: T[String] = outer.scalaVersion()
     override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()

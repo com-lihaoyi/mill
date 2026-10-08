@@ -1,0 +1,14 @@
+= Android Scala Projects
+:page-aliases: android_app_scala_examples.adoc
+
+Mill can build Android applications written in Scala.
+
+Currently, Scala code is compiled to JVM bytecode and packaged into an Android APK/AAB, running on the Android Runtime (ART) just like Java or Kotlin sources.
+
+Support for native-image-based Scala applications is still a work in progress. The JVM-based workflow is functional but still experimental, following the same structure as the Java and Kotlin workflows. The main difference is that you use the `AndroidScalaModule` and `AndroidAppScalaModule` traits instead of the Java or Kotlin equivalents.
+
+== Simple Android Hello World Application
+
+This example demonstrates how to configure a simple "Hello World" Android application written in Scala targeting the JVM.
+
+include::partial$example/androidlib/scala/1-hello-scala.adoc[]

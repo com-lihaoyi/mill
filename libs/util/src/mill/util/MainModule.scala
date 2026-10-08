@@ -59,7 +59,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
       shellScriptPath: String = null,
       batScriptPath: String = null
   ): Command[Seq[PathRef]] =
-    Task.Command(exclusive = true) {
+    Task.Command(globalExclusive = true) {
       val mavenRepoUrl = "https://repo1.maven.org/maven2"
       val baseUrl = s"$mavenRepoUrl/com/lihaoyi/mill-dist/$version"
 
@@ -207,7 +207,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
    * will clean everything.
    */
   def clean(evaluator: Evaluator, tasks: String*): Command[Seq[PathRef]] =
-    Task.Command(exclusive = true) { cleanTask(evaluator, tasks*)() }
+    Task.Command(globalExclusive = true) { cleanTask(evaluator, tasks*)() }
 
   def cleanTask(evaluator: Evaluator, tasks: String*) = Task.Anon {
     val rootDir = evaluator.outPath
@@ -229,7 +229,10 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
             val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
             val potentialModulePath =
               rootDir / segments.parts.map(ExecutionPaths.sanitizePathSegment)
-            if (os.exists(potentialModulePath)) {
+            // `segments` is empty for tasks on the root module (e.g. resolved by `__`), which
+            // would make `potentialModulePath` the `out/` folder itself; deleting that wipes
+            // Mill's own internal state, including the running daemon's `processId` file.
+            if (segments.parts.nonEmpty && os.exists(potentialModulePath)) {
               // this is either because of some pre-Mill-0.10 files lying around
               // or most likely because the segments denote a module but not a task
               // in which case we want to remove the module and all its sub-modules
@@ -238,7 +241,8 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
               paths :+ potentialModulePath
             } else paths
           }
-          (allPaths, ts)
+          // Never delete Mill's own `out/mill-*` bookkeeping, matching the `tasks.isEmpty` case
+          (allPaths.filterNot(keepPath), ts)
         }
 
     (pathsToRemove.runtimeChecked).map {
@@ -269,7 +273,8 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
         evaluator,
         tasks,
         Task.ctx(),
-        util.VisualizeModule.worker()
+        util.VisualizeModule.toolsClasspath(),
+        None
       )
     }
 
@@ -284,7 +289,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
             evaluator,
             tasks,
             Task.ctx(),
-            util.VisualizeModule.worker(),
+            util.VisualizeModule.toolsClasspath(),
             Some(planResults.toList)
           )
       }
@@ -294,7 +299,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
    * Shuts down mill's background daemon
    */
   @nonBootstrapped
-  def shutdown(): Command[Unit] = Task.Command(exclusive = true) {
+  def shutdown(): Command[Unit] = Task.Command(globalExclusive = true) {
     Task.log.info("Shutting down Mill server...")
     Task.ctx().systemExitWithReason("`shutdown` command received", 0)
     ()
@@ -329,7 +334,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
    */
   @nonBootstrapped
   def init(evaluator: Evaluator, args: String*): Command[Unit] =
-    Task.Command(exclusive = true) {
+    Task.Command(globalExclusive = true) {
 
       val parser = mainargs.Parser[InitArgs]
       val parsed = parser.constructOrThrow(args)

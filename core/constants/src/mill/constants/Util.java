@@ -97,6 +97,34 @@ public class Util {
 
   /**
    * Formats an error message in dotty style with file location, code snippet, and pointer.
+   * Uses an explicit pointer prefix when provided, preserving tabs for visual alignment.
+   */
+  public static String formatError(
+      String fileName,
+      int lineNum,
+      int colNum,
+      String lineContent,
+      String message,
+      int pointerLength,
+      String pointerPrefix,
+      Function<String, String> highlight) {
+
+    String pointer = colNum > 0
+        ? (pointerPrefix != null ? pointerPrefix : " ".repeat(colNum - 1))
+            + highlight.apply("^".repeat(pointerLength))
+        : "";
+
+    String header = (lineNum >= 0 && colNum >= 0)
+        ? highlight.apply(fileName) + ":" + highlight.apply("" + lineNum) + ":"
+            + highlight.apply("" + colNum)
+        : highlight.apply(fileName);
+
+    // Add an extra trailing newline to visually separate this block from following logs
+    return header + "\n" + lineContent + "\n" + pointer + "\n" + message + "\n";
+  }
+
+  /**
+   * Formats an error message in dotty style with file location, code snippet, and pointer.
    *
    * @param pointerLength The number of ^ characters to show in the pointer
    * @param highlight Function to apply highlighting/coloring to header and pointer
@@ -109,17 +137,8 @@ public class Util {
       String message,
       int pointerLength,
       Function<String, String> highlight) {
-
-    String pointer =
-        colNum > 0 ? " ".repeat(colNum - 1) + highlight.apply("^".repeat(pointerLength)) : "";
-
-    String header = (lineNum >= 0 && colNum >= 0)
-        ? highlight.apply(fileName) + ":" + highlight.apply("" + lineNum) + ":"
-            + highlight.apply("" + colNum)
-        : highlight.apply(fileName);
-
-    // Add an extra trailing newline to visually separate this block from following logs
-    return header + "\n" + lineContent + "\n" + pointer + "\n" + message + "\n";
+    return formatError(
+        fileName, lineNum, colNum, lineContent, message, pointerLength, null, highlight);
   }
 
   private static String throwBuildHeaderError(
@@ -148,7 +167,10 @@ public class Util {
       java.util.List<String> lines = Files.readAllLines(buildFile);
       boolean readingBuildHeader = true;
       java.util.List<String> output = new ArrayList<>();
-      for (int i = 0; i < lines.size(); i++) {
+      int start = 0;
+      // Java/Kotlin scripts may start with a shebang; YAML frontmatter follows it.
+      if (!lines.isEmpty() && lines.get(0).startsWith("#!")) start = 1;
+      for (int i = start; i < lines.size(); i++) {
         String line = lines.get(i);
         if (!line.startsWith("//|")) readingBuildHeader = false;
         else if (!allowNonBuild && !buildFile.getFileName().toString().startsWith("build.")) {

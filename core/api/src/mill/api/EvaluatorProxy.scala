@@ -18,6 +18,7 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   override def env = delegate.env
   override def effectiveThreadCount = delegate.effectiveThreadCount
   override def offline: Boolean = delegate.offline
+  override def isFinalDepth: Boolean = delegate.isFinalDepth
   override def useFileLocks: Boolean = delegate.useFileLocks
   override def staticBuildOverrides = delegate.staticBuildOverrides
   override def spanningInvalidationTree: Option[String] = delegate.spanningInvalidationTree
@@ -60,6 +61,19 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   ): mill.api.Result[List[Task.Named[?]]] = {
     delegate.resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
+  override private[mill] def probeSelectiveReuse(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      previousMetadata: String,
+      allowPositionalCommandArgs: Boolean
+  ): mill.api.Result[EvaluatorApi.SelectiveReuseDecision] =
+    delegate.probeSelectiveReuse(
+      scriptArgs,
+      selectMode,
+      previousMetadata,
+      allowPositionalCommandArgs
+    )
+
   def resolveModulesOrTasks(
       scriptArgs: Seq[String],
       selectMode: SelectMode,

@@ -5,18 +5,15 @@ import mill.api.BuildCtx
 import mill.*
 import mill.api.Result
 import mill.api.daemon.internal.internal
-import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.constants.OutFiles.OutFiles.*
 import mill.api.{Discover, PathRef, Task}
 import mill.api.internal.RootModule
-import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
-import mill.javalib.api.{CompilationResult, Versions}
+import mill.scalalib.{Dep, DepSyntax, ScalaModule}
+import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mill.util.{BuildInfo, MainRootModule}
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.JsonFormatters.given
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
-
-import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
  * Mill module for pre-processing a Mill `build.mill` and related files and then
@@ -36,7 +33,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       // If we are using the bootstrap module in the root of the project, do not look for
       // build files in the parent folder, since that would be outside the project entirely
       if (rootModuleInfo.projectRoot == rootModuleInfo.topLevelProjectRoot) Nil
-      else DiscoveredBuildFiles
+      else mill.internal.BuildFileDiscovery
         .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
         .sorted // Ensure ordering is deterministic
     }
@@ -72,6 +69,10 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
     generatedScriptSources().support
   }
 
+  override def wrappedSources: T[Seq[(original: PathRef, generated: PathRef)]] = {
+    generatedScriptSources().mappings
+  }
+
   override def resources: T[Seq[PathRef]] = Task {
     super.resources() ++ generatedScriptSources().resources
   }
@@ -84,26 +85,37 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
    * since they are derived from [[sources]] and would confuse any further tooling like IDEs.
    */
   def generatedScriptSources
-      : T[(wrapped: Seq[PathRef], support: Seq[PathRef], resources: Seq[PathRef])] = Task {
+      : T[(
+          wrapped: Seq[PathRef],
+          support: Seq[PathRef],
+          resources: Seq[PathRef],
+          mappings: Seq[(original: PathRef, generated: PathRef)]
+      )] = Task {
     val wrapped = Task.dest / "wrapped"
     val support = Task.dest / "support"
     val resources = Task.dest / "resources"
 
     val parsed = parseBuildFiles()
-    CodeGen.generateWrappedAndSupportSources(
+    val mappings = CodeGen.generateWrappedAndSupportSources(
       rootModuleInfo.projectRoot / os.up,
       parsed.seenScripts,
+      parsed.seenPkgStatements,
       wrapped,
       support,
       resources,
       rootModuleInfo.topLevelProjectRoot,
-      rootModuleInfo.output,
       MillScalaParser.current.value
     )
     (
       wrapped = Seq(PathRef(wrapped)),
       support = Seq(PathRef(support)),
-      resources = Seq(PathRef(resources))
+      resources = Seq(PathRef(resources)),
+      mappings = BuildCtx.withFilesystemCheckerDisabled {
+        mappings.map {
+          case (original, generated) =>
+            (PathRef(original), PathRef(generated))
+        }
+      }
     )
   }
 
@@ -114,7 +126,10 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       compile().classes,
       signatures,
       parseBuildFiles().seenScripts.collect {
-        case (k, v) if k.last.endsWith(".mill.yaml") => (k.toNIO, v)
+        case (k, v)
+            if k.last.endsWith(".mill.yaml") &&
+              !mill.internal.Util.isPrecompiledYamlModule(k) =>
+          (k.toNIO, v)
       },
       // Serialize to string to avoid classloader issues when crossing classloader boundaries
       spanningTree.render()
@@ -134,6 +149,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       .compute(
         classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
         upstreamClasspath = compileClasspath().toSeq.map(_.path),
+        ctx = Some(Task.ctx()),
         ignoreCall = { (callSiteOpt, calledSig) =>
           // We can ignore all calls to methods that look like tasks when traversing
           // the call graph. We can do this because we assume `def` tasks are pure,
@@ -223,21 +239,8 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
     scriptSources() ++ super.sources()
   }
 
-  override def allSourceFiles: T[Seq[PathRef]] = Task {
-    val allMillSources =
-      // the real input-sources
-      allSources() ++
-        // also sources, but derived from `scriptSources`
-        generatedScriptSources().wrapped
-
-    val candidates =
-      Lib.findSourceFiles(allMillSources, Seq("scala", "java") ++ buildFileExtensions.asScala.toSeq)
-
-    // We need to unlist those files, which we replaced by generating wrapper scripts
-    val filesToExclude = Lib.findSourceFiles(scriptSources(), buildFileExtensions.asScala.toSeq)
-
-    candidates.filterNot(filesToExclude.contains).map(PathRef(_))
-  }
+  override protected def sourceFileExtensions: Seq[String] =
+    super.sourceFileExtensions ++ Seq("mill")
 
   def compileMvnDeps = Seq(
     mvn"com.lihaoyi::sourcecode:${Versions.comLihaoyiSourcecodeVersion}"
@@ -252,11 +255,19 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       .exclude("com.lihaoyi" -> "sourcecode_3")
   )
 
-  override def scalacOptions: T[Seq[String]] = Task {
-    super.scalacOptions() ++
+  override def mandatoryScalacOptions: T[Seq[String]] = Task {
+    super.mandatoryScalacOptions() ++
       // This warning comes up for package names with dashes in them like "package build.`foo-bar`",
       // but Mill generally handles these fine, so no need to warn the user
-      Seq("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent")
+      Seq(
+        "-deprecation",
+        "-Wconf:msg=will be encoded on the classpath:silent",
+        "-Ymagic-offset-header:SOURCE_CODE_START"
+      ) ++
+      // `-sourceroot` so scalac stores TASTY source paths relative to it. The value uses
+      // the workspace's relativizer alias (`mill-workspace`) so two reproducible-mode runs
+      // in different workspace dirs emit byte-identical `package_.class`/`.tasty`.
+      Seq("-sourceroot", rootModuleInfo.topLevelProjectRoot.toString)
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
@@ -300,10 +311,10 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
         ZincOp.CompileMixed(
           upstreamCompileOutput = upstreamCompileOutput(),
           sources = Seq.from(sources.map(_.path)),
-          compileClasspath = compileClasspath().map(_.path),
+          compileClasspath = compileClasspath(),
           javacOptions = jOpts.compiler,
           scalaVersion = scalaVersion(),
-          scalaOrganization = scalaOrganization(),
+          scalaOrganization = JvmWorkerUtil.scalaOrganization(scalaVersion()),
           scalacOptions = allScalacOptions(),
           compilerClasspath = scalaCompilerClasspath(),
           scalacPluginClasspath = scalacPluginClasspath(),
@@ -316,21 +327,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
         javaRuntimeOptions = jOpts.runtime,
         reporter = Task.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems()
-      ).map {
-        res =>
-          // Perform the line-number updating in a copy of the classfiles, because
-          // mangling the original class files messes up zinc incremental compilation
-          val transformedClasses = Task.dest / "transformed-classes"
-          os.remove.all(transformedClasses)
-          os.copy(res.classes.path, transformedClasses)
-
-          MillBuildRootModule.updateLineNumbers(
-            transformedClasses,
-            generatedScriptSources().wrapped.head.path
-          )
-
-          res.copy(classes = PathRef(transformedClasses))
-      }
+      )
     }
   }
 
@@ -338,41 +335,6 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
 }
 
 object MillBuildRootModule {
-
-  private def updateLineNumbers(classesDir: os.Path, generatedScriptSourcesPath: os.Path) = {
-    for (p <- os.walk(classesDir) if p.ext == "class") {
-      val rel = p.subRelativeTo(classesDir)
-      // Hack to reverse engineer the `.mill` name from the `.class` file name
-      val sourceNamePrefixOpt0 = rel.last match {
-        case s"${pre}_$_.class" => Some(pre)
-        case s"${pre}$$$_.class" => Some(pre)
-        case s"${pre}.class" => Some(pre)
-        case _ => None
-      }
-
-      val sourceNamePrefixOpt = sourceNamePrefixOpt0 match {
-        case Some("package") if (rel / os.up) == os.rel / "build_" => Some("build")
-        case p => p
-      }
-
-      for (prefix <- sourceNamePrefixOpt) {
-        val sourceFile = generatedScriptSourcesPath / rel / os.up / s"$prefix.mill"
-        if (os.exists(sourceFile)) {
-
-          val lineNumberOffset =
-            os.read.lines(sourceFile).indexOf("//SOURCECODE_ORIGINAL_CODE_START_MARKER") + 1
-          os.write.over(
-            p,
-            os
-              .read
-              .stream(p)
-              .readBytesThrough(stream => AsmPositionUpdater.postProcess(-lineNumberOffset, stream))
-          )
-        }
-      }
-    }
-  }
-
   class BootstrapModule(foundRootBuildFile: os.Path)(using rootModuleInfo: RootModule.Info)
       extends MainRootModule() with MillBuildRootModule() {
     override def moduleCtx = super.moduleCtx.withFileName(foundRootBuildFile.toString)

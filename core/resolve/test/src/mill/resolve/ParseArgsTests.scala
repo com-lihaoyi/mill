@@ -5,7 +5,7 @@ import mill.api.internal.ParseArgs
 import mill.api.{Segment, Segments, SelectMode}
 import mill.api.Segment.{Cross, Label}
 import mill.api.internal.ParseArgs.TaskSeparator
-import utest.*
+import utest.{test, *}
 
 object ParseArgsTests extends TestSuite {
 
@@ -138,6 +138,14 @@ object ParseArgsTests extends TestSuite {
         input = Seq("bridges[2.12.4,jvm].compile"),
         expectedSelectors = List(
           "" -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("compile"))
+        ),
+        expectedArgs = Seq.empty,
+        multiSelect = false
+      )
+      test("singleSelectorWithEmptyCross") - check(
+        input = Seq("foo[].compile"),
+        expectedSelectors = List(
+          "" -> List(Label("foo"), Cross(Seq()), Label("compile"))
         ),
         expectedArgs = Seq.empty,
         multiSelect = false

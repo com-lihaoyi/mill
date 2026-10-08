@@ -3,6 +3,7 @@ package millbuild
 import build_.package_ as build
 import coursier.MavenRepository
 import coursier.VersionConstraint
+import coursier.params.ResolutionParams
 import mill.PathRef
 import mill.T
 import mill.Task
@@ -60,8 +61,9 @@ trait MillJavaModule extends JavaModule {
     else Seq(this, build.core.api.test)
 
   def localTestOverridesEnv = Task {
-    val localRepos = localTestRepositories().map(_.path.toString).mkString(File.pathSeparator)
-    Seq("MILL_LOCAL_TEST_REPO" -> localRepos)
+    val localRepos = localTestRepositories().map(_.path.toNIO.toUri.toASCIIString)
+    val repos = localRepos ++ Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
+    Seq("COURSIER_REPOSITORIES" -> repos.mkString("|"))
   }
 
   def repositoriesTask = Task.Anon {
@@ -69,19 +71,10 @@ trait MillJavaModule extends JavaModule {
       Seq(MavenRepository("https://oss.sonatype.org/content/repositories/releases"))
   }
 
-  def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
-    super.mapDependencies().andThen { dep =>
-      forcedVersions.find(f =>
-        f.dep.module.organization.value == dep.module.organization.value &&
-          f.dep.module.name.value == dep.module.name.value
-      ).map { forced =>
-        val newDep = dep.withVersionConstraint(VersionConstraint(forced.version))
-        Task.log.debug(
-          s"Forcing version of ${dep.module} from ${dep.versionConstraint.asString} to ${newDep.versionConstraint.asString}"
-        )
-        newDep
-      }.getOrElse(dep)
-    }
+  def resolutionParams: Task[ResolutionParams] = Task.Anon {
+    super.resolutionParams().addForceVersion0(
+      forcedVersions.map(dep => (dep.dep.module, dep.dep.versionConstraint))*
+    )
   }
 
   val forcedVersions: Seq[Dep] = Deps.transitiveDeps ++ Seq(

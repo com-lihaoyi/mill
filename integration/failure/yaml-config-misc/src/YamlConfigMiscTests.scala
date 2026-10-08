@@ -12,7 +12,7 @@ object YamlConfigMiscTests extends UtestIntegrationTestSuite {
       // This errors doesn't look great, but for now just assert on them and make sure they don't regress
       val res = tester.eval(("resolve", "_"))
       assert(res.err.replace('\\', '/').contains("mispelledextends/package.mill.yaml"))
-      assert(res.err.contains("trait package_ extends mill.javalib.JavaModuleTypod"))
+      assert(res.err.contains("extends: [mill.javalib.JavaModuleTypod]"))
       assert(res.err.contains("type JavaModuleTypod is not a member of mill.javalib"))
 
       tester.modifyFile(
@@ -72,6 +72,45 @@ object YamlConfigMiscTests extends UtestIntegrationTestSuite {
       assert(res5.err.contains("Module 'plainmodule' is a"))
       assert(res5.err.contains("not a"))
       assert(res5.err.contains("JavaModule"))
+
+      // Test invalid YAML type for moduleDeps (missing `-`) reports file + line number
+      os.makeDir.all(tester.workspacePath / "badmoduledepsformat")
+      os.write.over(
+        tester.workspacePath / "badmoduledepsformat/package.mill.yaml",
+        """extends: [mill.javalib.JavaModule]
+          |object test:
+          |  extends: [mill.javalib.JavaModule]
+          |  moduleDeps:
+          |    otherProject
+          |""".stripMargin
+      )
+      val res6 = tester.eval("badmoduledepsformat.test.compile")
+      assert(!res6.isSuccess)
+      res6.assertContainsLines(
+        "[error] badmoduledepsformat/package.mill.yaml:5:5",
+        "    otherProject",
+        "    ^"
+      )
+      assert(res6.err.contains("expected sequence got string"))
+
+      // Test invalid YAML type for top-level moduleDeps reports file + line number
+      os.remove.all(tester.workspacePath / "badmoduledepsformat")
+      os.makeDir.all(tester.workspacePath / "badtopmoduledepsformat")
+      os.write.over(
+        tester.workspacePath / "badtopmoduledepsformat/package.mill.yaml",
+        """extends: [mill.javalib.JavaModule]
+          |moduleDeps:
+          |  otherProject
+          |""".stripMargin
+      )
+      val res7 = tester.eval("badtopmoduledepsformat.compile")
+      assert(!res7.isSuccess)
+      res7.assertContainsLines(
+        "[error] badtopmoduledepsformat/package.mill.yaml:3:3",
+        "  otherProject",
+        "  ^"
+      )
+      assert(res7.err.contains("expected sequence got string"))
     }
   }
 }

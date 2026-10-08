@@ -23,7 +23,7 @@ public class VersionCheck {
         System.err.println(
             "Invalid java.version " + javaVersion + ". Mill requires Java 17 and above to run the "
                 + "build tool itself. Individual `JavaModule` can be set to lower Java versions via"
-                + " `def jvmId = \"11\"`");
+                + " `def jvmVersion = \"11\"`");
         System.exit(1);
     }
   }

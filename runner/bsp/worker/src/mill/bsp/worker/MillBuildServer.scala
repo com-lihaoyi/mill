@@ -1,0 +1,489 @@
+package mill.bsp.worker
+
+import ch.epfl.scala.bsp4j.*
+import mill.api.*
+import mill.bsp.worker.Utils.groupList
+import mill.api.internal.WatchSig
+import mill.internal.PrefixLogger
+
+import java.util.concurrent.{CompletableFuture, Executors, ExecutorService, ThreadFactory, TimeUnit}
+import java.util.concurrent.atomic.AtomicInteger
+import scala.concurrent.Promise
+import scala.jdk.CollectionConverters.*
+import scala.util.{Failure, Success}
+import mill.api.daemon.internal.NonFatal
+import mill.api.daemon.Watchable
+import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspModuleApi, BspServerResult}
+import mill.api.daemon.internal.*
+
+/**
+ * Mill's BSP server implementation.
+ *
+ * This class contains the server infrastructure (state management, request handling,
+ * threading). The actual BSP endpoint implementations are in the MillBspEndpoints trait.
+ */
+private abstract class MillBuildServer(
+    protected val topLevelProjectRoot: os.Path,
+    protected val bspVersion: String,
+    protected val serverVersion: String,
+    protected val serverName: String,
+    protected val canReload: Boolean,
+    protected val onShutdown: () => Unit,
+    protected val baseLogger: Logger,
+    bspWatch: Boolean,
+    bootstrapBridge: BspBootstrapBridge
+) extends EndpointsApi with AutoCloseable {
+
+  import MillBuildServer.*
+
+  // ==========================================================================
+  // Session State
+  // ==========================================================================
+
+  // Mutable variables representing the lifecycle stages:
+  @volatile protected var client: BuildClient = scala.compiletime.uninitialized
+  @volatile protected var sessionInfo: MillBspEndpoints.SessionInfo =
+    scala.compiletime.uninitialized
+
+  protected[worker] val shutdownPromise: Promise[BspServerResult] = Promise[BspServerResult]()
+
+  private val requestCount = new AtomicInteger
+
+  private val bspRequestExecutor: ExecutorService = {
+    val counter = AtomicInteger(0)
+    val threadCount = math.max(1, Runtime.getRuntime.availableProcessors())
+    val threadFactory: ThreadFactory = (r: Runnable) => {
+      val t = Thread(r, s"mill-bsp-request-${counter.incrementAndGet()}")
+      t.setDaemon(true)
+      t
+    }
+    Executors.newFixedThreadPool(threadCount, threadFactory)
+  }
+
+  def initialized = sessionInfo != null
+
+  /**
+   * Build a meta-build reporter for the BSP client. Each meta-build depth maps
+   * to a synthetic BSP target whose URI is `<workspaceRoot>/mill-build/...`,
+   * matching the IDs surfaced by [[BspEvaluators]] for `MillBuildRootModule`s.
+   * Returns None when no client is connected (yet) or the depth is the user's
+   * top-level build (depth 0 user code lives outside any meta-build target).
+   */
+  private def metaBuildReporterFor(depth: Int): Option[CompileProblemReporter] = {
+    val currentClient = client
+    if (currentClient == null) None
+    else {
+      val targetUri =
+        Utils.sanitizeUri(topLevelProjectRoot.toNIO) +
+          (Seq.fill(depth)("/mill-build")).mkString
+      val targetId = BuildTargetIdentifier(targetUri)
+      val displayName = "mill-build" + (if (depth > 1) s" (level $depth)" else "")
+      val taskId = TaskId(s"mill-build-$depth")
+      Some(new BspCompileProblemReporter(
+        currentClient,
+        targetId,
+        displayName,
+        taskId,
+        // Match the user-build path (`Utils.getBspLoggedReporterPool("", …)`),
+        // which threads an empty-string originId through `Option(originId)` to
+        // `Some("")`. Using `None` here would omit the `originId` field from
+        // emitted `PublishDiagnosticsParams`/`CompileReport` JSON, which the
+        // BSP diagnostics snapshot tests assert is present (even when empty).
+        compilationOriginId = Some("")
+      ))
+    }
+  }
+
+  private def withBootstrappedEvaluators[T](
+      activeCommandMessage: String
+  )(
+      onUnavailable: (Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
+  )(
+      body: (BspEvaluators, Seq[EvaluatorApi], Seq[Watchable], Option[String]) => T
+  ): T =
+    bootstrapBridge.apply[T](
+      activeCommandMessage,
+      depth => metaBuildReporterFor(depth),
+      (evaluators, watched, errorOpt) =>
+        if (errorOpt.isDefined && evaluators.isEmpty) {
+          if (watcherThreadNeedsStart) startWatcherThreadIfNeeded(Seq.empty, watched)
+          onUnavailable(evaluators, watched, errorOpt)
+        } else {
+          val bspEvaluators = new BspEvaluators(
+            topLevelProjectRoot,
+            evaluators,
+            s => baseLogger.debug(s())
+          )
+          if (watcherThreadNeedsStart)
+            startWatcherThreadIfNeeded(bspEvaluators.targetSnapshots, watched)
+          body(bspEvaluators, evaluators, watched, errorOpt)
+        }
+    )
+
+  private var buildInitialized = false
+
+  protected def doneInitializingBuild(): Unit = synchronized {
+    assert(initialized, "Expected Mill BSP server to be initialized")
+    if (!buildInitialized) buildInitialized = true
+    else
+      baseLogger.warn("Mill BSP server initialized more than once")
+  }
+
+  @volatile private var watcherThread: Thread = null
+  private val watcherPollIntervalMs: Long = 500L
+
+  private def startWatcherThread(
+      initialTargetSnapshots: Seq[ChangeNotifier.TargetSnapshot],
+      initialBuildDefinitionWatches: Seq[Watchable]
+  ): Unit = {
+    val watchLogger = new PrefixLogger(baseLogger, Seq("watch"))
+    watcherThread = mill.api.daemon.StartThread("mill-bsp-watcher", daemon = true) {
+      var prevTargetSnapshots = initialTargetSnapshots
+      var buildDefinitionWatches = initialBuildDefinitionWatches
+      var pendingBuildDefinitionChange = false
+      try while (
+          !stopped &&
+          !shutdownPromise.isCompleted &&
+          !Thread.currentThread().isInterrupted
+        ) {
+          try {
+            // The first pass stabilizes module watches discovered lazily while the
+            // initial target snapshots were built. Only stale watches from the
+            // preceding pass represent a build-definition transition.
+            pendingBuildDefinitionChange = pendingBuildDefinitionChange ||
+              buildDefinitionWatches.exists { watchable =>
+                try !WatchSig.haveNotChanged(watchable)
+                catch { case NonFatal(_) => true }
+              }
+
+            val (watchedSeq, snapshotsUpdated) =
+              withBootstrappedEvaluators("BSP:watch")((_, watched, _) => (watched, false)) {
+                (bspEvaluators, _, watched, _) =>
+                  val current = bspEvaluators.targetSnapshots
+                  val currentClient = client
+                  if (currentClient != null)
+                    ChangeNotifier.notifyChanges(
+                      currentClient,
+                      prevTargetSnapshots,
+                      current,
+                      buildDefinitionChanged = pendingBuildDefinitionChange
+                    )
+                  prevTargetSnapshots = current
+                  (watched, true)
+              }
+            if (snapshotsUpdated) pendingBuildDefinitionChange = false
+            buildDefinitionWatches = watchedSeq
+
+            def stillUnchanged(): Boolean =
+              try watchedSeq.forall(WatchSig.haveNotChanged)
+              catch { case NonFatal(_) => false }
+
+            while (
+              !stopped &&
+              !shutdownPromise.isCompleted &&
+              !Thread.currentThread().isInterrupted &&
+              stillUnchanged()
+            ) {
+              try Thread.sleep(watcherPollIntervalMs)
+              catch {
+                case _: InterruptedException =>
+                  Thread.currentThread().interrupt()
+              }
+            }
+          } catch {
+            case _: InterruptedException => Thread.currentThread().interrupt()
+            case NonFatal(ex) =>
+              watchLogger.error(s"BSP watcher iteration failed: $ex")
+              ex.printStackTrace(watchLogger.streams.err)
+              try Thread.sleep(1000L)
+              catch {
+                case _: InterruptedException =>
+                  Thread.currentThread().interrupt()
+              }
+          }
+        }
+      catch {
+        case _: InterruptedException => ()
+      }
+    }
+  }
+
+  private def watcherThreadNeedsStart: Boolean = synchronized {
+    bspWatch && buildInitialized && watcherThread == null && !stopped
+  }
+
+  private def startWatcherThreadIfNeeded(
+      initialTargetSnapshots: Seq[ChangeNotifier.TargetSnapshot],
+      initialBuildDefinitionWatches: Seq[Watchable]
+  ): Unit = synchronized {
+    if (bspWatch && buildInitialized && watcherThread == null && !stopped)
+      startWatcherThread(initialTargetSnapshots, initialBuildDefinitionWatches)
+  }
+
+  def close(): Unit = {
+    stopped = true
+    shutdownPromise.trySuccess(BspServerResult.Shutdown)
+    if (watcherThread != null) watcherThread.interrupt()
+    bspRequestExecutor.shutdown()
+    // In-flight bootstraps (especially Zinc) often ignore interrupts and keep
+    // holding daemon-wide leases until they return; wait long enough for
+    // typical work to finish before falling through to `shutdownNow()`.
+    val gracefulSeconds = 15L
+    val forcedSeconds = 30L
+    try {
+      if (!bspRequestExecutor.awaitTermination(gracefulSeconds, TimeUnit.SECONDS)) {
+        baseLogger.warn(
+          s"BSP request threads did not finish within ${gracefulSeconds}s; interrupting"
+        )
+        bspRequestExecutor.shutdownNow()
+        if (!bspRequestExecutor.awaitTermination(forcedSeconds, TimeUnit.SECONDS))
+          baseLogger.warn(
+            s"BSP request threads still running after a further ${forcedSeconds}s; " +
+              "their leases will be released when they eventually return"
+          )
+      }
+    } catch {
+      case _: InterruptedException =>
+        bspRequestExecutor.shutdownNow()
+        Thread.currentThread().interrupt()
+    }
+  }
+
+  def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
+
+  // ==========================================================================
+  // Request Handling Infrastructure
+  // ==========================================================================
+
+  protected def handlerTasks[T, V, W](
+      targetIds: BspEvaluators => collection.Seq[BuildTargetIdentifier],
+      tasks: PartialFunction[BspModuleApi, TaskApi[W]],
+      requestDescription: String,
+      originId: String
+  )(block: (TaskContext[W], Logger) => T)(
+      agg: (java.util.List[T], BspEvaluators, Logger) => V
+  )(using name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V] = {
+    val prefix = name.value
+    handlerEvaluators() { (state, logger) =>
+      val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala
+      val tasksSeq = ids.flatMap { id =>
+        state.bspModulesById.get(id).flatMap { (m, ev) =>
+          tasks.lift.apply(m).map(ts => (ts, (ev, id, m)))
+        }
+      }
+
+      val groups0 = groupList(tasksSeq)(_._2._1) {
+        case (tasks, (_, id, m)) => (id, m, tasks)
+      }
+
+      val evaluated = groups0.flatMap { case (ev, targetIdTasks) =>
+        val requestDescription0 = requestDescription.replace(
+          "{}",
+          targetIdTasks.map(_._2.bspDisplayName).mkString(", ")
+        )
+        val results = evaluate(
+          ev,
+          requestDescription0,
+          targetIdTasks.map(_._3),
+          logger = logger,
+          reporter = Utils.getBspLoggedReporterPool(originId, state.bspIdByModule, client)
+        )
+        val resultsById = targetIdTasks.flatMap { case (id, m, task) =>
+          results.transitiveResultsApi(task)
+            .asSuccess
+            .map(_.value.value.asInstanceOf[W])
+            .map((id, m, _))
+        }
+
+        def logError(id: BuildTargetIdentifier, errorMsg: String): Unit = {
+          val msg = s"Request '$prefix' failed for ${id.getUri}: ${errorMsg}"
+          logger.error(msg)
+          client.onBuildLogMessage(LogMessageParams(MessageType.ERROR, msg))
+        }
+
+        resultsById.flatMap { case (id, m, values) =>
+          try Seq(block(TaskContext(id, m, values, ev, state), logger))
+          catch {
+            case NonFatal(e) =>
+              logError(id, e.toString)
+              Seq()
+          }
+        }
+      }
+
+      agg(evaluated.asJava, state, logger)
+    }
+  }
+
+  @volatile private var stopped = false
+
+  protected def completeSessionResult(result: BspServerResult): Unit =
+    shutdownPromise.trySuccess(result)
+
+  protected def handlerEvaluators[V](
+      checkInitialized: Boolean = true
+  )(block: (BspEvaluators, Logger) => V)(using
+      name: sourcecode.Name,
+      enclosing: sourcecode.Enclosing
+  ): CompletableFuture[V] = {
+    val prefix = name.value
+    val logger = createLogger()
+    val future = new CompletableFuture[V]
+
+    if (checkInitialized && !initialized) {
+      val msg = s"Can not respond to $prefix request before receiving the `initialize` request."
+      logger.error(msg)
+      future.completeExceptionally(Exception(msg))
+    } else if (stopped) {
+      future.completeExceptionally(new java.util.concurrent.CancellationException(
+        s"BSP server is shutting down; rejecting request $prefix"
+      ))
+    } else {
+      try bspRequestExecutor.execute(() => runRequest(prefix, logger, future, block))
+      catch {
+        case _: java.util.concurrent.RejectedExecutionException =>
+          future.completeExceptionally(new java.util.concurrent.CancellationException(
+            s"BSP server is shutting down; rejecting request $prefix"
+          ))
+      }
+    }
+    future
+  }
+
+  private def runRequest[V](
+      prefix: String,
+      logger: Logger,
+      future: CompletableFuture[V],
+      block: (BspEvaluators, Logger) => V
+  ): Unit = {
+    if (future.isCancelled()) {
+      logger.info(s"$prefix was cancelled")
+      return
+    }
+    try {
+      withBootstrappedEvaluators(s"BSP:$prefix") { (_, _, errorOpt) =>
+        val error = errorOpt.get
+        logger.error(error)
+        future.completeExceptionally(IllegalStateException(error))
+      } { (bspEvaluators, _, _, _) =>
+        if (future.isCancelled()) {
+          logger.info(s"$prefix was cancelled")
+        } else {
+          executeWithTiming(prefix, logger, future)(block(bspEvaluators, logger))
+        }
+      }
+    } catch {
+      case t: Throwable =>
+        logger.error(s"Could not process request: $t")
+        t.printStackTrace(logger.streams.err)
+        future.completeExceptionally(t)
+    }
+  }
+
+  /** Executes a block with timing/logging and completes the given future */
+  private def executeWithTiming[V](prefix: String, logger: Logger, future: CompletableFuture[V])(
+      block: => V
+  ): Unit = {
+    val start = System.currentTimeMillis()
+    baseLogger.prompt.beginChromeProfileEntry(prefix)
+    logger.info(s"Entered $prefix")
+
+    val result = NonFatal.Try(block)
+
+    baseLogger.prompt.endChromeProfileEntry()
+    logger.info(s"$prefix took ${System.currentTimeMillis() - start} msec")
+
+    result match {
+      case Success(v) =>
+        logger.debug(s"$prefix result: $v")
+        future.complete(v)
+      case Failure(e) =>
+        logger.error(s"$prefix caught exception: $e")
+        e.printStackTrace(logger.streams.err)
+        future.completeExceptionally(e)
+    }
+  }
+
+  protected def handlerRaw[V](block: Logger => V)(using
+      name: sourcecode.Name,
+      enclosing: sourcecode.Enclosing
+  ): CompletableFuture[V] = {
+    val logger = createLogger()
+    val future = new CompletableFuture[V]
+    executeWithTiming(name.value, logger, future)(block(logger))
+    future
+  }
+
+  protected def createLogger()(using enclosing: sourcecode.Enclosing): Logger = {
+    val requestCount0 = requestCount.incrementAndGet()
+    val name = enclosingRequestName
+    new BspLogger(
+      client,
+      requestCount0,
+      PrefixLogger(
+        new ProxyLogger(baseLogger) {
+          override def logKey: Seq[String] = {
+            val logKey0 = super.logKey
+            if (logKey0.startsWith(Seq("bsp"))) logKey0.drop(1)
+            else logKey0
+          }
+        },
+        Seq(requestCount0.toString, name)
+      )
+    )
+  }
+
+  // ==========================================================================
+  // Internal Helpers
+  // ==========================================================================
+
+  protected def evaluate(
+      evaluator: EvaluatorApi,
+      requestDescription: String,
+      goals: Seq[TaskApi[?]],
+      logger: Logger,
+      reporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
+      errorOpt: EvaluatorApi.Result[Any] => Option[String] =
+        _.values.toEither.left.toOption
+  ): ExecutionResultsApi = {
+    val goalCount = goals.length
+    logger.info(s"Evaluating $goalCount ${if (goalCount > 1) "tasks" else "task"}")
+    val result = evaluator.executeApi(
+      goals,
+      reporter,
+      testReporter,
+      logger
+    )
+    errorOpt(result) match {
+      case None =>
+        logger.info("Done")
+      case Some(error) =>
+        logger.warn(error)
+        logger.info("Failed")
+        client.onBuildLogMessage(LogMessageParams(MessageType.WARNING, error))
+    }
+    result.executionResults
+  }
+
+}
+
+private object MillBuildServer {
+  def enclosingRequestName(using enclosing: sourcecode.Enclosing): String = {
+    var name0 = enclosing.value.split(" ") match {
+      case Array(elem) => elem
+      case other => other(other.length - 2)
+    }
+
+    val sharpIdx = name0.lastIndexOf('#')
+    if (sharpIdx > 0)
+      name0 = name0.drop(sharpIdx + 1)
+
+    if (name0.startsWith("buildTarget")) {
+      val stripped = name0.stripPrefix("buildTarget")
+      if (stripped.headOption.exists(_.isUpper))
+        name0 = stripped.head.toLower +: stripped.tail
+    }
+    name0
+  }
+}

@@ -96,8 +96,13 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    * Default is derived from [[kotlinCompilerMvnDeps]].
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
+    val Array(major, minor) = kotlinVersion().split("[.]").take(2).map(_.toIntOption).padTo(2, None)
+    val usesDeprecatedApi = major.exists(_ < 2) || (major.contains(2) && minor.exists(_ < 4))
+    val workerModule =
+      if (usesDeprecatedApi) "mill-libs-kotlinlib-worker-1"
+      else "mill-libs-kotlinlib-worker-2-4"
     val deps = kotlinCompilerMvnDeps() ++ Seq(
-      Dep.millProjectModule("mill-libs-kotlinlib-worker")
+      Dep.millProjectModule(workerModule)
     )
     defaultResolver().classpath(
       deps,
@@ -120,7 +125,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    *
    * See also https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-vs-kotlin-compiler/3196
    */
-  def kotlinUseEmbeddableCompiler: Task[Boolean] = Task { false }
+  def kotlinUseEmbeddableCompiler: T[Boolean] = Task { false }
 
   /**
    * The Ivy/Coursier dependencies resembling the Kotlin compiler.
@@ -137,7 +142,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       if (useEmbeddable) mvn"org.jetbrains.kotlin:kotlin-compiler-embeddable:${kv}"
       else mvn"org.jetbrains.kotlin:kotlin-compiler:${kv}"
 
-    val btApiDeps = when(kotlincUseBtApi())(
+    val btApiDeps = when(kotlincUseBtApi() && useEmbeddable)(
       mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kv",
       mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kv"
     )
@@ -303,6 +308,13 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val ctx = Task.ctx()
       val dest = ctx.dest
       val classes = dest / "classes"
+
+      val useBtApi = kotlincUseBtApi() && kotlinUseEmbeddableCompiler()
+      if (!useBtApi) {
+        // Non BT-API compiler is not incremental and does not keep track of older files,
+        // so we always need to start fresh.
+        os.remove.all(classes)
+      }
       os.makeDir.all(classes)
 
       val javaSourceFiles = allJavaSourceFiles().map(_.path)
@@ -312,7 +324,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val isJava = javaSourceFiles.nonEmpty
       val isMixed = isKotlin && isJava
 
-      val compileCp = compileClasspath().map(_.path).filter(os.exists)
+      val compileCp = compileClasspath().filter(ref => os.exists(ref.path))
+      val compileCpPaths = compileCp.map(_.path)
       val updateCompileOutput = upstreamCompileOutput()
 
       def compileJava: Result[CompilationResult] = {
@@ -346,24 +359,30 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           // TODO if there is penalty for activating it in the compiler, put it behind configuration flag
           Seq("-Xmulti-platform"),
           // classpath
-          when(compileCp.iterator.nonEmpty)(
+          when(compileCpPaths.iterator.nonEmpty)(
             "-classpath",
-            compileCp.iterator.mkString(File.pathSeparator)
-          ),
-          when(kotlinExplicitApi())(
-            "-Xexplicit-api=strict"
+            compileCpPaths.iterator.mkString(File.pathSeparator)
           ),
           allKotlincOptions(),
           extraKotlinArgs
         ).flatten
 
+        if (kotlincUseBtApi() && !kotlinUseEmbeddableCompiler()) {
+          ctx.log.warn(
+            "Kotlin Build Tools API requires kotlinUseEmbeddableCompiler=true; " +
+              "falling back to CLI compiler backend."
+          )
+        }
+
         val workerResult =
-          KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
+          val kotlinWorkerManager = KotlinWorkerManager.kotlinWorker()
+          kotlinWorkerManager.withValue(kotlinCompilerClasspath()) {
             _.compile(
               target = KotlinWorkerTarget.Jvm,
-              useBtApi = kotlincUseBtApi(),
+              useBtApi = useBtApi,
               args = compilerArgs,
-              sources = kotlinSourceFiles ++ javaSourceFiles
+              sources = kotlinSourceFiles ++ javaSourceFiles,
+              classpath = compileCp
             )
           }
 
@@ -389,17 +408,42 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     }
 
   /**
+   * Modules whose internal declarations are visible to this module.
+   *
+   * Drives `-Xfriend-modules` for Kotlin/JS and `-Xfriend-paths` elsewhere.
+   * See [`friendPaths`](https://kotlinlang.org/api/kotlin-gradle-plugin/kotlin-gradle-plugin-api/org.jetbrains.kotlin.gradle.tasks/-base-kotlin-compile/friend-paths.html) for the Gradle equivalent.
+   *
+   * When consuming, use [[kotlinFriendModulesChecked]] instead, which is checked for consistency and cached.
+   */
+  def kotlinFriendModules: Seq[KotlinModule] = Seq.empty[KotlinModule]
+
+  /**
+   * Same as [[kotlinFriendModules]], but checked for consistency.
+   * Prefer using this over [[kotlinFriendModules]].
+   */
+  private[kotlinlib] lazy val kotlinFriendModulesChecked: Seq[KotlinModule] = {
+    val deps = recursiveModuleDeps.toSet ++ compileModuleDeps
+    val missing = kotlinFriendModules.toSet.diff(deps)
+    require(
+      missing.isEmpty,
+      s"All kotlinFriendModules must also be declared in moduleDeps/compileModuleDeps. Module ${this} is missing a dependency to ${missing.toSeq.map(_.toString).sorted.mkString(", ")}"
+    )
+    kotlinFriendModules.distinct
+  }
+
+  /**
    * Additional Kotlin compiler options to be used by [[compile]].
    */
   def kotlincOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Enable use of new Kotlin Build API (Beta).
-   * Enabled by default for Kotlin 2.1+ for JVM.
+   * Enabled by default for Kotlin 2.3+ when using the embeddable compiler.
    */
   def kotlincUseBtApi: T[Boolean] = Task {
+    kotlinUseEmbeddableCompiler() &&
     Version.parse(kotlinVersion())
-      .isNewerThan(Version.parse("2.1.0"))(using Version.IgnoreQualifierOrdering)
+      .isAtLeast(Version.parse("2.3.0"))(using Version.IgnoreQualifierOrdering)
   }
 
   /**
@@ -415,23 +459,32 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
   /**
    * Mandatory command-line options to pass to the Kotlin compiler
-   * that shouldn't be removed by overriding `scalacOptions`
+   * that shouldn't be removed by overriding [[kotlincOptions]].
    */
   protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
     val languageVersion = kotlinLanguageVersion()
     val kotlinkotlinApiVersion = kotlinApiVersion()
     val plugins = kotlincPluginJars().map(_.path)
 
+    val friendPathsOption = if (kotlinFriendModulesChecked.isEmpty) {
+      Seq.empty[String]
+    } else {
+      val compilations = Task.traverse(kotlinFriendModulesChecked) { friend => friend.compile }()
+      Seq(compilations.map(_.classes.path.toString).mkString("-Xfriend-paths=", ",", ""))
+    }
+
     Seq("-no-stdlib") ++
       kotlinModuleNameOption() ++
       when(!languageVersion.isBlank)("-language-version", languageVersion) ++
       when(!kotlinkotlinApiVersion.isBlank)("-api-version", kotlinkotlinApiVersion) ++
-      plugins.map(p => s"-Xplugin=$p")
+      plugins.map(p => s"-Xplugin=$p") ++
+      friendPathsOption ++
+      when(kotlinExplicitApi())("-Xexplicit-api=strict")
   }
 
   /**
    * Aggregation of all the options passed to the Kotlin compiler.
-   * In most cases, instead of overriding this Target you want to override `kotlincOptions` instead.
+   * In most cases, instead of overriding this Target you want to override [[kotlincOptions]] instead.
    */
   def allKotlincOptions: T[Seq[String]] = Task {
     mandatoryKotlincOptions() ++ kotlincOptions()
@@ -441,7 +494,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       worker: InternalJvmWorkerApi,
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
-      compileCp: Seq[os.Path],
+      compileCp: Seq[PathRef],
       javaHome: Option[os.Path],
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
@@ -498,13 +551,15 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlincPluginMvnDeps: T[Seq[Dep]] =
       Task { outer.kotlincPluginMvnDeps() }
-      // TODO: make Xfriend-path an explicit setting
+    override def kotlinFriendModules: Seq[KotlinModule] =
+      super.kotlinFriendModules ++
+        // auto-add outer module, iff we depend on it
+        Seq(outer).filter(recursiveModuleDeps.toSet ++ compileModuleDeps)
     override def kotlincOptions: T[Seq[String]] = Task {
-      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
-        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources"))
     }
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
-      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+    override def kotlinUseEmbeddableCompiler: T[Boolean] =
+      Task { outer.kotlinUseEmbeddableCompiler() }
     override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
   }
 
@@ -520,13 +575,15 @@ object KotlinModule {
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlincPluginMvnDeps: T[Seq[Dep]] =
       Task { outer.kotlincPluginMvnDeps() }
-    // TODO: make Xfriend-path an explicit setting
+    override def kotlinFriendModules: Seq[KotlinModule] =
+      super.kotlinFriendModules ++
+        // auto-add outer module, iff we depend on it
+        Seq(outer).filter(recursiveModuleDeps.toSet ++ compileModuleDeps)
     override def kotlincOptions: T[Seq[String]] = Task {
-      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
-        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources"))
     }
-    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
-      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+    override def kotlinUseEmbeddableCompiler: T[Boolean] =
+      Task { outer.kotlinUseEmbeddableCompiler() }
     override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
   }
   private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>

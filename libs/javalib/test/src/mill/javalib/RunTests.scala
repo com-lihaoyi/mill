@@ -2,6 +2,7 @@ package mill.javalib
 
 import mill.*
 import mill.api.ExecResult
+import mill.api.daemon.LauncherSubprocess
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.api.Discover
@@ -27,6 +28,12 @@ object RunTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  object HelloJavaPackageAccessMain extends TestRootModule {
+    object app extends JavaModule
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
   object HelloJavaWithoutMain extends TestRootModule {
     object core extends JavaModule
     object app extends JavaModule {
@@ -39,6 +46,10 @@ object RunTests extends TestSuite {
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"
   val noMainResourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java-no-main"
+  val packageAccessMainResourcePath =
+    os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java-package-access-main"
+
+  private def requiresJava25: Boolean = Runtime.version().feature() >= 25
 
   def tests: Tests = Tests {
 
@@ -81,6 +92,19 @@ object RunTests extends TestSuite {
 
         assert(result.evalCount > 0)
       }
+
+      test("runUsesInteractiveSubprocess") - UnitTester(HelloJavaWithMain, resourcePath).scoped {
+        eval =>
+          var seen: Option[LauncherSubprocess.Config] = None
+
+          LauncherSubprocess.withValue(config => { seen = Some(config); 0 }) {
+            val Right(result) =
+              eval.apply(HelloJavaWithMain.app.run(Task.Anon(Args("testArg")))).runtimeChecked
+            assert(result.evalCount > 0)
+          }
+
+          assert(seen.nonEmpty)
+      }
       test("notRunWithoutMainClass") - UnitTester(
         HelloJavaWithoutMain,
         sourceRoot = noMainResourcePath
@@ -110,6 +134,21 @@ object RunTests extends TestSuite {
 
           assert(result.evalCount > 0)
       }
+
+      test("packageAccessStaticMainDiscovery") -
+        UnitTester(HelloJavaPackageAccessMain, packageAccessMainResourcePath).scoped { eval =>
+          val Right(found) =
+            eval.apply(HelloJavaPackageAccessMain.app.allLocalMainClasses).runtimeChecked
+          if (requiresJava25) {
+            assert(found.value == Seq("Main"))
+            val Right(result) = eval.apply(
+              HelloJavaPackageAccessMain.app.run(Task.Anon(Args()))
+            ).runtimeChecked
+            assert(result.evalCount > 0)
+          } else {
+            assert(found.value.isEmpty)
+          }
+        }
     }
 
     test("run") {

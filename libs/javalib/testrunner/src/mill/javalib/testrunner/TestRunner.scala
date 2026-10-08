@@ -11,6 +11,7 @@ import mill.util.Jvm
       testClassfilePath: Seq[os.Path],
       args: Seq[String],
       testReporter: TestReporter,
+      discoveredTestClasses: Option[Seq[(String, Int)]],
       classFilter: Class[?] => Boolean = _ => true
   ): (String, Seq[TestResult]) = {
     Jvm.withClassLoader(
@@ -23,7 +24,8 @@ import mill.util.Jvm
         args,
         classFilter,
         classLoader,
-        testReporter
+        testReporter,
+        discoveredTestClasses
       )
     }
   }

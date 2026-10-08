@@ -12,7 +12,7 @@ object KotlinJsKotlinTestPackageModuleTests extends TestSuite {
 
   private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
 
-  private val kotlinVersion = "1.9.25"
+  private val kotlinVersion = "2.2.20"
 
   object module extends TestRootModule {
 

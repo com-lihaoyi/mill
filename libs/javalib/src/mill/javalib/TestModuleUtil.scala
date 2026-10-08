@@ -15,7 +15,6 @@ import scala.xml.Elem
 import scala.collection.mutable
 import mill.api.Logger
 
-import java.util.concurrent.ConcurrentHashMap
 import mill.api.BuildCtx
 import mill.javalib.api.internal.ZincOp
 import mill.javalib.testrunner.{TestArgs, TestResult, TestRunnerUtils}
@@ -48,7 +47,11 @@ final class TestModuleUtil(
     testParallelism: Boolean,
     testLogLevel: TestReporter.LogLevel,
     propagateEnv: Boolean = true,
-    jvmWorker: mill.javalib.api.internal.InternalJvmWorkerApi
+    jvmWorker: mill.javalib.api.internal.InternalJvmWorkerApi,
+    @com.lihaoyi.unroll
+    discoveredClassesOpt: Option[Seq[(String, Int)]] = None,
+    @com.lihaoyi.unroll
+    testBatchFrameworkTasks: Boolean = false
 )(using ctx: mill.api.TaskCtx) {
 
   private val (jvmArgs, props) = TestModuleUtil.loadArgsAndProps(useArgsFile, forkArgs)
@@ -68,32 +71,39 @@ final class TestModuleUtil(
     /** This is filtered by mill. */
     val filteredClassLists0 = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
 
-    /** This is filtered by the test framework. */
+    /** This is filtered by the test framework when using queue scheduling. */
     val filteredClassLists = {
-      // If test grouping is enabled and multiple test groups are detected, we need to
-      // run test discovery via the test framework's own argument parsing and filtering
-      // logic once before we potentially fork off multiple test groups that will
-      // each do the same thing and then run tests. This duplication is necessary so we can
-      // skip test groups that we know will be empty, which is important because even an empty
-      // test group requires spawning a JVM which can take 1+ seconds to realize there are no
-      // tests to run and shut down
-      val discoveredTests = jvmWorker.apply(
-        ZincOp.GetTestTasks(
-          (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
-          testClasspath.map(_.path),
-          testFramework,
-          selectors,
-          args
-        ),
-        javaHome = javaHome
-      ).toSet
+      if (testBatchFrameworkTasks) {
+        filteredClassLists0
+      } else {
+        // If test grouping is enabled and multiple test groups are detected, we need to
+        // run test discovery via the test framework's own argument parsing and filtering
+        // logic once before we potentially fork off multiple test groups that will
+        // each do the same thing and then run tests. This duplication is necessary so we can
+        // skip test groups that we know will be empty, which is important because even an empty
+        // test group requires spawning a JVM which can take 1+ seconds to realize there are no
+        // tests to run and shut down
+        val discoveredTests = jvmWorker.apply(
+          ZincOp.GetTestTasks(
+            (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
+            testClasspath.map(_.path),
+            testFramework,
+            selectors,
+            args,
+            discoveredClassesOpt
+          ),
+          javaHome = javaHome
+        ).toSet
 
-      filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
+        filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
+      }
     }
 
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
-    val result = runTestQueueScheduler(filteredClassLists)
+    val result =
+      if (testBatchFrameworkTasks) runTestBatchScheduler(filteredClassLists)
+      else runTestQueueScheduler(filteredClassLists)
 
     result match {
       case f: Result.Failure => f
@@ -131,7 +141,8 @@ final class TestModuleUtil(
       colored = Task.log.prompt.colored,
       testCp = testClasspath.map(_.path),
       globSelectors = selector,
-      logLevel = testLogLevel
+      logLevel = testLogLevel,
+      discoveredTestClasses = discoveredClassesOpt
     )
 
     val argsFile = baseFolder / "testargs"
@@ -180,15 +191,20 @@ final class TestModuleUtil(
     // test-classes folder is used to store the test classes for the children test runners to claim from
     val testClassQueueFolder = base / "test-classes"
     os.makeDir.all(testClassQueueFolder)
-    selectors2.zipWithIndex.foreach { case (s, _) =>
+    selectors2.foreach { s =>
       os.write.over(testClassQueueFolder / s, Array.empty[Byte])
     }
     testClassQueueFolder
   }
 
-  def jobsProcessLength(numTests: Int) = {
-    val cappedJobs = Math.max(Math.min(Task.ctx().jobs, numTests), 1)
-    (cappedJobs, cappedJobs.toString.length)
+  def jobsProcessLength(filteredClassCount: Int, numTests: Int) = {
+    val processCount = TestModuleUtil.testSubprocessCount(
+      testParallelism = testParallelism,
+      filteredClassCount = filteredClassCount,
+      jobs = Task.ctx().jobs,
+      numTests = numTests
+    )
+    (processCount, processCount.toString.length)
   }
 
   def runTestQueueScheduler(
@@ -197,30 +213,27 @@ final class TestModuleUtil(
 
     val filteredClassCount: Int = filteredClassLists.map(_.size).sum
 
-    val groupFolderData: Seq[(Path, Path, Int)] = prepareTestGroups(filteredClassLists)
+    val groupFolderData: Seq[(TestGroup, Path)] = prepareTestGroups(filteredClassLists)
 
     val outputs = {
-      // We got "--jobs" threads, and "groupLength" test groups, so we will spawn at most jobs * groupLength runners here
-      // In most case, this is more than necessary, and runner creation is expensive,
-      // but we have a check for non-empty test-classes folder before really spawning a new runner, so in practice the overhead is low
+      // In parallel mode, we spawn up to "--jobs" runners per group. This is more than
+      // necessary in most cases, but the non-empty test-classes check keeps overhead low.
+      // In non-parallel mode, each group uses a single shared folder, so only spawn one
+      // runner per group.
       val subprocessFutures = for {
-        ((groupFolder, testClassQueueFolder, numTests), groupIndex) <-
-          groupFolderData.zipWithIndex.toVector
-        (jobs, maxProcessLength) = jobsProcessLength(numTests)
-        paddedGroupIndex = Util.leftPad(
-          groupIndex.toString,
-          groupFolderData.length.toString.length,
-          '0'
-        )
-        processIndex <- 0 until Math.max(Math.min(jobs, numTests), 1)
+        (group, testClassQueueFolder) <- groupFolderData.toVector
+        groupFolder = group.folder
+        numTests = group.testClasses.length
+        (processCount, maxProcessLength) = jobsProcessLength(filteredClassCount, numTests)
+        processIndex <- 0 until processCount
       } yield runTestFuture(
         filteredClassCount,
-        groupFolderData,
+        groupFolderData.length,
         groupFolder,
         testClassQueueFolder,
         groupFolder.last,
         maxProcessLength,
-        paddedGroupIndex,
+        group.label,
         processIndex
       )
 
@@ -234,37 +247,95 @@ final class TestModuleUtil(
     TestModuleUtil.processTestResults(outputs)
   }
 
-  private def prepareTestGroups(filteredClassLists: Seq[Seq[String]]) = {
+  private def runTestBatchScheduler(
+      filteredClassLists: Seq[Seq[String]]
+  )(using ctx: mill.api.TaskCtx) = {
+
+    val filteredClassCount: Int = filteredClassLists.map(_.size).sum
+    val groups = testGroups(filteredClassLists)
+
+    val subprocessFutures = groups.toVector.map { group =>
+      val groupFolder = group.folder
+      val testClassList = group.testClasses
+      val resultPath = groupFolder / "result.log"
+      os.write.over(resultPath, upickle.write((0L, 0L)), createFolders = true)
+
+      val selector: Either[Seq[String], (Option[String], os.Path, os.Path)] =
+        if (testClassList.isEmpty) {
+          // Use an empty queue so framework setup/done still runs without selecting all tests.
+          val testClassQueueFolder = prepareTestClassesFolder(Nil, groupFolder)
+          val claimFolder = groupFolder / "claim"
+          os.makeDir.all(claimFolder)
+          Right((None, testClassQueueFolder, claimFolder))
+        } else {
+          Left(testClassList)
+        }
+
+      def run() = {
+        val result = callTestRunnerSubprocess(
+          groupFolder,
+          resultPath,
+          selector,
+          () => ()
+        )
+
+        (testClassList.size, groupFolder.last, Some(result))
+      }
+
+      val future =
+        if (groups.size > 1) {
+          Task.fork.async(
+            groupFolder,
+            group.label,
+            "",
+            priority = -1
+          ) { _ =>
+            run()
+          }
+        } else {
+          Future.successful(run())
+        }
+
+      groupFolder -> future
+    }
+
+    Task.fork.blocking {
+      TestModuleUtil.waitForFutures(ctx, filteredClassCount, subprocessFutures)
+    }
+
+    TestModuleUtil.processTestResults(
+      subprocessFutures.flatMap(_._2.value).map(_.get)
+    )
+  }
+
+  private case class TestGroup(folder: Path, testClasses: Seq[String], label: String)
+
+  private def testGroups(filteredClassLists: Seq[Seq[String]]): Seq[TestGroup] = {
     filteredClassLists match {
-      case Nil => Seq((Task.dest, prepareTestClassesFolder(Nil, Task.dest), 0))
-      case Seq(singleTestClassList) =>
-        Seq((
-          Task.dest,
-          prepareTestClassesFolder(singleTestClassList, Task.dest),
-          singleTestClassList.length
-        ))
+      case Nil => Seq(TestGroup(Task.dest, Nil, "0"))
+      case Seq(singleTestClassList) => Seq(TestGroup(Task.dest, singleTestClassList, "0"))
       case multipleTestClassLists =>
         val maxLength = multipleTestClassLists.length.toString.length
         multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
-          val paddedIndex = mill.api.internal.Util.leftPad(i.toString, maxLength, '0')
+          val paddedIndex = Util.leftPad(i.toString, maxLength, '0')
           val folderName = testClassList match {
             case Seq(single) => single
-            case multiple =>
-              s"group-$paddedIndex-${multiple.head}"
+            case multiple => s"group-$paddedIndex-${multiple.head}"
           }
 
-          (
-            Task.dest / folderName,
-            prepareTestClassesFolder(testClassList, Task.dest / folderName),
-            testClassList.length
-          )
+          TestGroup(Task.dest / folderName, testClassList, paddedIndex)
         }
     }
   }
 
+  private def prepareTestGroups(filteredClassLists: Seq[Seq[String]]) =
+    testGroups(filteredClassLists).map { group =>
+      (group, prepareTestClassesFolder(group.testClasses, group.folder))
+    }
+
   def runTestFuture(
       filteredClassCount: Int,
-      groupFolderData: Seq[(Path, Path, Int)],
+      groupCount: Int,
       groupFolder: Path,
       testClassQueueFolder: Path,
       groupName: String,
@@ -280,10 +351,10 @@ final class TestModuleUtil(
       if (testParallelism && filteredClassCount != 1) groupFolder / workerLabel
       else groupFolder
 
-    val resultPath = processFolder / s"result.log"
+    val resultPath = processFolder / "result.log"
     os.write.over(resultPath, upickle.write((0L, 0L)), createFolders = true)
     val label =
-      if (groupFolderData.size == 1) paddedProcessIndex
+      if (groupCount == 1) paddedProcessIndex
       else s"$paddedGroupIndex-$paddedProcessIndex"
 
     def fork[T](block: Logger => T): Future[T] = {
@@ -305,8 +376,6 @@ final class TestModuleUtil(
 
     processFolder -> fork {
       logger =>
-        val testClassTimeMap = new ConcurrentHashMap[String, Long]()
-
         val claimFolder = processFolder / "claim"
         os.makeDir.all(claimFolder)
 
@@ -332,7 +401,7 @@ final class TestModuleUtil(
           var seenLines = 0
           callTestRunnerSubprocess(
             processFolder,
-            processFolder / "result.log",
+            resultPath,
             Right((startingTestClass, testClassQueueFolder, claimFolder)),
             () => {
               val lines = os.read.lines(claimLog)
@@ -340,7 +409,6 @@ final class TestModuleUtil(
                 case s"CLAIM $currentTestClass $nanoTime0" =>
                   val nanoTime = nanoTime0.toLong
                   logger.prompt.logBeginChromeProfileEntry(currentTestClass, nanoTime)
-                  testClassTimeMap.putIfAbsent(currentTestClass, nanoTime)
                   currentTestClassNanoTime = Some(currentTestClass -> nanoTime)
                 case s"COMPLETED $nanoTime" =>
                   logger.prompt.logEndChromeProfileEntry(nanoTime.toLong)
@@ -366,6 +434,16 @@ final class TestModuleUtil(
 }
 
 private[mill] object TestModuleUtil {
+
+  private[mill] def testSubprocessCount(
+      testParallelism: Boolean,
+      filteredClassCount: Int,
+      jobs: Int,
+      numTests: Int
+  ): Int = {
+    if (testParallelism && filteredClassCount != 1) Math.max(Math.min(jobs, numTests), 1)
+    else 1
+  }
 
   def loadArgsAndProps(
       useArgsFile: Boolean,

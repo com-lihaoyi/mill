@@ -25,9 +25,9 @@ private[worker] object ScriptModuleDiscovery {
     // Create IgnoreNode from bspScriptIgnore patterns
     val ignoreRules = bspScriptIgnore
       .filter(l => !l.startsWith("#"))
-      .map(pattern => (pattern, new FastIgnoreRule(pattern)))
+      .map(pattern => (pattern, FastIgnoreRule(pattern)))
 
-    val ignoreNode = new IgnoreNode(ignoreRules.map(_._2).asJava)
+    val ignoreNode = IgnoreNode(ignoreRules.map(_._2).asJava)
 
     // Extract directory prefixes from negation patterns (patterns starting with !)
     // These directories need to be walked even if they're ignored, because they contain
@@ -99,7 +99,7 @@ private[worker] object ScriptModuleDiscovery {
 
     result.flatMap {
       case (scriptPath: java.nio.file.Path, mill.api.Result.Success(module: BspModuleApi)) =>
-        Some((new BuildTargetIdentifier(Utils.sanitizeUri(scriptPath)), (module, eval)))
+        Some((BuildTargetIdentifier(Utils.sanitizeUri(scriptPath)), (module, eval)))
       case (scriptPath: java.nio.file.Path, f: mill.api.Result.Failure) =>
         debug(() =>
           s"Failed to instantiate script module for BSP: $scriptPath failed with ${f.error}"

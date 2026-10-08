@@ -18,24 +18,24 @@ object CertUtil:
       keyPair: KeyPair,
       validity: FiniteDuration = FiniteDuration(10000, DAYS)
   ): X509Certificate = {
-    val now = new Date()
-    val notAfter = new Date(now.getTime + validity.toMillis)
+    val now = Date()
+    val notAfter = Date(now.getTime + validity.toMillis)
 
     val builder: X509v3CertificateBuilder =
-      new JcaX509v3CertificateBuilder(
-        new X500Principal(dname), // issuer
+      JcaX509v3CertificateBuilder(
+        X500Principal(dname), // issuer
         BigInteger.valueOf(System.currentTimeMillis()), // serial number
         now, // start date
         notAfter, // end date
-        new X500Principal(dname), // subject
+        X500Principal(dname), // subject
         keyPair.getPublic // public key
       )
 
-    val signer = new JcaContentSignerBuilder("SHA256withRSA")
-      .setProvider(new BouncyCastleProvider())
+    val signer = JcaContentSignerBuilder("SHA256withRSA")
+      .setProvider(BouncyCastleProvider())
       .build(keyPair.getPrivate)
 
-    new JcaX509CertificateConverter()
-      .setProvider(new BouncyCastleProvider())
+    JcaX509CertificateConverter()
+      .setProvider(BouncyCastleProvider())
       .getCertificate(builder.build(signer))
   }

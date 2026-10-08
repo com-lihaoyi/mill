@@ -43,8 +43,8 @@ object JavaHomeTests extends TestSuite {
           module: TestRootModule,
           task: Task[A]
       )(f: (Either[ExecResult.Failing[A], UnitTester.Result[A]], String) => R): R = {
-        val errStream = new ByteArrayOutputStream()
-        UnitTester(module, resourcePathCompile, errStream = new PrintStream(errStream)).scoped {
+        val errStream = ByteArrayOutputStream()
+        UnitTester(module, resourcePathCompile, errStream = PrintStream(errStream)).scoped {
           eval =>
             val result = eval.apply(task)
             val stderr = errStream.toString()

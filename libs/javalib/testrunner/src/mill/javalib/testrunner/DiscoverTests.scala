@@ -10,7 +10,7 @@ import mill.api.daemon.internal.internal
       sharedPrefixes = Seq("sbt.testing.")
     ) { classLoader =>
       TestRunnerUtils
-        .discoverTests(classLoader, Framework.framework(framework)(classLoader), testCp)
+        .discoverTests(classLoader, Framework.framework(framework)(classLoader), testCp, None)
         .toSeq
         .map(_._1.getName())
         .map {

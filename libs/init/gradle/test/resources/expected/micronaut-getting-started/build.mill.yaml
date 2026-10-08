@@ -1,0 +1,50 @@
+mill-version: SNAPSHOT
+mill-jvm-version: 25
+extends: [mill.javalib.micronaut.MicronautAotModule, MavenModule]
+micronautPackage: example.micronaut
+micronautAotConfigProperties:
+  cacheEnvironment: true
+  convertYamlToJava: false
+  deduceEnvironment: true
+  optimizeClassLoading: true
+  optimizeNetty: true
+  optimizeServiceLoading: false
+  precomputeOperations: true
+  replaceLogbackXml: true
+  version: 3.0.0
+mvnDeps:
+- io.micronaut.serde:micronaut-serde-jackson
+- io.micronaut:micronaut-inject
+- io.micronaut:micronaut-http-server-netty
+compileMvnDeps:
+- io.micronaut:micronaut-http-client
+runMvnDeps:
+- ch.qos.logback:logback-classic
+bomMvnDeps:
+- io.micronaut.platform:micronaut-platform:5.0.2
+javacOptions: [-source, 25, -target, 25, -parameters, -Amicronaut.processing.incremental=true, -Amicronaut.processing.annotations=example.micronaut.*, -Amicronaut.processing.group=example.micronaut, -Amicronaut.processing.module=default]
+annotationProcessorsMvnDeps:
+- io.micronaut:micronaut-graal
+- io.micronaut:micronaut-http-validation
+- io.micronaut.serde:micronaut-serde-processor
+- io.micronaut:micronaut-inject-java
+repositories: ["https://s01.oss.sonatype.org/content/repositories/snapshots/", "https://central.sonatype.com/repository/maven-snapshots/"]
+
+object test:
+  extends: [MavenTests, TestModule.Junit5]
+  mvnDeps:
+  - io.micronaut:micronaut-http-client
+  - io.micronaut:micronaut-inject
+  - org.junit.jupiter:junit-jupiter-api
+  - io.micronaut.test:micronaut-test-junit5
+  runMvnDeps:
+  - org.junit.platform:junit-platform-launcher
+  - org.junit.jupiter:junit-jupiter-engine
+  javacOptions: [-source, 25, -target, 25, -parameters, -Amicronaut.processing.incremental=true, -Amicronaut.processing.annotations=example.micronaut.*, -Amicronaut.processing.group=example.micronaut, -Amicronaut.processing.module=default]
+  forkArgs: !append [-Djunit.platform.listeners.uid.tracking.enabled=true]
+  annotationProcessorsMvnDeps:
+  - io.micronaut:micronaut-graal
+  - io.micronaut:micronaut-inject-java
+  - io.micronaut.serde:micronaut-serde-processor
+  testParallelism: false
+  testSandboxWorkingDir: false

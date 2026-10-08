@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head><title>Mill Todo MVC</title></head>
+<body>
+<h1>My Todo List</h1>
+<ul>
+    {#for item in todos}
+    <li>{item.task}</li>
+    {/for}
+</ul>
+<form method="POST" action="/todos">
+    <input type="text" name="task" placeholder="New task...">
+    <button type="submit">Add</button>
+</form>
+</body>
+</html>

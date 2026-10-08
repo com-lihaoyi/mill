@@ -5,7 +5,7 @@ import mill.api.*
 import mill.api.internal.SimpleTaskTokenReader
 private[mill] class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[Evaluator] {
   def read(): Either[String, Evaluator] = Right(
-    new EvaluatorProxy(() => Evaluator.currentEvaluator)
+    EvaluatorProxy(() => Evaluator.currentEvaluator)
   )
 }
 
@@ -30,14 +30,14 @@ trait TokenReaders {
 
   implicit def millArgsTokenReader: mainargs.TokensReader.ShortNamed[Args] =
     new TokensReader.Leftover[Args, String] {
-      def read(strs: Seq[String]) = Right(new Args(strs))
+      def read(strs: Seq[String]) = Right(Args(strs))
       def shortName = summon[TokensReader.ShortNamed[String]].shortName
     }
 
   implicit def millTaskTokenReader[T](using
       tokensReaderOfT: TokensReader.ShortNamed[T]
   ): TokensReader[Task[T]] = tokensReaderOfT match {
-    case t: TokensReader.Simple[_] => new SimpleTaskTokenReader[T](t)
-    case t: TokensReader.Leftover[_, _] => new LeftoverTaskTokenReader[T](t)
+    case t: TokensReader.Simple[_] => SimpleTaskTokenReader[T](t)
+    case t: TokensReader.Leftover[_, _] => LeftoverTaskTokenReader[T](t)
   }
 }

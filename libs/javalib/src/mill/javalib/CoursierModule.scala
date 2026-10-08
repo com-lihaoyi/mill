@@ -81,8 +81,11 @@ trait CoursierModule extends mill.api.Module {
   }
 
   /**
-   * Map dependencies before resolving them.
+   * Map dependencies before resolving them - use only if you know what you are doing.
    * Override this to customize the set of dependencies.
+   *
+   * Using this makes it harder to make sense of dependency resolutions and to reproduce those
+   * resolutions via the coursier command-line or from other build tools.
    */
   def mapDependencies: Task[Dependency => Dependency] = Task.Anon { (d: Dependency) => d }
 
@@ -212,13 +215,18 @@ trait CoursierModule extends mill.api.Module {
    * fetching dependencies for runtime (equivalent to Maven "runtime scope"), the value in
    * `ResolutionParams#defaultConfiguration` is used.
    */
-  def resolutionParams: Task[ResolutionParams] = Task.Anon {
-    ResolutionParams().addVariantAttributes(
+  def resolutionParams: Task[ResolutionParams] = {
+    val baseParams = ResolutionParams().addVariantAttributes(
       "org.gradle.category" -> VariantMatcher.Library,
       "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm"),
       "org.gradle.dependency.bundling" -> VariantMatcher.Equals("external")
     )
+    actualResolutionParamsOverride(baseParams)
   }
+
+  protected[mill] def actualResolutionParamsOverride(baseParams: ResolutionParams)
+      : Task[ResolutionParams] =
+    Task.Anon(baseParams)
 
 }
 object CoursierModule {
@@ -323,6 +331,17 @@ object CoursierModule {
     def artifacts[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false
+    )(using ctx: mill.api.TaskCtx): coursier.Artifacts.Result =
+      artifacts(deps, sources, artifactTypes = None)
+
+    /**
+     * Raw artifact results for the passed dependencies, including only the requested artifact
+     * types when `artifactTypes` is defined.
+     */
+    def artifacts[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean,
+        artifactTypes: Option[Set[coursier.Type]]
     )(using ctx: mill.api.TaskCtx): coursier.Artifacts.Result = {
       val deps0 = deps
         .iterator
@@ -332,6 +351,7 @@ object CoursierModule {
         repositories,
         deps0.map(_.dep),
         sources = sources,
+        artifactTypes = artifactTypes,
         ctx = Some(ctx),
         checkGradleModules = checkGradleModules,
         resolutionParams = resolutionParams,

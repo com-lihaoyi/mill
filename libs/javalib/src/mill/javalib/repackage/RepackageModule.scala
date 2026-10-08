@@ -1,15 +1,15 @@
 package mill.javalib.repackage
 
 import mill.{T, Task}
-import mill.api.Result
-import mill.api.ModuleRef
-import mill.api.PathRef
+import mill.api.{Discover, ExternalModule, ModuleRef, PathRef, Result}
 import mill.javalib.JavaModule
 import mill.util.Jvm
 import mill.javalib.PublishModule
 import mill.javalib.RunModule
 import mill.javalib.AssemblyModule
 import mill.javalib.spring.boot.SpringBootToolsModule
+
+import scala.annotation.nowarn
 
 /**
  * Support to produce self-executable assemblies with the `Repackager` from the Spring Boot Tools suite
@@ -96,11 +96,13 @@ trait RepackageModule extends mill.api.Module {
   /** The upstream Module dependencies as JARs, to be embedded in the [[repackagedJar]]. */
   def repackageUpstreamLocalJars: T[Seq[PathRef]] = this match {
     case m: JavaModule => Task {
+        import RepackageModule.EmbeddableRepackageModule
+
         Task.traverse(m.transitiveModuleRunModuleDeps)(m =>
           // We need to renamed potential duplicated jar names (`out.jar`)
           // Instead of doing it in-place, we do it in the context of each module,
           // to avoid re-doing it for all jars when something changes
-          m.springBootAssemblyModule.artifactJar
+          m.repackageModuleData.artifactJar
         )()
       }
     case _ => Task {
@@ -137,10 +139,41 @@ trait RepackageModule extends mill.api.Module {
     PathRef(dest)
   }
 
-  // Hack-ish way to attach some generated resources under the context of the task dependency
+  /** Bin-compat stub. */
+  @deprecated("Use RepackageModule.EmbeddableRepackageModule instead", "Mill after 1.1.6")
+  @nowarn("msg=unused private member")
   private implicit class EmbeddableSpringBootModule(jm: JavaModule) extends mill.api.Module {
     override def moduleCtx = jm.moduleCtx
+
+    /** Bin-compat stub. */
+    @deprecated(
+      "Use RepackageModule.EmbeddableRepackageModule.repackageModuleData instead",
+      "Mill after 1.1.6"
+    )
     object springBootAssemblyModule extends mill.api.Module {
+
+      /** Bin-compat stub. */
+      @deprecated(
+        "Use RepackageModule.EmbeddableRepackageModule.repackageModuleData.artifactJar instead",
+        "Mill after 1.1.6"
+      )
+      def artifactJar: T[PathRef] = Task {
+        Task.fail(
+          "Use RepackageModule.EmbeddableRepackageModule.repackageModuleData.artifactJar instead"
+        )
+        jm.jar()
+      }
+    }
+  }
+
+}
+
+object RepackageModule extends ExternalModule {
+  // Attach some generated resources under the context of the task dependency
+  private implicit class EmbeddableRepackageModule(jm: JavaModule) extends mill.api.Module {
+    override def moduleCtx = jm.moduleCtx
+
+    object repackageModuleData extends mill.api.Module {
 
       /** Same as [[jar]] but with a unique name to avoid name collisions. */
       def artifactJar: T[PathRef] = jm match {
@@ -157,4 +190,6 @@ trait RepackageModule extends mill.api.Module {
       }
     }
   }
+
+  override def millDiscover: Discover = Discover[this.type]
 }

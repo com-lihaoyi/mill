@@ -52,7 +52,7 @@ object AndroidHiltTransformAsm {
 
   private def transform(`class`: os.Path, destination: os.Path): os.Path = {
     val originalClassBytes = os.read.bytes(`class`)
-    val crCheck = new ClassReader(originalClassBytes)
+    val crCheck = ClassReader(originalClassBytes)
 
     val dummyClassContext = new ClassContext {
       override def getCurrentClassData: ClassData = null
@@ -60,15 +60,15 @@ object AndroidHiltTransformAsm {
       override def loadClassData(s: String): ClassData = null
     }
 
-    val scanner = new AnnotationScannerClassVisitor(Opcodes.ASM9)
+    val scanner = AnnotationScannerClassVisitor(Opcodes.ASM9)
     crCheck.accept(scanner, /* flags = */ 0)
 
     def isInstrumentable = scanner.isAndroidEntryPoint
 
-    val cr = new ClassReader(originalClassBytes)
+    val cr = ClassReader(originalClassBytes)
 
     if (isInstrumentable) {
-      val cw = new ClassWriter(cr, /* flags = */ 0)
+      val cw = ClassWriter(cr, /* flags = */ 0)
 
       val visitor = AndroidEntryPointClassVisitor(
         Opcodes.ASM9,

@@ -14,31 +14,23 @@ import millbuild.*
  * be part of the interface between the two classloader environments to ensure
  * isolation between them
  */
-object `package` extends MillStableScalaModule with BuildInfo {
-  object java11 extends MillPublishScalaModule with MillJava11ScalaModule {
-    def mvnDeps = Seq(Deps.jline)
-    def compileMvnDeps = Seq(Deps.coursierJvm)
-    def runMvnDeps = Seq(Deps.coursierJvm)
-    def moduleDeps = Seq(build.core.api.java11)
-  }
+object `package` extends MillStableScalaModule {
 
-  def localCompileClasspath = super.localCompileClasspath() ++ Seq(java11.compile().classes)
+  def moduleDeps = Seq(build.core.api)
 
   def compileMvnDeps = Seq(
-    Deps.nativeTerminal,
-    Deps.jgraphtCore,
-    Deps.graphvizWithExcludes
+    Deps.nativeTerminal
   )
-
   def runMvnDeps = Seq(
     Deps.logback,
     Deps.nativeTerminal,
-    Deps.jgraphtCore,
-    Deps.graphvizWithExcludes,
     Deps.coursierJvm
   )
 
-  def moduleDeps = Seq(build.core.api)
+  // We embed the content of `java11` in this artifact. Not sure, why.
+  // For the sake of binary compatibility, we need to keep it that way.
+  def localCompileClasspath = super.localCompileClasspath() ++ Seq(java11.compile().classes)
+  def localRunClasspath = super.localRunClasspath() ++ java11.resources()
 
   // Exclude most coursier transitive dependencies from the compile classpath so users
   // can't compile against them, but include them at runtime as they are necessary.
@@ -60,25 +52,35 @@ object `package` extends MillStableScalaModule with BuildInfo {
     Deps.requests
   )
 
-  def buildInfoPackageName = "mill.util"
+  object java11 extends MillPublishScalaModule, MillJava11ScalaModule, BuildInfo {
 
-  def buildInfoMembers = Seq(
-    BuildInfo.Value(
-      "workerScalaVersion212",
-      Deps.workerScalaVersion212,
-      "Scala 2.12 version used by some workers."
-    ),
-    BuildInfo.Value(
-      "workerScalaVersion213",
-      Deps.scala2Version,
-      "Scala 2.13 version used by some workers."
-    ),
-    BuildInfo.Value("millVersion", "SNAPSHOT", "Mill version."),
-    BuildInfo.Value(
-      "scalaVersion",
-      Deps.scalaVersion,
-      "Scala version used to compile build.mill files"
-    ),
-    BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version.")
-  )
+    def moduleDeps = Seq(build.core.api.java11)
+
+    def mvnDeps = Seq(Deps.jline)
+    def compileMvnDeps = Seq(Deps.coursierJvm)
+    def runMvnDeps = Seq(Deps.coursierJvm)
+
+    def buildInfoPackageName = "mill.util"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value(
+        "workerScalaVersion212",
+        Deps.workerScalaVersion212,
+        "Scala 2.12 version used by some workers."
+      ),
+      BuildInfo.Value(
+        "workerScalaVersion213",
+        Deps.scala2Version,
+        "Scala 2.13 version used by some workers."
+      ),
+      BuildInfo.Value("millVersion", "SNAPSHOT", "Mill version."),
+      BuildInfo.Value(
+        "scalaVersion",
+        Deps.scalaVersion,
+        "Scala version used to compile build.mill files"
+      ),
+      BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version."),
+      BuildInfo.Value("millProjectUrl", Settings.projectUrl, "Mill project URL"),
+      BuildInfo.Value("coursierVersion", Deps.coursier.version, "Coursier version")
+    )
+  }
 }

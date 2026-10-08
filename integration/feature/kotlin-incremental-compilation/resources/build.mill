@@ -1,0 +1,18 @@
+package build
+
+import mill.*
+import kotlinlib.*
+
+trait BaseModule extends KotlinModule {
+  // BTAPI incremental compilation requires Kotlin >= 2.3.0, so we pin a concrete
+  // version here rather than using the lower default `TEST_KOTLIN_VERSION`.
+  def kotlinVersion = "2.3.21"
+
+  override def kotlinUseEmbeddableCompiler: T[Boolean] = Task { true }
+}
+
+object model extends BaseModule
+
+object consumer extends BaseModule {
+  def moduleDeps = Seq(model)
+}

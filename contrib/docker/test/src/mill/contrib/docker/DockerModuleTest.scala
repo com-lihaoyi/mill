@@ -20,11 +20,11 @@ object DockerModuleTest extends TestSuite {
 
     override def artifactName = testArtifactName
 
-    object dockerDefault extends DockerConfig {
+    object dockerDefault extends ClassicDockerConfig {
       override def executable = testExecutable
     }
 
-    object dockerAll extends DockerConfig {
+    object dockerAll extends ClassicDockerConfig {
       override def baseImage = "docker.io/eclipse-temurin:17"
       override def labels = Map("version" -> "1.0")
       override def exposedPorts = Seq(8080, 443)
@@ -39,13 +39,33 @@ object DockerModuleTest extends TestSuite {
       override def executable = testExecutable
     }
 
-    object dockerJvmOptions extends DockerConfig {
+    object dockerJvmOptions extends ClassicDockerConfig {
       override def executable = testExecutable
       override def jvmOptions = Seq("-Xmx1024M")
     }
 
-    object dockerEnv extends DockerConfig {
+    object dockerEnv extends ClassicDockerConfig {
       override def dockerEnv = Map("DOCKER_HOST" -> "wrong_host")
+    }
+
+    object dockerJibDefault extends DockerConfig
+
+    object dockerJibAll extends DockerConfig {
+      override def baseImage = "gcr.io/distroless/java:latest"
+      override def labels = Map("version" -> "1.0")
+      override def exposedPorts = Seq(8080, 443)
+      override def exposedUdpPorts = Seq(80)
+      override def envVars = Map("foo" -> "bar", "foobar" -> "barfoo")
+      override def user = "user1"
+    }
+
+    object dockerJibWithPlatform extends DockerConfig {
+      override def baseImage = "gcr.io/distroless/java:latest"
+      override def platform = "linux/amd64"
+    }
+
+    object dockerClassicExplicit extends ClassicDockerConfig {
+      override def executable = testExecutable
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -78,13 +98,13 @@ object DockerModuleTest extends TestSuite {
     if (isInstalled(testExecutable) && !scala.util.Properties.isWin)
       os
         .proc(testExecutable, "rmi", testArtifactName)
-        .call(stdout = os.Inherit, stderr = os.Inherit)
+        .call(stdout = os.Inherit, stderr = os.Inherit, check = false)
     else ()
   }
 
   def tests = Tests {
 
-    test("docker build") {
+    test("classic docker build") {
       test("default options") - workspaceTest(Docker) { eval =>
         val Right(result) = eval(Docker.dockerDefault.build).runtimeChecked
         assert(result.value == List(testArtifactName))
@@ -96,12 +116,32 @@ object DockerModuleTest extends TestSuite {
       }
 
       test("dockerEnv") - workspaceTest(Docker) { eval =>
-        // since stdout and stderr are inherited we can only test
-        // that docker fails with wrong DOCKER_HOST
         val Left(ExecResult.Exception(error: os.SubprocessException, _)) =
           eval(Docker.dockerEnv.build).runtimeChecked
         val message = error.getMessage
         assert(message == "Result of docker…: 1\n")
+      }
+
+      test("classic explicit") - workspaceTest(Docker) { eval =>
+        val Right(result) = eval(Docker.dockerClassicExplicit.build).runtimeChecked
+        assert(result.value == List(testArtifactName))
+      }
+    }
+
+    test("jib build") {
+      test("default options") - workspaceTest(Docker) { eval =>
+        val Right(result) = eval(Docker.dockerJibDefault.build).runtimeChecked
+        assert(result.value == List(testArtifactName))
+      }
+
+      test("all options") - workspaceTest(Docker) { eval =>
+        val Right(result) = eval(Docker.dockerJibAll.build).runtimeChecked
+        assert(result.value == List(testArtifactName))
+      }
+
+      test("with platform") - workspaceTest(Docker) { eval =>
+        val Right(result) = eval(Docker.dockerJibWithPlatform.build).runtimeChecked
+        assert(result.value == List(testArtifactName))
       }
     }
 
@@ -162,6 +202,17 @@ object DockerModuleTest extends TestSuite {
         )
         assert(dockerfileStringRefined == expected)
       }
+    }
+
+    test("jibSourceImage defaults to baseImage") - UnitTester(Docker, null).scoped { eval =>
+      val Right(result) = eval(Docker.dockerJibAll.jibSourceImage).runtimeChecked
+      val JibImage.RegistryImage(name, _) = result.value: @unchecked
+      assert(name == "gcr.io/distroless/java:latest")
+    }
+
+    test("platform parsing") - UnitTester(Docker, null).scoped { eval =>
+      val Right(result) = eval(Docker.dockerJibWithPlatform.platform).runtimeChecked
+      assert(result.value == "linux/amd64")
     }
   }
 }

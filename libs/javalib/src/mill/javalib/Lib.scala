@@ -8,7 +8,7 @@ import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
 import mill.api.{TaskCtx, PathRef}
 import mill.api.Result
-import mill.javalib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil.*
 
 /**
  * Utilities around managing JVM dependencies
@@ -21,7 +21,7 @@ object Lib {
 
   def depToDependency(dep: Dep, scalaVersion: String, platformSuffix: String = ""): Dependency =
     dep.toDependency(
-      binaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion),
+      binaryVersion = scalaBinaryVersion(scalaVersion),
       fullVersion = scalaVersion,
       platformSuffix = platformSuffix
     )
@@ -102,49 +102,52 @@ object Lib {
     res.map(_.map(_.withRevalidateOnce))
   }
 
-  def scalaCompilerMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
-    if (JvmWorkerUtil.isDotty(scalaVersion))
-      Seq(mvn"$scalaOrganization::dotty-compiler:$scalaVersion")
-    else if (JvmWorkerUtil.isScala3(scalaVersion))
-      Seq(mvn"$scalaOrganization::scala3-compiler:$scalaVersion")
-    else
-      Seq(
-        mvn"$scalaOrganization:scala-compiler:$scalaVersion",
-        mvn"$scalaOrganization:scala-reflect:$scalaVersion"
-      )
+  /** Artifact names for the Scala compiler (without library) */
+  def scalaCompilerArtifacts(scalaVersion: String): Seq[String] =
+    if (isDotty(scalaVersion)) Seq("dotty-compiler")
+    else if (isScala3(scalaVersion)) Seq("scala3-compiler")
+    else Seq("scala-compiler", "scala-reflect")
 
-  def scalaConsoleMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] = {
-    if (
-      scalaVersion.startsWith("3.8.") ||
-      mill.util.Version.isAtLeast(scalaVersion, "3.8")(using mill.util.Version.MavenOrdering)
-    ) {
-      // Since Scala 3.8, the repl is no longer part of the compiler jar
-      Seq(mvn"$scalaOrganization::scala3-repl:$scalaVersion")
-    } else {
-      scalaCompilerMvnDeps(scalaOrganization, scalaVersion)
+  /** Artifact name for the Scala runtime library */
+  def scalaLibraryArtifact(scalaVersion: String): String =
+    if (isDotty(scalaVersion)) "dotty-library"
+    else if (usesScala3Library(scalaVersion)) "scala3-library"
+    else "scala-library"
+
+  /** All Scala artifact names (compiler + library) */
+  def scalaArtifacts(scalaVersion: String): Set[String] =
+    scalaCompilerArtifacts(scalaVersion).toSet + scalaLibraryArtifact(scalaVersion)
+
+  def scalaCompilerMvnDeps(scalaOrg: String, scalaVersion: String): Seq[Dep] =
+    scalaCompilerArtifacts(scalaVersion).map { a =>
+      // Dotty/Scala 3 use :: (cross-version with _3 suffix),
+      // Scala 2 uses : (no suffix)
+      if (isDottyOrScala3(scalaVersion)) Dep.parse(s"$scalaOrg::$a:$scalaVersion")
+      else Dep.parse(s"$scalaOrg:$a:$scalaVersion")
     }
+
+  def scalaConsoleMvnDeps(scalaOrg: String, scalaVersion: String): Seq[Dep] =
+    // Since Scala 3.8, the repl is no longer part of the compiler jar
+    if (usesScalaLibraryOnly(scalaVersion)) Seq(mvn"$scalaOrg::scala3-repl:$scalaVersion")
+    else scalaCompilerMvnDeps(scalaOrg, scalaVersion)
+
+  def scalaDocMvnDeps(scalaOrg: String, scalaVersion: String): Seq[Dep] =
+    if (isDotty(scalaVersion)) Seq(mvn"$scalaOrg::dotty-doc:$scalaVersion")
+    // 3.0.0-RC1 > scalaVersion >= 3.0.0-M1 still uses dotty-doc, but under a different artifact name
+    else if (isScala3Milestone(scalaVersion)) Seq(mvn"$scalaOrg::scala3-doc:$scalaVersion")
+    // scalaVersion >= 3.0.0-RC1 uses scaladoc
+    else if (isScala3(scalaVersion)) Seq(mvn"$scalaOrg::scaladoc:$scalaVersion")
+    // in Scala <= 2.13, the scaladoc tool is included in the compiler
+    else scalaCompilerMvnDeps(scalaOrg, scalaVersion)
+
+  def scalaRuntimeMvnDeps(scalaOrg: String, scalaVersion: String): Seq[Dep] = {
+    val artifact = scalaLibraryArtifact(scalaVersion)
+    // Dotty/Scala 3 pre-3.8 use :: (cross-version with _3 suffix),
+    // Scala 2 and Scala 3.8+ use : (no suffix, published as plain scala-library)
+    if (usesScala3Library(scalaVersion) || isDotty(scalaVersion))
+      Seq(Dep.parse(s"$scalaOrg::$artifact:$scalaVersion"))
+    else Seq(Dep.parse(s"$scalaOrg:$artifact:$scalaVersion"))
   }
-
-  def scalaDocMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
-    if (JvmWorkerUtil.isDotty(scalaVersion))
-      Seq(mvn"$scalaOrganization::dotty-doc:$scalaVersion")
-    else if (JvmWorkerUtil.isScala3Milestone(scalaVersion))
-      // 3.0.0-RC1 > scalaVersion >= 3.0.0-M1 still uses dotty-doc, but under a different artifact name
-      Seq(mvn"$scalaOrganization::scala3-doc:$scalaVersion")
-    else if (JvmWorkerUtil.isScala3(scalaVersion))
-      // scalaVersion >= 3.0.0-RC1 uses scaladoc
-      Seq(mvn"$scalaOrganization::scaladoc:$scalaVersion")
-    else
-      // in Scala <= 2.13, the scaladoc tool is included in the compiler
-      scalaCompilerMvnDeps(scalaOrganization, scalaVersion)
-
-  def scalaRuntimeMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
-    if (JvmWorkerUtil.isDotty(scalaVersion)) {
-      Seq(mvn"$scalaOrganization::dotty-library:$scalaVersion")
-    } else if (JvmWorkerUtil.isScala3(scalaVersion))
-      Seq(mvn"$scalaOrganization::scala3-library:$scalaVersion")
-    else
-      Seq(mvn"$scalaOrganization:scala-library:$scalaVersion")
 
   def findSourceFiles(sources: Seq[PathRef], extensions: Seq[String]): Seq[os.Path] = {
     def isHiddenFile(path: os.Path) = path.last.startsWith(".")
@@ -152,9 +155,9 @@ object Lib {
       root <- sources
       if os.exists(root.path)
       path <- (if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path))
-      if os.isFile(path) && (extensions.exists(ex => path.last.endsWith(s".$ex")) && !isHiddenFile(
-        path
-      ))
+      if os.isFile(path) &&
+        extensions.exists(ex => path.last.endsWith(s".$ex")) &&
+        !isHiddenFile(path)
     } yield path
   }
 

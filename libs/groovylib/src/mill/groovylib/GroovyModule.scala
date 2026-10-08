@@ -39,7 +39,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
     }
   }
 
-  override def bomMvnDeps: T[Seq[Dep]] = super.bomMvnDeps() ++
+  override def mandatoryBomMvnDeps: T[Seq[Dep]] = super.mandatoryBomMvnDeps() ++
     Seq(groovyVersion())
       .filter(_.nonEmpty && useGroovyBom())
       .map(v => mvn"org.apache.groovy:groovy-bom:$v")
@@ -136,12 +136,12 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
   def compileGroovyStubs: T[Result[Unit]] = Task(persistent = true) {
     val groovySourceFiles = allGroovySourceFiles().map(_.path)
-    val stubDir = compileGeneratedGroovyStubs()
+    val stubDir = compileGeneratedGroovyStubs().path
     Task.ctx().log.info(
       s"Generating Java stubs for ${groovySourceFiles.size} Groovy sources to $stubDir ..."
     )
 
-    val compileCp = compileClasspath().map(_.path).filter(os.exists)
+    val compileCp = compileClasspath().iterator.map(_.path).filter(os.exists).toSeq
     val config = GroovyCompilerConfiguration(
       enablePreview = groovyCompileEnablePreview(),
       targetBytecode = groovyCompileTargetBytecode(),
@@ -157,7 +157,9 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
    * Path to Java stub sources as part of the `compile` step. Stubs are generated
    * by the Groovy compiler and later used by the Java compiler.
    */
-  def compileGeneratedGroovyStubs: T[os.Path] = Task(persistent = true) { Task.dest }
+  def compileGeneratedGroovyStubs: T[PathRef] = Task(persistent = true) {
+    PathRef(Task.dest, quick = true)
+  }
 
   /**
    * The actual Groovy compile task (used by [[compile]]).
@@ -174,7 +176,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
       val isGroovy = groovySourceFiles.nonEmpty
       val isJava = javaSourceFiles.nonEmpty
-      val compileCp = compileClasspath().map(_.path).filter(os.exists)
+      val compileCp = compileClasspath().iterator.map(_.path).filter(os.exists).toSeq
       val updateCompileOutput = upstreamCompileOutput()
 
       sealed trait CompilationStrategy
@@ -204,7 +206,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
           worker = jvmWorkerRef().internalWorker(),
           upstreamCompileOutput = updateCompileOutput,
           javaSourceFiles = javaSourceFiles,
-          compileCp = compileCp :+ compileGeneratedGroovyStubs(),
+          compileCp = compileCp.map(PathRef(_, quick = true)) :+ compileGeneratedGroovyStubs(),
           javaHome = javaHome().map(_.path),
           javacOptions = javacOptions(),
           compileProblemReporter = ctx.reporter(hashCode),
@@ -251,7 +253,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
       worker: InternalJvmWorkerApi,
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
-      compileCp: Seq[os.Path],
+      compileCp: Seq[PathRef],
       javaHome: Option[os.Path],
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
@@ -298,7 +300,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
 
     override def groovyLanguageVersion: T[String] = outer.groovyLanguageVersion()
     override def groovyVersion: T[String] = Task { outer.groovyVersion() }
-    override def bomMvnDeps: T[Seq[Dep]] = outer.bomMvnDeps()
+    override def mandatoryBomMvnDeps: Task.Simple[Seq[Dep]] = outer.mandatoryBomMvnDeps
     override def mandatoryMvnDeps: Task.Simple[Seq[Dep]] = outer.mandatoryMvnDeps
   }
 }

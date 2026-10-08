@@ -5,6 +5,26 @@ import upickle.default.{ReadWriter, macroRW, readwriter}
 
 import scala.language.implicitConversions
 
+object SpringBoot {
+  val GroupId = "org.springframework.boot"
+  val ParentArtifactId = "spring-boot-starter-parent"
+  val DependenciesArtifactId = "spring-boot-dependencies"
+}
+
+object Micronaut {
+  val PlatformGroupId = "io.micronaut.platform"
+  val PlatformArtifactId = "micronaut-platform"
+  val ParentArtifactId = "micronaut-parent"
+  val BomArtifactIds = Set(
+    "micronaut-parent",
+    "micronaut-platform",
+    "micronaut-bom",
+    "micronaut-starter-parent"
+  )
+  def isMicronautGroup(groupId: String): Boolean =
+    groupId != null && (groupId == "io.micronaut" || groupId.startsWith("io.micronaut."))
+}
+
 case class ModuleSpec(
     name: String,
     imports: Seq[String] = Nil,
@@ -12,6 +32,7 @@ case class ModuleSpec(
     crossKeys: Seq[String] = Nil,
     alias: Option[String] = None,
     moduleDir: Value[String] = Value(),
+    springBootPlatformVersion: Value[String] = Value(),
     repositories: Values[String] = Nil,
     forkArgs: Values[Opt] = Values(),
     forkWorkingDir: Value[String] = Value(),
@@ -63,7 +84,26 @@ case class ModuleSpec(
     mimaForwardIssueFilters: Values[(String, Seq[String])] = Values(),
     mimaExcludeAnnotations: Values[String] = Values(),
     mimaReportSignatureProblems: Value[Boolean] = Value(),
-    children: Seq[ModuleSpec] = Nil
+    children: Seq[ModuleSpec] = Nil,
+    quarkusPlatformVersion: Value[String] = Value(),
+    annotationProcessorsMvnDeps: Values[MvnDep] = Values(),
+    artifactGroupId: Value[String] = Value(),
+    kotlinVersion: Value[String] = Value(),
+    kotlincOptions: Values[Opt] = Values(),
+    kotlincPluginMvnDeps: Values[MvnDep] = Values(),
+    micronautPackage: Value[String] = Value(),
+    micronautAotConfigProperties: Value[Map[String, String]] = Value(),
+    micronautAotConfigFile: Value[String] = Value(),
+    androidApplicationNamespace: Value[String] = Value(),
+    androidNamespace: Value[String] = Value(),
+    androidApplicationId: Value[String] = Value(),
+    androidCompileSdk: Value[Int] = Value(),
+    androidMinSdk: Value[Int] = Value(),
+    androidTargetSdk: Value[Int] = Value(),
+    androidVersionCode: Value[Int] = Value(),
+    androidVersionName: Value[String] = Value(),
+    androidBuildToolsVersion: Value[String] = Value(),
+    androidSdkModuleDep: Value[ModuleDep] = Value()
 ) {
 
   def isBomModule: Boolean = supertypes.contains("BomModule")
@@ -75,22 +115,126 @@ case class ModuleSpec(
 
   def tree: Seq[ModuleSpec] = this +: children.flatMap(_.tree)
 
-  def withErrorProneModule(errorProneMvnDeps: Seq[MvnDep]): ModuleSpec = {
-    javacOptions.base.find(_.group.head.startsWith("-Xplugin:ErrorProne")).fold(this) { epOption =>
-      val epOptions = epOption.group.head.split("\\s").toSeq.tail
-      val (epJavacOptions, javacOptions0) = javacOptions.base
-        .diff(Seq(epOption, Opt("-XDcompilePolicy=simple")))
-        .partition(_.group.head.startsWith("-XD"))
-      this.copy(
-        imports = "mill.javalib.errorprone.ErrorProneModule" +: imports,
-        supertypes = supertypes :+ "ErrorProneModule",
-        errorProneDeps = errorProneMvnDeps,
-        errorProneOptions = epOptions,
-        errorProneJavacEnableOptions = epJavacOptions,
-        javacOptions = javacOptions0
-      )
-    }
+  def withErrorProneModule(
+      errorProneMvnDeps: Values[MvnDep] = Values(),
+      errorProneOptions: Values[String] = Values(),
+      errorProneJavacEnableOptions: Values[Opt] = Values()
+  ): ModuleSpec = {
+    this.copy(
+      imports = "mill.javalib.errorprone.ErrorProneModule" +: imports,
+      supertypes = supertypes :+ "ErrorProneModule",
+      errorProneDeps = errorProneMvnDeps,
+      errorProneOptions = errorProneOptions,
+      errorProneJavacEnableOptions = errorProneJavacEnableOptions
+    )
   }
+
+  private def stripSpringVersion(deps: Values[MvnDep], platformVer: String): Values[MvnDep] =
+    deps.copy(base = deps.base.map {
+      case dep if dep.organization == SpringBoot.GroupId =>
+        if (platformVer.nonEmpty && dep.version.nonEmpty && dep.version != platformVer) dep
+        else dep.copy(version = "")
+      case dep => dep
+    })
+
+  def withSpringBootModule(
+      springBootVersion: Value[String],
+      stripVersion: Boolean = true
+  ): ModuleSpec = {
+    val verStr = springBootVersion.base.getOrElse("")
+    val doStrip = stripVersion && verStr.nonEmpty
+    copy(
+      imports = "mill.javalib.spring.boot.*" +: imports,
+      supertypes = "SpringBootModule" +: supertypes,
+      springBootPlatformVersion = springBootVersion,
+      mvnDeps = if (doStrip) stripSpringVersion(mvnDeps, verStr) else mvnDeps,
+      compileMvnDeps = if (doStrip) stripSpringVersion(compileMvnDeps, verStr) else compileMvnDeps,
+      runMvnDeps = if (doStrip) stripSpringVersion(runMvnDeps, verStr) else runMvnDeps,
+      bomMvnDeps = bomMvnDeps.copy(base =
+        bomMvnDeps.base.filterNot(dep =>
+          dep.organization == SpringBoot.GroupId && dep.name == SpringBoot.DependenciesArtifactId
+        )
+      )
+    )
+  }
+
+  def withSpringBootTestsModule(
+      springBootVersion: Value[String] = Value(),
+      stripVersion: Boolean = true
+  ): ModuleSpec = {
+    val requiredSupertypes = Seq("SpringBootTestsModule", "MavenTests")
+    val verStr = springBootVersion.base.getOrElse("")
+    val doStrip = stripVersion && verStr.nonEmpty
+    copy(
+      supertypes = requiredSupertypes ++ supertypes.filterNot(requiredSupertypes.contains),
+      mvnDeps = if (doStrip) stripSpringVersion(mvnDeps, verStr) else mvnDeps,
+      compileMvnDeps = if (doStrip) stripSpringVersion(compileMvnDeps, verStr) else compileMvnDeps,
+      runMvnDeps = if (doStrip) stripSpringVersion(runMvnDeps, verStr) else runMvnDeps
+    )
+  }
+
+  def withQuarkusModule(
+      quarkusVersion: Value[String],
+      artifactGroupId: Value[String]
+  ): ModuleSpec = {
+    copy(
+      imports = "mill.javalib.quarkus.*" +: imports,
+      supertypes = "QuarkusModule" +: supertypes,
+      quarkusPlatformVersion = quarkusVersion,
+      artifactGroupId = artifactGroupId
+    )
+  }
+
+  def withMicronautAotModule(
+      micronautVersion: Value[String] = Value(),
+      micronautPackage: Value[String] = Value(),
+      micronautAotConfigFile: Value[String] = Value(),
+      micronautAotConfigProperties: Value[Map[String, String]] = Value()
+  ): ModuleSpec = {
+    val requiredSupertypes = Seq("MicronautAotModule")
+    val requiredImports = Seq("mill.javalib.micronaut.*")
+    val verStr = micronautVersion.base.getOrElse("")
+    // Also add the platform BOM
+    val newBomMvnDeps =
+      if (verStr.nonEmpty) {
+        val platformBom = MvnDep(Micronaut.PlatformGroupId, Micronaut.PlatformArtifactId, verStr)
+        bomMvnDeps.copy(base = (bomMvnDeps.base :+ platformBom).distinct)
+      } else bomMvnDeps
+
+    copy(
+      imports = requiredImports ++ imports.filterNot(requiredImports.contains),
+      supertypes = requiredSupertypes ++ supertypes.filterNot(requiredSupertypes.contains),
+      bomMvnDeps = newBomMvnDeps,
+      micronautPackage = micronautPackage,
+      micronautAotConfigFile = micronautAotConfigFile,
+      micronautAotConfigProperties = micronautAotConfigProperties
+    )
+  }
+
+  /** `androidBuildToolsVersion` is just a marker here, picked up later by `MillGradleBuildGenMain.attachAndroidSdkModule`. */
+  def withAndroidKotlinModule(
+      isApp: Boolean,
+      namespace: Value[String],
+      applicationId: Value[String],
+      compileSdk: Value[Int],
+      minSdk: Value[Int],
+      targetSdk: Value[Int],
+      versionCode: Value[Int],
+      versionName: Value[String],
+      buildToolsVersion: Value[String]
+  ): ModuleSpec = copy(
+    imports = Seq("mill.androidlib.*", "mill.kotlinlib.*") ++ imports,
+    supertypes = (if (isApp) "AndroidAppKotlinModule" else "AndroidKotlinModule") +: supertypes,
+    androidApplicationNamespace = if (isApp) namespace else Value(),
+    androidNamespace = if (isApp) Value() else namespace,
+    androidApplicationId = if (isApp) applicationId else Value(),
+    androidCompileSdk = compileSdk,
+    androidMinSdk = minSdk,
+    androidTargetSdk = targetSdk,
+    androidVersionCode = versionCode,
+    androidVersionName = versionName,
+    androidBuildToolsVersion = buildToolsVersion
+  )
 
   def withJmhModule(jmhCoreVersion: Value[String]): ModuleSpec = copy(
     imports = "mill.contrib.jmh.JmhModule" +: imports,
@@ -258,6 +402,7 @@ object ModuleSpec {
   def testModuleMixin(mvnDeps: Seq[MvnDep]): Option[String] = {
     // Prioritize frameworks that integrate with other frameworks.
     mvnDeps.iterator.map(dep => dep.organization -> dep.name).collectFirst {
+      case ("io.quarkus", "quarkus-junit" | "quarkus-junit5") => "QuarkusJunit"
       case ("org.scalatest" | "org.scalatestplus", _) => "TestModule.ScalaTest"
       case ("org.specs2", _) => "TestModule.Spec2"
       // https://scalameta.org/munit/docs/integrations/external-integrations.html
@@ -276,12 +421,17 @@ object ModuleSpec {
       mvnDeps.iterator.map(dep => dep.organization -> dep.name).collectFirst {
         case ("org.testng", _) => "TestModule.TestNg"
         case ("junit", _) => "TestModule.Junit4"
-        case ("org.junit.jupiter", _) => "TestModule.Junit5"
+        case ("org.junit.jupiter", _) | ("org.springframework.boot", "spring-boot-starter-test") |
+            ("org.jetbrains.kotlin", "kotlin-test" | "kotlin-test-junit5") =>
+          "TestModule.Junit5"
         case ("com.lihaoyi", "utest") => "TestModule.Utest"
-        case ("com.disneystreaming", "weaver-scalacheck") => "TestModule.Weaver"
+        case ("org.typelevel", "weaver-cats") => "TestModule.Weaver"
         case ("dev.zio", "zio-test" | "zio-test-sbt") => "TestModule.ZioTest"
+        case ("io.getkyo", name) if name.startsWith("kyo-test") => "TestModule.KyoTest"
         case ("org.scalacheck", _) => "TestModule.ScalaCheck"
       }
     }
   }
+
+  def isManagedJavacOption(arg: String): Boolean = arg == "-XDcompilePolicy=simple"
 }

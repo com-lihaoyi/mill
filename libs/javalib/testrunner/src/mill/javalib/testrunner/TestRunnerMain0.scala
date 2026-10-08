@@ -18,6 +18,7 @@ import mill.api.daemon.internal.{TestReporter, internal}
             classFilter = cls => filter(cls.getName),
             cl = classLoader,
             testReporter = TestReporter(testArgs.logLevel),
+            discoveredTestClasses = testArgs.discoveredTestClasses,
             resultPathOpt = Some(testArgs.resultPath)
           )
         case Right((startingTestClass, testClassQueueFolder, claimFolder)) =>
@@ -30,6 +31,7 @@ import mill.api.daemon.internal.{TestReporter, internal}
             claimFolder = claimFolder,
             cl = classLoader,
             testReporter = TestReporter(testArgs.logLevel),
+            discoveredTestClasses = testArgs.discoveredTestClasses,
             resultPath = testArgs.resultPath
           )
       }

@@ -23,13 +23,13 @@ object InitSbtFs2Tests extends InitTestSuite(
       eval("core.__.checkFormat").isSuccess
     )
     test("issues") {
-      test("ScalaNative version not supported") - assert(
+      test("scalaNative") - assert(
         !eval("core.native.2_13_16.test.scalaNativeWorkerClasspath").isSuccess
       )
-      test("ScalaJS resources not found at runtime") - assert(
+      test("scalaJsResources") - assert(
         !eval(("io.js.2_13_16.test.testOnly", "fs2.io.net.tls.TLSSocketSuite")).isSuccess
       )
-      test("Java 9+ API not available with scalacOptions --release 8") - assert(
+      test("release8") - assert(
         !eval("benchmark.2_13_16.compile").isSuccess
       )
     }

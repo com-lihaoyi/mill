@@ -8,6 +8,7 @@ import mill.api.daemon.internal.{EvaluatorApi, internal}
 import mill.api.ModuleCtx
 import mill.javalib.{JavaModule, SemanticDbJavaModule}
 import mill.api.JsonFormatters.given
+import mill.api.daemon.internal.TaskApi
 
 trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
   private[mill] def isScript: Boolean = false
@@ -53,13 +54,7 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
           unmanagedClasspath: Seq[Path]
       )] = Task {
     (
-      resolvedDepsSources = jm.millResolver().classpath(
-        Seq(
-          jm.coursierDependencyTask().withConfiguration(coursier.core.Configuration.provided),
-          jm.coursierDependencyTask()
-        ),
-        sources = true
-      ).map(_.path.toNIO),
+      resolvedDepsSources = jm.bspMvnDependencySources().map(_.path.toNIO),
       unmanagedClasspath = jm.unmanagedClasspath().map(_.path.toNIO)
     )
   }
@@ -100,6 +95,17 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
       }
     }
   }
+
+  override def bspBuildTargetWrappedSources: TaskApi[Seq[(Path, Path)]] =
+    if (isScript)
+      Task(Nil)
+    else
+      Task {
+        jm.wrappedSources().map {
+          case (original, generated) =>
+            (original.path.toNIO, generated.path.toNIO)
+        }
+      }
 
   override private[mill] def bspBuildTargetResources = Task.Anon {
     jm.resources().map(_.path.toNIO)

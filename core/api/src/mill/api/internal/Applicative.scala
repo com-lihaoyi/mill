@@ -64,7 +64,7 @@ object Applicative {
         /** The `A` to the `Task[A]`. */
         val innerTypeRepr = resultTypeRepr.typeArgs match {
           case innerTypeRepr :: Nil => innerTypeRepr
-          case other => throw new IllegalStateException(
+          case other => throw IllegalStateException(
               s"Task[_] should have exactly one type parameter, but got ${other.map(_.show)}. " +
                 "This is a bug in mill."
             )
@@ -171,7 +171,7 @@ object Applicative {
     }
 
     if hasErrors then
-      '{ throw new RuntimeException("stub implementation - macro expansion had errors") }
+      '{ throw RuntimeException("stub implementation - macro expansion had errors") }
     else
       traverseCtx(exprsList, callback)
   }

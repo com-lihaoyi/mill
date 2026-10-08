@@ -21,7 +21,7 @@ object LocalM2PublisherTests extends TestSuite {
       os.write(repo / "pom", "POM")
       os.write(repo / "extra", "EXTRA")
 
-      val publisher = new LocalM2Publisher(repo)
+      val publisher = LocalM2Publisher(repo)
       val artifact = Artifact("group.org", "id", "version")
       val res = publisher.publish(
         repo / "pom",

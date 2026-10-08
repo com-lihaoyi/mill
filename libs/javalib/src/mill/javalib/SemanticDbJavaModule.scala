@@ -10,7 +10,7 @@ import mill.{T, Task}
 
 import scala.jdk.CollectionConverters.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
+import mill.javalib.api.internal.ZincOp
 
 @experimental
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
@@ -26,6 +26,10 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   def zincIncrementalCompilation: T[Boolean]
   def allSourceFiles: T[Seq[PathRef]]
   def compile: T[mill.javalib.api.CompilationResult]
+  def jvmOptions: T[Seq[String]]
+  private[mill] def javaCompilerRuntimeOptions: T[Seq[String]]
+  def javacOptions: T[Seq[String]]
+  def mandatoryJavacOptions: T[Seq[String]]
 
   private[mill] def compileFor(compileFor: CompileFor): Task[mill.javalib.api.CompilationResult] =
     compileFor match {
@@ -34,11 +38,13 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     }
 
   private[mill] def bspBuildTarget: BspBuildTarget
-  def javacOptions: T[Seq[String]]
-  def mandatoryJavacOptions: T[Seq[String]]
   private[mill] def compileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]]
   def moduleDeps: Seq[JavaModule]
 
+  /**
+   * Version of the SemanticDB compiler plugin used for Scala 2 sources.
+   * Scala 3 provides SemanticDB support in the compiler itself.
+   */
   def semanticDbVersion: T[String] = Task.Input {
     val builtin = SemanticDbJavaModuleApi.buildTimeSemanticDbVersion
     val requested = Task.env.getOrElse[String](
@@ -48,6 +54,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     Version.chooseNewest(requested, builtin)(using Version.IgnoreQualifierOrdering)
   }
 
+  /** Version of the SemanticDB compiler plugin used for Java sources. */
   def semanticDbJavaVersion: T[String] = Task.Input {
     val builtin = SemanticDbJavaModuleApi.buildTimeJavaSemanticDbVersion
     val requested = Task.env.getOrElse[String](
@@ -84,7 +91,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
     if (sv.isEmpty) {
       val msg =
         """|
-           |You must provide a javaSemanticDbVersion
+           |You must provide a semanticDbJavaVersion
            |
            |def semanticDbJavaVersion = ???
            |""".stripMargin
@@ -122,7 +129,14 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 
     Task.log.debug(s"effective javac options: ${javacOpts}")
 
-    val jOpts = JavaCompilerOptions.split(javacOpts)
+    val (javacCompilerOptions, legacyRuntimeOptions) =
+      JavaModule.splitJavacAndRuntimeOptions(javacOpts)
+    if (legacyRuntimeOptions.nonEmpty) {
+      Task.log.warn(
+        "`-J` options in `javacOptions` are deprecated; use `jvmOptions` instead" +
+          s"\n  - Deprecated options: ${legacyRuntimeOptions.map("-J" + _).mkString(" ")}"
+      )
+    }
 
     val worker = jvmWorker().internalWorker()
 
@@ -131,17 +145,13 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
         upstreamCompileOutput = upstreamSemanticDbDatas().map(_.compilationResult),
         sources = allSourceFiles().map(_.path),
         compileClasspath =
-          (compileClasspathTask(
-            CompileFor.SemanticDb
-          )() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(
-            _.path
-          ),
-        javacOptions = jOpts.compiler,
+          compileClasspathTask(CompileFor.SemanticDb)() ++ resolvedSemanticDbJavaPluginMvnDeps(),
+        javacOptions = javacCompilerOptions,
         incrementalCompilation = zincIncrementalCompilation(),
         workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
-      javaRuntimeOptions = jOpts.runtime,
+      javaRuntimeOptions = javaCompilerRuntimeOptions() ++ legacyRuntimeOptions,
       reporter = Task.reporter.apply(hashCode),
       reportCachedProblems = zincReportCachedProblems()
     )
@@ -231,10 +241,24 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
   ): Seq[String] = {
     val isNewEnough =
       Version.isAtLeast(semanticDbJavaVersion, "0.8.10")(using Version.IgnoreQualifierOrdering)
-    val buildTool = s" -build-tool:${if (isNewEnough) "mill" else "sbt"}"
-    val verbose = if (ctx.log.debugEnabled) " -verbose" else ""
+    val buildTool = if (isNewEnough) "mill" else "sbt"
+
     javacOptions ++ Seq(
-      s"-Xplugin:semanticdb -sourceroot:${ctx.workspace} -targetroot:${ctx.dest / "classes"}${buildTool}${verbose}"
+      // https://github.com/scalameta/scalameta/blob/main/semanticdb/guide.md#javac-compiler-plugin
+      Seq(
+        // enable the plugin
+        s"-Xplugin:semanticdb",
+        // set sourceroot option, escape spaces
+        s"-sourceroot:${ctx.workspace}".replace(" ", "\\ "),
+        // set targetroot option, escape spaces
+        s"-targetroot:${ctx.dest / "classes"}".replace(" ", "\\ "),
+        // set build-tool option
+        s"-build-tool:${buildTool}",
+        // set verbose option
+        if (ctx.log.debugEnabled) "-verbose" else ""
+      )
+        // all args must be set as a single Javac parameter
+        .mkString(" ")
     )
   }
 

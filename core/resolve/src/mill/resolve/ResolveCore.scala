@@ -155,7 +155,8 @@ private object ResolveCore {
 
         (head, current) match {
           // Handle super task resolution specially since it may consume tail for disambiguation
-          case (Segment.Label(s"$baseTaskName.super"), m: Resolved.Module) =>
+          case (Segment.Label(label), m: Resolved.Module) if label.endsWith(".super") =>
+            val baseTaskName = label.stripSuffix(".super")
             val taskExists = Reflect
               .reflect(
                 m.cls,
@@ -356,7 +357,9 @@ private object ResolveCore {
           ).flatMap {
             case Seq((_, Some(f))) => f(current)
             case unknown =>
-              sys.error(
+              // A label resolving to zero or multiple children must surface as a
+              // `Result.Failure`, not a thrown `sys.error` that escapes resolution.
+              mill.api.Result.Failure(
                 s"Unable to resolve single child " +
                   s"rootModule: ${rootModule}, segments: ${segments.render}," +
                   s"current: $current, s: ${s}, unknown: $unknown"
@@ -392,20 +395,15 @@ private object ResolveCore {
     else {
       val errOrDirect =
         resolveDirectChildren(rootModule, rootModulePrefix, cls, nameOpt, taskSegments, cache)
-      val directTraverse =
-        resolveDirectChildren(rootModule, rootModulePrefix, cls, nameOpt, taskSegments, cache)
 
-      val errOrModules = directTraverse.map { modules =>
-        modules.flatMap {
-          case m: Resolved.Module => Some(m)
-          case _ => None
-        }
+      val errOrModules = errOrDirect.map { modules =>
+        modules.collect { case m: Resolved.Module => m }
       }
 
       val errOrIndirect0 = errOrModules match {
         case mill.api.Result.Success(modules) =>
-          modules.flatMap { m =>
-            Some(resolveTransitiveChildren(
+          modules.map { m =>
+            resolveTransitiveChildren(
               rootModule,
               rootModulePrefix,
               m.cls,
@@ -413,7 +411,7 @@ private object ResolveCore {
               m.taskSegments,
               seenModules + cls,
               cache
-            ))
+            )
           }
         case f: mill.api.Result.Failure => Seq(f)
       }
@@ -421,7 +419,7 @@ private object ResolveCore {
       val errOrIndirect = mill.api.Result.sequence(errOrIndirect0).map(_.flatten)
 
       for ((direct, indirect) <- errOrDirect.zip(errOrIndirect))
-        yield direct ++ indirect
+        yield if (indirect.isEmpty) direct else direct ++ indirect
     }
   }
 

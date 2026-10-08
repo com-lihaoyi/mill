@@ -69,6 +69,15 @@ object SemanticdbProcessor {
           for {
             fun <- updateTree(t.function)
           } yield t.withFunction(fun)
+        case t: AnnotationTree =>
+          for {
+            args <- updateTrees(t.arguments)
+          } yield t.withArguments(args)
+        case t: AssignTree =>
+          for {
+            lhs <- updateTree(t.lhs)
+            rhs <- updateTree(t.rhs)
+          } yield t.withLhs(lhs).withRhs(rhs)
       }
 
     val docs = TextDocuments.parseFrom(os.read.bytes(orig))
@@ -111,7 +120,7 @@ object SemanticdbProcessor {
   private def md5(content: String): String = {
     val md = MessageDigest.getInstance("MD5")
     val digest = md.digest(content.getBytes(StandardCharsets.UTF_8))
-    val res = new BigInteger(1, digest).toString(16)
+    val res = BigInteger(1, digest).toString(16)
     if (res.length < 32)
       ("0" * (32 - res.length)) + res
     else

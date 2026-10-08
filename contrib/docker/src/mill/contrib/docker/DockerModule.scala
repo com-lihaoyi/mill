@@ -1,6 +1,8 @@
 package mill
 package contrib.docker
 
+import com.google.cloud.tools.jib.api.*
+import mill.contrib.docker.JibImage.given
 import mill.javalib.JavaModule
 import os.Shellable.IterableShellable
 
@@ -8,7 +10,7 @@ import scala.collection.immutable.*
 
 trait DockerModule { outer: JavaModule =>
 
-  trait DockerConfig extends mill.Module {
+  trait BaseDockerConfig extends mill.Module {
 
     /**
      * Tags that should be applied to the built image
@@ -48,15 +50,6 @@ trait DockerModule { outer: JavaModule =>
     def exposedUdpPorts: T[Seq[Int]] = Seq()
 
     /**
-     * The names of mount points.
-     *
-     * See also the Docker docs on
-     * [[https://docs.docker.com/engine/reference/builder/#volume volumes]]
-     * for more information.
-     */
-    def volumes: T[Seq[String]] = Seq()
-
-    /**
      * Environment variables to be set in the container.
      *
      * See also the Docker docs on
@@ -64,6 +57,182 @@ trait DockerModule { outer: JavaModule =>
      * for more information.
      */
     def envVars: T[Map[String, String]] = Map.empty[String, String]
+
+    /**
+     * Any applicable string to the USER instruction.
+     *
+     * An empty string will be ignored and will result in USER not being
+     * specified.  See also the Docker docs on
+     * [[https://docs.docker.com/engine/reference/builder/#user USER]]
+     * for more information.
+     */
+    def user: T[String] = ""
+
+    /**
+     * Optional platform parameter.
+     *
+     * In classic Dockerfile mode, uses buildkit to build for specified platform.
+     * In Jib mode, parsed as "os/architecture" into a JibPlatform.
+     *
+     * See also the Docker docs on
+     * [[https://docs.docker.com/reference/cli/docker/buildx/build/#platform]]
+     * for more information.
+     */
+    def platform: T[String] = ""
+
+    def build: T[Seq[String]]
+
+    def push(): Command[Unit]
+  }
+
+  /**
+   * A DockerConfig that builds images using Jib (Google's container image builder).
+   * Jib builds without requiring a Docker daemon or CLI, producing optimized layered images.
+   */
+  trait JibDockerConfig extends BaseDockerConfig {
+
+    /** The source image for Jib. Defaults to a RegistryImage using `baseImage`. */
+    def jibSourceImage: T[JibSourceImage] = Task {
+      JibImage.RegistryImage(baseImage()): JibSourceImage
+    }
+
+    /** The target image for Jib. Defaults to a DockerDaemonImage using the first tag. */
+    def jibTargetImage: T[JibTargetImage] = Task {
+      JibImage.DockerDaemonImage(tags().head): JibTargetImage
+    }
+
+    /** The image format for Jib: Docker (default) or OCI. */
+    def jibImageFormat: T[JibImageFormat] = JibImageFormat.Docker
+
+    /** Custom entrypoint for the container. */
+    def entrypoint: T[Seq[String]] = Seq()
+
+    /** Program arguments passed to the main class. */
+    def jibProgramArgs: T[Seq[String]] = Seq()
+
+    /** Allow connections to insecure registries. */
+    def allowInsecureRegistries: T[Boolean] = false
+
+    /**
+     * Creates the JavaContainerBuilder with Jib's standard Java layering.
+     * Override for advanced customization of the layer structure.
+     */
+    def getJavaBuilder: Task[JavaContainerBuilder] = Task.Anon {
+      val (snapshotDeps, regularDeps) =
+        JibBuild.partitionDependencies(outer.resolvedRunMvnDeps().toSeq)
+      val classesAndResources =
+        (outer.transitiveLocalClasspath() ++ outer.localClasspath())
+          .filter(pathRef => os.exists(pathRef.path))
+          .toSeq
+
+      JibBuild.javaBuild(
+        sourceImage = jibSourceImage(),
+        dependencies = regularDeps,
+        snapshotDependencies = snapshotDeps,
+        classes = classesAndResources,
+        jvmOptions = jvmOptions(),
+        mainClass = outer.mainClass(),
+        mainClassSearchPaths =
+          Seq(outer.compile().classes).filter(pathRef => os.exists(pathRef.path)),
+        logger = Task.ctx().log
+      )
+    }
+
+    /**
+     * Creates the JibContainerBuilder from the JavaContainerBuilder and applies
+     * container parameters (ports, env, labels, etc.).
+     * Override for advanced customization of the container configuration.
+     */
+    def getJibBuilder: Task[JibContainerBuilder] = Task.Anon {
+      val javaBuilder = getJavaBuilder()
+      val jibBuilder = javaBuilder.toContainerBuilder()
+
+      val jibPlatforms = parsePlatform(platform())
+
+      JibBuild.setContainerParams(
+        labels = labels(),
+        envVars = envVars(),
+        exposedPorts = exposedPorts(),
+        exposedUdpPorts = exposedUdpPorts(),
+        user = user(),
+        platforms = jibPlatforms,
+        imageFormat = jibImageFormat(),
+        entrypoint = entrypoint(),
+        programArgs = jibProgramArgs(),
+        containerBuilder = jibBuilder
+      )
+
+      jibBuilder
+    }
+
+    def build = Task {
+      val log = Task.log
+
+      log.info("Building image with Jib")
+      val jibBuilder = getJibBuilder()
+
+      JibBuild.containerize(
+        jibBuilder = jibBuilder,
+        targetImage = jibTargetImage(),
+        tags = tags().drop(1),
+        allowInsecureRegistries = allowInsecureRegistries(),
+        logger = log,
+        dest = Task.dest
+      )
+
+      log.info("Jib build completed successfully")
+      tags()
+    }
+
+    def push() = Task.Command {
+      val log = Task.log
+      log.info("Pushing image with Jib")
+      val jibBuilder = getJibBuilder()
+
+      tags().foreach { tag =>
+        val registryImage = com.google.cloud.tools.jib.api.RegistryImage.named(
+          ImageReference.parse(tag)
+        )
+        val containerizer = Containerizer.to(registryImage)
+          .addEventHandler(JibLogging.logger(log))
+          .setAllowInsecureRegistries(allowInsecureRegistries())
+          .setToolName("mill-contrib-docker-jib")
+
+        jibBuilder.containerize(containerizer)
+        log.info(s"Pushed: $tag")
+      }
+    }
+
+    private def parsePlatform(platformStr: String): Set[JibPlatform] =
+      if (platformStr.isEmpty) Set.empty
+      else {
+        val parts = platformStr.split("/", 2)
+        assert(
+          parts.length == 2,
+          s"Platform must be in 'os/architecture' format, got: $platformStr"
+        )
+        Set(JibPlatform(os = parts(0), architecture = parts(1)))
+      }
+  }
+
+  /** Alias: DockerConfig defaults to Jib-based builds. */
+  trait DockerConfig extends JibDockerConfig
+
+  /**
+   * A DockerConfig that builds images using a Dockerfile and the docker CLI.
+   * Extend this instead of DockerConfig when you need Dockerfile features
+   * like RUN instructions and VOLUME mounts.
+   */
+  trait ClassicDockerConfig extends BaseDockerConfig {
+
+    /**
+     * The names of mount points.
+     *
+     * See also the Docker docs on
+     * [[https://docs.docker.com/engine/reference/builder/#volume volumes]]
+     * for more information.
+     */
+    def volumes: T[Seq[String]] = Seq()
 
     /**
      * Environment to pass to the docker commands.
@@ -83,25 +252,6 @@ trait DockerModule { outer: JavaModule =>
      * for more information.
      */
     def run: T[Seq[String]] = Seq()
-
-    /**
-     * Any applicable string to the USER instruction.
-     *
-     * An empty string will be ignored and will result in USER not being
-     * specified.  See also the Docker docs on
-     * [[https://docs.docker.com/engine/reference/builder/#user USER]]
-     * for more information.
-     */
-    def user: T[String] = ""
-
-    /**
-     * Optional platform parameter, if set uses buildkit to build for specified platform.
-     *
-     * See also the Docker docs on
-     * [[https://docs.docker.com/reference/cli/docker/buildx/build/#platform]]
-     * for more information.
-     */
-    def platform: T[String] = ""
 
     /**
      * The name of the executable to use, the default is "docker".
@@ -160,7 +310,7 @@ trait DockerModule { outer: JavaModule =>
       (pullBaseImage(), imageHash())
     }
 
-    final def build = Task {
+    def build = Task {
       val dest = Task.dest
       val env = dockerEnv()
 
@@ -199,11 +349,12 @@ trait DockerModule { outer: JavaModule =>
       tags()
     }
 
-    final def push() = Task.Command {
+    def push() = Task.Command {
       val tags = build()
       val env = dockerEnv()
       tags.foreach(t =>
-        os.proc(executable(), "push", t).call(stdout = os.Inherit, stderr = os.Inherit, env = env)
+        os.proc(executable(), "push", t)
+          .call(stdout = os.Inherit, stderr = os.Inherit, env = env)
       )
     }
   }

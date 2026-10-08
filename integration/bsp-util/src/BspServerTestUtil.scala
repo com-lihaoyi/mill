@@ -8,9 +8,10 @@ import mill.bsp.Constants
 import org.eclipse.lsp4j as l
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
-import java.io.ByteArrayOutputStream
+import java.io.{ByteArrayOutputStream, InputStream, OutputStream}
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors, ThreadFactory}
+import scala.build.bsp.ScalaScriptBuildServer
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
 
@@ -48,7 +49,7 @@ object BspServerTestUtil {
     def onRunPrintStdout(params: b.PrintParams): Unit = ()
   }
 
-  val gson: Gson = new GsonBuilder().setPrettyPrinting().create()
+  val gson: Gson = GsonBuilder().setPrettyPrinting().create()
   def compareWithGsonSnapshot[T: ClassTag](
       value: T,
       snapshotPath: os.Path,
@@ -126,7 +127,7 @@ object BspServerTestUtil {
     new ThreadFactory {
       val counter = new AtomicInteger
       def newThread(runnable: Runnable): Thread = {
-        val t = new Thread(runnable, s"mill-bsp-integration-${counter.incrementAndGet()}")
+        val t = Thread(runnable, s"mill-bsp-integration-${counter.incrementAndGet()}")
         t.setDaemon(true)
         t
       }
@@ -134,19 +135,18 @@ object BspServerTestUtil {
   )
 
   trait MillBuildServer extends b.BuildServer with b.JvmBuildServer
-      with b.JavaBuildServer with b.ScalaBuildServer {
+      with b.JavaBuildServer with b.ScalaBuildServer with ScalaScriptBuildServer {
     @JsonRequest("millTest/loggingTest")
     def loggingTest(): CompletableFuture[Object]
   }
 
-  def withBspServer[T](
-      workspacePath: os.Path,
-      millTestSuiteEnv: Map[String, String],
-      bspLog: Option[(Array[Byte], Int) => Unit] = None,
-      client: TestBuildClient = new DummyBuildClient {}
-  )(f: (MillBuildServer, b.InitializeBuildResult) => T): T = {
+  private val isCI = System.getenv("CI") != null
 
-    val outputOnErrorOnly = System.getenv("CI") != null
+  def startBspServer[T](
+      workspacePath: os.Path,
+      env: Map[String, String],
+      bspLog: Option[(Array[Byte], Int) => Unit]
+  ): os.SubProcess = {
 
     val bspCommand = {
       val bspMetadataFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
@@ -160,60 +160,122 @@ object BspServerTestUtil {
       contentsJson("argv").arr.map(_.str)
     }
 
-    val stderr = new ByteArrayOutputStream
-    val proc = os.proc(bspCommand).spawn(
+    os.proc(bspCommand).spawn(
       cwd = workspacePath,
       stderr =
-        if (bspLog.isDefined || outputOnErrorOnly)
+        if (bspLog.isDefined || !isCI)
           os.ProcessOutput { (bytes, len) =>
-            if (outputOnErrorOnly)
-              stderr.write(bytes, 0, len)
-            else
+            if (!isCI)
               System.err.write(bytes, 0, len)
             for (f <- bspLog)
               f(bytes, len)
           }
         else os.Inherit,
-      env = millTestSuiteEnv
+      env = env
+    )
+  }
+
+  def bspBuildServer(
+      input: InputStream,
+      output: OutputStream,
+      workspacePath: os.Path,
+      client: TestBuildClient = new DummyBuildClient {}
+  ): (MillBuildServer, b.InitializeBuildResult) = {
+
+    val launcher = new l.jsonrpc.Launcher.Builder[MillBuildServer]
+      .setExecutorService(bspJsonrpcPool)
+      .setInput(input)
+      .setOutput(output)
+      .setRemoteInterface(classOf[MillBuildServer])
+      .setLocalService(client)
+      .setExceptionHandler { t =>
+        System.err.println(s"Error during LSP processing: $t")
+        t.printStackTrace(System.err)
+        l.jsonrpc.RemoteEndpoint.DEFAULT_EXCEPTION_HANDLER.apply(t)
+      }
+      .create()
+
+    launcher.startListening()
+
+    val buildServer = launcher.getRemoteProxy()
+
+    val initParams = new b.InitializeBuildParams(
+      "Mill Integration",
+      BuildInfo.millVersion,
+      b.Bsp4j.PROTOCOL_VERSION,
+      workspacePath.toURI.toASCIIString,
+      new b.BuildClientCapabilities(List("java", "scala", "kotlin").asJava)
+    )
+    // Tell Mill BSP we want semanticdbs
+    initParams.setData(
+      InitData(
+        mill.api.daemon.BuildInfo.semanticDBVersion,
+        mill.api.daemon.BuildInfo.semanticDbJavaVersion
+      )
+    )
+    // This seems to be unused by Mill BSP for now, setting it just in case
+    initParams.setDataKind("scala")
+
+    val initRes = buildServer.buildInitialize(initParams).get()
+
+    (buildServer, initRes)
+  }
+
+  def withBspServer[T](
+      workspacePath: os.Path,
+      millTestSuiteEnv: Map[String, String],
+      bspLog: Option[(Array[Byte], Int) => Unit] = None,
+      client: TestBuildClient = new DummyBuildClient {}
+  )(f: (MillBuildServer, b.InitializeBuildResult) => T): T = {
+
+    val stderr = new ByteArrayOutputStream
+    val proc = startBspServer(
+      workspacePath,
+      millTestSuiteEnv,
+      bspLog =
+        if (isCI)
+          Some {
+            (b, len) =>
+              stderr.write(b, 0, len)
+              for (f <- bspLog)
+                f(b, len)
+          }
+        else
+          bspLog
     )
 
     var success = false
     try {
-      val launcher = new l.jsonrpc.Launcher.Builder[MillBuildServer]
-        .setExecutorService(bspJsonrpcPool)
-        .setInput(proc.stdout.wrapped)
-        .setOutput(proc.stdin.wrapped)
-        .setRemoteInterface(classOf[MillBuildServer])
-        .setLocalService(client)
-        .setExceptionHandler { t =>
-          System.err.println(s"Error during LSP processing: $t")
-          t.printStackTrace(System.err)
-          l.jsonrpc.RemoteEndpoint.DEFAULT_EXCEPTION_HANDLER.apply(t)
+      val (buildServer, initRes) = bspBuildServer(
+        proc.stdout.wrapped,
+        proc.stdin.wrapped,
+        workspacePath,
+        client
+      )
+
+      // BSP must route through the regular MillDaemonMain by default so that
+      // build state is shared with CLI invocations. If the launcher falls back
+      // to MillNoDaemonMain/MillBspMain, the launcher subprocess will have a
+      // child JVM whose command line includes that main class.
+      val separateBspOutDir =
+        mill.internal.OutputDirectoryLayout.bspOutOverride(
+          workspacePath,
+          millTestSuiteEnv
+        ).isDefined
+      if (!separateBspOutDir) {
+        val launcherHandle = proc.wrapped.toHandle
+        val noDaemonChild = launcherHandle.descendants().iterator.asScala.find { ph =>
+          val cmd = ph.info().commandLine().orElse("")
+          cmd.contains("mill.daemon.MillNoDaemonMain") ||
+          cmd.contains("mill.daemon.MillBspMain")
         }
-        .create()
-
-      launcher.startListening()
-
-      val buildServer = launcher.getRemoteProxy()
-
-      val initParams = new b.InitializeBuildParams(
-        "Mill Integration",
-        BuildInfo.millVersion,
-        b.Bsp4j.PROTOCOL_VERSION,
-        workspacePath.toURI.toASCIIString,
-        new b.BuildClientCapabilities(List("java", "scala", "kotlin").asJava)
-      )
-      // Tell Mill BSP we want semanticdbs
-      initParams.setData(
-        InitData(
-          mill.api.daemon.BuildInfo.semanticDBVersion,
-          mill.api.daemon.BuildInfo.semanticDbJavaVersion
-        )
-      )
-      // This seems to be unused by Mill BSP for now, setting it just in case
-      initParams.setDataKind("scala")
-
-      val initRes = buildServer.buildInitialize(initParams).get()
+        noDaemonChild.foreach { ph =>
+          throw new AssertionError(
+            s"Expected BSP to run via MillDaemonMain, but launcher PID ${launcherHandle.pid()} " +
+              s"spawned a no-daemon child PID ${ph.pid()}: ${ph.info().commandLine().orElse("?")}"
+          )
+        }
+      }
 
       val value =
         try f(buildServer, initRes)
@@ -229,16 +291,27 @@ object BspServerTestUtil {
       value
     } finally {
       try {
-        proc.stdin.close()
-        proc.stdout.close()
+        try proc.stdin.close()
+        catch { case _: java.io.IOException => () }
+        try proc.stdout.close()
+        catch { case _: java.io.IOException => () }
 
-        proc.join(30000L)
+        waitForProcessExit(proc, 30000L)
       } finally {
-        if (!success && outputOnErrorOnly) {
+        if (!success && isCI) {
           System.err.println(" == BSP server output ==")
           System.err.write(stderr.toByteArray)
           System.err.println(" == end of BSP server output ==")
         }
+      }
+    }
+  }
+
+  private def waitForProcessExit(proc: os.SubProcess, timeoutMillis: Long): Unit = {
+    if (!proc.waitFor(timeoutMillis)) {
+      proc.destroy(recursive = false)
+      if (!proc.waitFor(5000L)) {
+        throw RuntimeException("BSP server did not exit within the expected timeout")
       }
     }
   }

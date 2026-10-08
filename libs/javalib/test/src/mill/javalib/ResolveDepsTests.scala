@@ -95,7 +95,7 @@ object ResolveDepsTests extends TestSuite {
     object forceVersion extends JavaModule {
       def mvnDeps = Seq(
         mvn"org.apache.lucene:lucene-analyzers-common:4.6.1",
-        mvn"org.apache.lucene:lucene-core:4.6.0".forceVersion()
+        mvn"org.apache.lucene:lucene-core:4.6.0;force"
       )
 
       object dependee extends JavaModule {
@@ -277,6 +277,24 @@ object ResolveDepsTests extends TestSuite {
         assert(!dependsOnOptionalRuntimeCp.exists(_.last == "logback-core-1.5.18.jar"))
         assert(!dependsOnOptionalRunCp.exists(_.last == "logback-core-1.5.18.jar"))
       }
+    }
+
+    test("dependencyManagementDoesNotMakeDependencyOptional") {
+      val repository =
+        os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "dependency-management-optional"
+      val result = Lib.resolveDependenciesMetadataSafe(
+        Seq(MavenRepository(repository.toNIO.toUri.toASCIIString)),
+        Seq(Lib.depToBoundDep(
+          mvn"com.example:managed-child:1.0",
+          scala212Version
+        )),
+        config = CoursierConfig.default()
+      )
+      val modules = result.get.minDependencies.map(_.module.repr).toSet
+
+      assert(modules.contains("com.example:managed-leaf"))
+      assert(modules.contains("com.example:profile-managed-leaf"))
+      assert(!modules.contains("com.example:optional-leaf"))
     }
 
     test("forceVersion") {

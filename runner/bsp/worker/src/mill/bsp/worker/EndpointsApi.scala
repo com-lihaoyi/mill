@@ -38,8 +38,9 @@ trait EndpointsApi {
   protected def client: BuildClient
   protected def sessionInfo: MillBspEndpoints.SessionInfo
   protected def sessionInfo_=(info: MillBspEndpoints.SessionInfo): Unit
-  protected[worker] def sessionResult: scala.concurrent.Promise[BspServerResult]
-  protected[worker] def sessionResult_=(p: scala.concurrent.Promise[BspServerResult]): Unit
+
+  protected def doneInitializingBuild(): Unit
+  protected def completeSessionResult(result: BspServerResult): Unit
 
   protected def handlerRaw[V](block: Logger => V)(using
       name: sourcecode.Name,
@@ -58,8 +59,8 @@ trait EndpointsApi {
       tasks: PartialFunction[BspModuleApi, TaskApi[W]],
       requestDescription: String,
       originId: String
-  )(block: TaskContext[W] => T)(
-      agg: (java.util.List[T], BspEvaluators) => V
+  )(block: (TaskContext[W], Logger) => T)(
+      agg: (java.util.List[T], BspEvaluators, Logger) => V
   )(using name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V]
 
   protected def createLogger()(using enclosing: sourcecode.Enclosing): Logger
@@ -71,9 +72,8 @@ trait EndpointsApi {
       logger: Logger,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
-      errorOpt: EvaluatorApi.Result[Any] => Option[String] = evaluatorErrorOpt
+      errorOpt: EvaluatorApi.Result[Any] => Option[String] =
+        _.values.toEither.left.toOption
   ): ExecutionResultsApi
-
-  protected def evaluatorErrorOpt(result: EvaluatorApi.Result[Any]): Option[String]
 
 }

@@ -27,7 +27,40 @@ trait DistModule extends RunModule {
 
   /** The shell script to prepend to create a self-executing jar */
   def launcherScript: T[String] = Task {
-    Jvm.launcherUniversalScript(mainClass().get, Seq("$0"), Seq("%~dpnx0"), Nil)
+    val mc = mainClass().get
+    // Detect the launching JVM's major version and silence JDK 23+ warnings
+    // for `sun.misc.Unsafe.objectFieldOffset` (used by Scala's `LazyVals$`).
+    // After the next rebootstrap this can be replaced with a call to
+    // `Jvm.launcherUniversalScript(..., suppressJdk23PlusUnsafeWarnings = true)`.
+    Jvm.universalScript(
+      shellCommands =
+        s"""if [ -z "$$JAVA_HOME" ] ; then
+           |  JAVACMD="java"
+           |else
+           |  JAVACMD="$$JAVA_HOME/bin/java"
+           |fi
+           |
+           |JAVA_VER_MAJOR="$$("$$JAVACMD" -version 2>&1 | awk -F'"' '/version/ {print $$2; exit}' | awk -F. '{print ($$1=="1"?$$2:$$1)}')"
+           |MILL_JDK23_OPTS=""
+           |case "$$JAVA_VER_MAJOR" in ''|*[!0-9]*) ;; *) [ "$$JAVA_VER_MAJOR" -ge 23 ] && MILL_JDK23_OPTS="--sun-misc-unsafe-memory-access=allow --enable-native-access=ALL-UNNAMED" ;; esac
+           |exec "$$JAVACMD" $$MILL_JDK23_OPTS  $$JAVA_OPTS -cp "$$0" '$mc' "$$@"
+           |""".stripMargin,
+      cmdCommands =
+        s"""setlocal EnableDelayedExpansion
+           |set "JAVACMD=java.exe"
+           |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
+           |
+           |for /f "tokens=3" %%g in ('"!JAVACMD!" -version 2^>^&1 ^| findstr /i "version"') do set "JAVA_VER_RAW=%%~g"
+           |set "JAVA_VER_RAW=!JAVA_VER_RAW:"=!"
+           |for /f "tokens=1 delims=." %%g in ("!JAVA_VER_RAW!") do set "JAVA_VER_MAJOR=%%g"
+           |if "!JAVA_VER_MAJOR!"=="1" for /f "tokens=2 delims=." %%g in ("!JAVA_VER_RAW!") do set "JAVA_VER_MAJOR=%%g"
+           |set MILL_JDK23_OPTS=
+           |if not "!JAVA_VER_MAJOR!"=="" if !JAVA_VER_MAJOR! GEQ 23 set "MILL_JDK23_OPTS=--sun-misc-unsafe-memory-access=allow --enable-native-access=ALL-UNNAMED"
+           |"!JAVACMD!" !MILL_JDK23_OPTS!  %JAVA_OPTS% -cp "%~dpnx0" "$mc" %*
+           |
+           |endlocal
+           |""".stripMargin
+    )
   }
 
   /** Combines launcherScript + assemblyJar into a self-executing jar */
@@ -168,7 +201,7 @@ trait DistModule extends RunModule {
 
   def installIvyLocalTask(targetFiles: Task[os.Path]*) =
     Task.Anon[Seq[PathRef]] {
-      Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
+      Task.traverse(allPublishModules)(m => m.publishLocalCachedWoDocs)()
       val targetFiles0 = Task.sequence(targetFiles)()
       for (targetFile <- targetFiles0) {
         if (os.exists(targetFile))
@@ -228,7 +261,7 @@ trait DistModule extends RunModule {
  * For integration/example tests, use `dist.raw` which provides the unminified assembly.
  */
 object `package` extends MillJavaModule with Proguard with DistModule {
-  def proguardVersion = "7.8.2"
+  def proguardVersion = "7.9.1"
 
   def moduleDeps = Seq(build.runner.launcher)
 
@@ -308,7 +341,9 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
     // Use the unified localRepo instead of individual publishLocalTestRepo paths
     override def localTestOverridesEnv = Task {
-      Seq("MILL_LOCAL_TEST_REPO" -> localRepo().path.toString)
+      val repos = Seq(localRepo().path.toNIO.toUri.toASCIIString) ++
+        Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
+      Seq("COURSIER_REPOSITORIES" -> repos.mkString("|"))
     }
 
     def localBinName = "mill-assembly.jar"
@@ -336,7 +371,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
         try {
           // publishLocal is needed because executableVersioned has the actual version,
           // so Mill needs to resolve modules at that version from ~/.ivy2/local
-          Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
+          Task.traverse(allPublishModules)(m => m.publishLocalCachedWoDocs)()
           Jvm.runInteractiveCommand(
             cmd = Seq(build.dist.raw.executableVersioned().path.toString) ++ rest,
             env = forkEnv() ++ build.dist.raw.localTestOverridesEnv(),
@@ -355,7 +390,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     val system = if (scala.util.Properties.isLinux) {
       "linux"
     } else if (scala.util.Properties.isMac) {
-      "macos"
+      "darwin"
     } else if (scala.util.Properties.isWin) {
       "windows"
     } else {
@@ -426,12 +461,17 @@ object `package` extends MillJavaModule with Proguard with DistModule {
         // as the doc-site content and isn't used in the build. So we don't need to include it
         // and cna instead just render the readme.adoc file for people to read
         if (!parsed.exists(c => c.isInstanceOf[Chunk.Scala] || c.isInstanceOf[Chunk.Yaml])) {
-          os.remove.all(Task.dest / exampleStr / "build.mill")
           os.copy(rendered.path, Task.dest / exampleStr / "readme.adoc")
         }
         val ignoreErrorsOnCI = Task.dest / exampleStr / "ignoreErrorsOnCI"
         if (os.exists(ignoreErrorsOnCI)) os.remove(ignoreErrorsOnCI)
         val buildMill = Task.dest / exampleStr / "build.mill"
+        val buildYaml = Task.dest / exampleStr / "build.mill.yaml"
+        if (os.exists(buildYaml)) {
+          if (os.exists(buildMill)) os.remove(buildMill)
+          val readme = Task.dest / exampleStr / "readme.adoc"
+          if (!os.exists(readme)) os.copy(rendered.path, readme)
+        }
         os.copy.over(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
         os.copy.over(bootstrapLauncherBat().path, Task.dest / exampleStr / "mill.bat")
         val zip = Task.dest / s"$exampleStr.zip"
@@ -501,7 +541,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
     def nativeImageOptions = Seq(
       "--no-fallback",
-      "--enable-url-protocols=https",
+      "--enable-url-protocols=http,https",
       "-Os",
       // Build for compatibility with older CPUs that lack AVX2 and other modern features
       // https://github.com/com-lihaoyi/mill/issues/4630
@@ -511,7 +551,16 @@ object `package` extends MillJavaModule with Proguard with DistModule {
       // Set UTF-8 encoding to fix Unicode character display issues on Windows
       "-Dfile.encoding=UTF-8",
       "-Dsun.stdout.encoding=UTF-8",
-      "-Dsun.stderr.encoding=UTF-8"
+      "-Dsun.stderr.encoding=UTF-8",
+      // Include logback version properties files (added in logback 1.5.26, see https://logback.qos.ch/news.html)
+      // to avoid NPE in VersionUtil.checkForVersionEquality during logback initialization in native image
+      // https://www.graalvm.org/latest/reference-manual/native-image/guides/include-resources/
+      // https://github.com/com-lihaoyi/mill/issues/6777
+      """-H:IncludeResources=ch/qos/logback/.*/logback-.*-version\.properties""",
+      """-H:-ReduceImplicitExceptionStackTraceInformation""",
+      // Prevent Native Image runtime from consuming runtime options like -D<key>=<value>
+      // https://github.com/com-lihaoyi/mill/issues/6770
+      "-H:-ParseRuntimeOptions"
       // Enable JVisualVM support
       // https://www.graalvm.org/latest/tools/visualvm/#using-visualvm-with-graalvm-native-executables
       // "--enable-monitoring=jvmstat,heapdump"

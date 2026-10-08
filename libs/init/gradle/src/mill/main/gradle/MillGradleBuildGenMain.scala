@@ -1,25 +1,29 @@
 package mill.main.gradle
 
 import mill.main.buildgen.*
-import mill.main.buildgen.ModuleSpec.ModuleDep
+import mill.main.buildgen.ModuleSpec.{ModuleDep, Value}
 import mill.main.gradle.BuildInfo.exportpluginAssemblyResource
 import mill.util.Jvm
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import pprint.Util.literalize
 
+import java.io.File
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 import scala.util.Using
 
 object MillGradleBuildGenMain {
 
-  def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args.toSeq)
+  def main(args: Array[String]): Unit = {
+    mainargs.Parser(this).runOrExit(args.toSeq)
+    System.exit(0)
+  }
 
   @mainargs.main(doc = "Generates Mill build files that are derived from a Gradle build.")
   def init(
       @mainargs.arg(doc = "Coursier ID for the JVM to run Gradle")
-      gradleJvmId: String = "system",
+      gradleJvmId: String = "zulu:21",
       @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
       merge: mainargs.Flag,
       @mainargs.arg(doc = "disable generating meta-build files")
@@ -35,10 +39,15 @@ object MillGradleBuildGenMain {
   ): Unit = {
     println("converting Gradle build")
 
-    val buildGen = if (declarative) BuildGenYaml else BuildGenScala
     val gradleWorkspace = os.Path.expandUser(projectDir, os.pwd)
     val millWorkspace = os.pwd
 
+    val gradleWrapperProperties = {
+      val file = gradleWorkspace / "gradle/wrapper/gradle-wrapper.properties"
+      val properties = new Properties()
+      if (os.isFile(file)) Using.resource(os.read.inputStream(file))(properties.load)
+      properties
+    }
     val exportPluginJar = Using.resource(
       getClass.getResourceAsStream(exportpluginAssemblyResource)
     )(os.temp(_, suffix = ".jar"))
@@ -60,29 +69,49 @@ object MillGradleBuildGenMain {
         conn
       case conn => conn
     }
+    if (gradleWrapperProperties.getProperty("distributionUrl") == null) {
+      // Fallback to system Gradle installation instead of the version corresponding to the
+      // Tooling API dependency.
+      System.getenv("GRADLE_HOME") match {
+        case null =>
+          os.proc("gradle", "--no-daemon", "--version").call().out.lines().collectFirst {
+            case s"Gradle ${gradleVersion}" =>
+              println(s"using Gradle version $gradleVersion")
+              gradleConnector.useGradleVersion(gradleVersion)
+          }.getOrElse {
+            sys.error(s"Failed to determine Gradle version. Please set GRADLE_HOME and retry.")
+          }
+        case gradleHome =>
+          println(s"using Gradle home $gradleHome")
+          gradleConnector.useInstallation(new File(gradleHome))
+      }
+    }
     var packages =
       try Using.resource(gradleConnector.forProjectDirectory(gradleWorkspace.toIO).connect) {
           connection =>
             val model = connection.model(classOf[BuildModel])
               .addArguments("--init-script", initScript.toString)
-              .setJavaHome(Jvm.resolveJavaHome(gradleJvmId).get.toIO)
+              .setJavaHome(macosJdkBundleHome(Jvm.resolveJavaHome(gradleJvmId).get).toIO)
               .setStandardOutput(System.out).get
             upickle.default.read[Seq[PackageSpec]](model.asJson)
         }
       finally gradleConnector.disconnect()
     packages = normalizeBuild(packages)
+    if (declarative) packages = dropAndroidModulesForYaml(packages)
+    packages = attachAndroidSdkModule(packages)
+
+    val buildGen = if (declarative) BuildGenYaml else BuildGenScala
 
     val (baseModule, packages0) =
       if (noMeta.value) (None, packages)
-      else buildGen.withBaseModule(packages, "MavenModule" -> "MavenTests")
-        .fold((None, packages))((base, pkgs) => (Some(base), pkgs))
-    val millJvmOpts = {
-      val properties = new Properties()
-      val file = gradleWorkspace / "gradle/wrapper/gradle-wrapper.properties"
-      if (os.isFile(file)) Using.resource(os.read.inputStream(file))(properties.load)
-      val prop = properties.getProperty("org.gradle.jvmargs")
-      if (prop == null) Nil else prop.trim.split("\\s").toSeq
-    }
+      else buildGen.withBaseModule(
+        packages,
+        "MavenModule" -> "MavenTests",
+        "KotlinMavenModule" -> "KotlinMavenTests"
+      ).fold((None, packages))((base, pkgs) => (Some(base), pkgs))
+    val millJvmOpts = Option(
+      gradleWrapperProperties.getProperty("org.gradle.jvmargs")
+    ).fold(Nil)(_.trim.split("\\s+").toSeq)
     buildGen.writeBuildFiles(
       baseDir = millWorkspace,
       packages = packages0,
@@ -92,6 +121,20 @@ object MillGradleBuildGenMain {
       millJvmOpts = millJvmOpts
     )
   }
+
+  /**
+   * Coursier extracts a macOS Zulu/JDK archive whose top level contains both a
+   * Linux-style `bin/` layout and a macOS bundle layout `*.jdk/Contents/Home`.
+   * Coursier returns the outer directory, but Gradle's daemon canonicalises
+   * `JAVA_HOME` to `Contents/Home` and refuses to reuse a daemon when the two
+   * differ. Pre-resolve to the bundle's `Contents/Home` when present.
+   */
+  private def macosJdkBundleHome(javaHome: os.Path): os.Path =
+    if (!scala.util.Properties.isMac) javaHome
+    else os.list(javaHome)
+      .find(p => p.last.endsWith(".jdk") && os.exists(p / "Contents" / "Home" / "bin" / "java"))
+      .map(_ / "Contents" / "Home")
+      .getOrElse(javaHome)
 
   private def normalizeBuild(packages: Seq[PackageSpec]) = {
     val moduleLookup = packages.flatMap(_.modulesBySegments).toMap
@@ -119,5 +162,60 @@ object MillGradleBuildGenMain {
         module0
       })
     )
+  }
+
+  /** Android modules aren't supported in declarative (YAML) output yet, so just drop them instead of failing */
+  private def dropAndroidModulesForYaml(packages: Seq[PackageSpec]): Seq[PackageSpec] = {
+    def isAndroidModule(m: ModuleSpec) =
+      m.androidApplicationNamespace.base.isDefined || m.androidNamespace.base.isDefined
+
+    val rootDir = packages.map(_.dir).minBy(_.segments.length)
+    packages.flatMap { pkg =>
+      if (!isAndroidModule(pkg.module)) Some(pkg)
+      else {
+        println(
+          s"Skipping Android module '${pkg.module.name}' for declarative (YAML) output - " +
+            "not supported yet. Re-run with --declarative false to include it."
+        )
+        if (pkg.dir == rootDir) Some(pkg.copy(module = ModuleSpec(name = pkg.module.name)))
+        else None
+      }
+    }
+  }
+
+  /** Gives all Android modules one shared `androidSdkModule0` on the root package, instead of each declaring its own. */
+  private def attachAndroidSdkModule(packages: Seq[PackageSpec]): Seq[PackageSpec] = {
+    val androidModules =
+      packages.flatMap(_.module.tree).filter(_.androidBuildToolsVersion.base.isDefined)
+    if (androidModules.isEmpty) packages
+    else {
+      val sdkModuleName = "androidSdkModule0"
+      val sdkModule = ModuleSpec(
+        name = sdkModuleName,
+        imports = Seq("mill.androidlib.*"),
+        supertypes = Seq("AndroidSdkModule"),
+        androidBuildToolsVersion = androidModules.head.androidBuildToolsVersion
+      )
+      val rootDir = packages.map(_.dir).minBy(_.segments.length)
+      packages.map { pkg =>
+        // Rewire the original tree first - only then attach sdkModule as a new child, so
+        // recMap below never re-visits (and strips) the sdk module's own marker field.
+        val rewired = pkg.module.recMap { m =>
+          if (m.androidBuildToolsVersion.base.isEmpty) m
+          else m.copy(
+            androidBuildToolsVersion = Value(),
+            androidSdkModuleDep =
+              Value(Some(ModuleDep(
+                segments = rootDir.segments,
+                childSegment = Some(sdkModuleName)
+              )))
+          )
+        }
+        pkg.copy(module =
+          if (pkg.dir == rootDir) rewired.copy(children = rewired.children :+ sdkModule)
+          else rewired
+        )
+      }
+    }
   }
 }

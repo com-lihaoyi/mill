@@ -15,6 +15,7 @@ import mill.api.Cross
 import mill.api.BuildCtx
 import mill.javalib.testrunner.TestResult
 import mill.testkit.Chunk
+import millbuild.Deps
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -26,6 +27,7 @@ object `package` extends Module {
   object androidlib extends Module {
     object java extends Cross[ExampleCrossModuleAndroid](build.listCross)
     object kotlin extends Cross[ExampleCrossModuleAndroid](build.listCross)
+    object scala extends Cross[ExampleCrossModuleAndroid](build.listCross)
   }
   object javalib extends Module {
 
@@ -117,6 +119,7 @@ object `package` extends Module {
     object selective extends Cross[ExampleCrossModule](build.listCross)
     object multifile extends Cross[ExampleCrossModule](build.listCross)
     object multilang extends Cross[ExampleCrossModule](build.listCross)
+    object precompiled extends Cross[ExampleCrossModule](build.listCross)
   }
 
   object extending extends Module {
@@ -129,7 +132,7 @@ object `package` extends Module {
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
-    override def selectiveInputs = Seq(build.libs.kotlinlib.sources)
+    override def selectiveInputs = Seq(sources) ++ build.libs.kotlinlib.kotlinSelectiveInputs
 
     override def lineTransform(line: String) = this.moduleSegments.parts.last match {
       case "2-test-suite" => line
@@ -146,12 +149,14 @@ object `package` extends Module {
   val androidSelectiveInputs = Seq(
     build.libs.androidlib.sources,
     build.libs.javalib.sources,
-    build.libs.kotlinlib.sources
-  )
+    build.libs.javalib.worker.sources
+  ) ++ build.libs.kotlinlib.kotlinSelectiveInputs
 
   trait ExampleCrossModuleAndroid extends ExampleCrossModule {
     override def selectiveInputs = Seq(sources) ++ androidSelectiveInputs
     def testExclusive = true
+    // Shared in-memory tests bypass each example launcher's mill-jvm-version directive.
+    override def testJvmVersion = "zulu:21"
 
     /**
      * Unique and even Android emulator port for this example test module.
@@ -248,14 +253,14 @@ object `package` extends Module {
    * Each module claims a port by incrementing this counter.
    * Ports start at 10000 to avoid conflicts with common ports.
    */
-  private val portCounter = new AtomicInteger(10000)
+  private val portCounter = AtomicInteger(10000)
 
   /**
    * Counter for assigning unique Android emulator ports to example test modules.
    * Each module claims a port by incrementing this counter by two (for console and adb).
    * Ports start at 5554 which is the default starting port for Android emulators.
    */
-  private val androidPortCounter = new AtomicInteger(5554)
+  private val androidPortCounter = AtomicInteger(5554)
 
   trait ExampleCrossModule extends build.integration.IntegrationTestModule {
 
@@ -391,7 +396,19 @@ $frontMatter
   }
 
   trait ExampleCrossModuleMigrating extends ExampleCrossModule {
-    override def selectiveInputs = Seq(sources, build.libs.init.sources)
+    override def selectiveInputs = Seq(
+      sources,
+      build.libs.init.sources,
+      build.libs.init.maven.sources,
+      build.libs.init.gradle.sources,
+      build.libs.init.gradle.api.sources,
+      build.libs.init.gradle.exportplugin.sources,
+      build.libs.init.sbt.sources,
+      build.libs.init.sbt.api(Deps.scalaVersion).sources,
+      build.libs.init.sbt.exportplugin.sources,
+      build.libs.init.buildgen.sources,
+      build.libs.init.buildgen.api(Deps.scalaVersion).sources
+    )
   }
 
   def repoInfo = Map(
@@ -409,7 +426,8 @@ $frontMatter
     "android-compose-samples" -> (
       "android/compose-samples",
       "e4e6f0f96618f1ba04aa88d64ca19a166a662424"
-    )
+    ),
+    "koin-androidx-samples" -> ("InsertKoinIO/koin", "461b5684684bb1b17411f27c35a955cdc90f299b")
   )
   object thirdparty extends Cross[ThirdPartyModule](build.listCross)
   trait ThirdPartyModule extends ExampleCrossModule {
@@ -417,7 +435,9 @@ $frontMatter
     def repoSlug = repoPath.split("/").last
 
     def downloadTestRepo(label: String, commit: String, dest: os.Path) = {
-      os.unzip.stream(requests.get.stream(s"https://github.com/$label/archive/$commit.zip"), dest)
+      mill.util.Retry() {
+        os.unzip.stream(requests.get.stream(s"https://github.com/$label/archive/$commit.zip"), dest)
+      }
       dest
     }
 

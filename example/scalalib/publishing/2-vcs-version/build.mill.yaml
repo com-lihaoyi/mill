@@ -1,5 +1,5 @@
 extends: [ScalaModule, PublishModule, mill.util.VcsVersionModule]
-scalaVersion: 3.8.1
+scalaVersion: 3.8.2
 artifactName: example
 pomSettings:
   description: Example

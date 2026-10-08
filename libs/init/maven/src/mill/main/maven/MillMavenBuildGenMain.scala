@@ -58,9 +58,10 @@ object MillMavenBuildGenMain {
 
       model.getPackaging match {
         case "pom" =>
-          if (Option(model.getDependencyManagement).exists(!_.getDependencies.isEmpty)) {
+          val dmOpt = Option(model.getDependencyManagement).map(filterFrameworkBomDeps)
+          if (dmOpt.exists(!_.getDependencies.isEmpty)) {
             val (bomDeps, deps) =
-              model.getDependencyManagement.getDependencies.asScala.toSeq.partition(isBom)
+              dmOpt.get.getDependencies.asScala.toSeq.partition(isBom)
             val (bomMvnDeps, bomModuleDeps) = bomDeps.partitionMap(toMvnOrModuleDep)
             val (depManagement, moduleDeps) = deps.partitionMap(toMvnOrModuleDep)
             mainModule = mainModule.copy(
@@ -81,15 +82,19 @@ object MillMavenBuildGenMain {
           def moduleDeps(scope: String) = mavenModuleDeps.collect {
             case dep if dep.getScope == scope => moduleDepLookup(dep)
           }
+          val isSpringParentProject = isSpringBootProject(model, result.getRawModel)
+          val springBootVersion = detectSpringBootVersion(model, result.getRawModel)
+          val quarkusVersionOpt = detectQuarkusPluginVersion(model)
+
           val (bomMvnDeps, depManagement, bomModuleDeps) =
-            Option(model.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
-              val (bomDeps, deps) = dm.getDependencies.asScala.toSeq.partition(isBom)
-              val (bomMvnDeps, bomModuleDeps) = bomDeps.partitionMap(toMvnOrModuleDep)
-              val depManagement = deps.collect {
-                case dep if !moduleDepLookup.isDefinedAt(dep) => toMvnDep(dep)
-              }
-              (bomMvnDeps, depManagement, bomModuleDeps)
+            Option(model.getDependencyManagement).map(filterFrameworkBomDeps).fold((
+              Nil,
+              Nil,
+              Nil
+            )) { dm =>
+              collectDependencyManagement(dm, toMvnOrModuleDep, moduleDepLookup)
             }
+
           mainModule = mainModule.copy(
             imports = "mill.javalib.*" +: mainModule.imports,
             supertypes = "MavenModule" +: mainModule.supertypes,
@@ -103,8 +108,33 @@ object MillMavenBuildGenMain {
             compileModuleDeps = moduleDeps("provided"),
             runModuleDeps = moduleDeps("runtime"),
             bomModuleDeps = bomModuleDeps,
-            artifactName = Option(model.getArtifactId)
-          ).withErrorProneModule(plugins.errorProneMvnDeps)
+            artifactName = Option(model.getArtifactId),
+            annotationProcessorsMvnDeps = plugins.annotationProcessorsMvnDeps
+          )
+          if (plugins.isErrorProneEnabled) {
+            mainModule = mainModule.withErrorProneModule(
+              errorProneMvnDeps = plugins.errorProneMvnDeps,
+              errorProneOptions = plugins.errorProneOptions
+            )
+          }
+          if (isSpringParentProject) {
+            mainModule = mainModule.withSpringBootModule(springBootVersion)
+          }
+          if (quarkusVersionOpt.isDefined) {
+            mainModule = mainModule.withQuarkusModule(
+              quarkusVersionOpt,
+              Option(model.getGroupId).filter(_.nonEmpty)
+            )
+          }
+          val isMicronautAot = isMicronautAotProject(model)
+          if (isMicronautAot) {
+            val (mnVersion, mnPkg, mnConfigFile) = detectMicronautAot(model)
+            mainModule = mainModule.withMicronautAotModule(
+              micronautVersion = mnVersion,
+              micronautPackage = mnPkg,
+              micronautAotConfigFile = mnConfigFile
+            )
+          }
           if (os.exists(moduleDir / "src/test")) {
             val testMvnDeps = mvnDeps("test")
             val testMixin = ModuleSpec.testModuleMixin(testMvnDeps)
@@ -116,7 +146,7 @@ object MillMavenBuildGenMain {
             var testModule = ModuleSpec(
               name = "test",
               supertypes = "MavenTests" +: testMixin.toSeq,
-              forkArgs = plugins.testForkArgs,
+              forkArgs = Values(plugins.testForkArgs, appendSuper = true),
               forkWorkingDir = Some("moduleDir"),
               mvnDeps = testMvnDeps,
               compileMvnDeps = mainModule.compileMvnDeps,
@@ -128,6 +158,9 @@ object MillMavenBuildGenMain {
               testSandboxWorkingDir = Some(false),
               testFramework = Option.when(testMixin.isEmpty)("")
             )
+            if (isSpringParentProject) {
+              testModule = testModule.withSpringBootTestsModule(springBootVersion)
+            }
             if (testMixin.contains("TestModule.Junit5")) {
               testModule.mvnDeps.base.collectFirst {
                 case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty =>
@@ -186,6 +219,149 @@ object MillMavenBuildGenMain {
   }
 
   private def isBom(dep: Dependency) = dep.getScope == "import" && dep.getType == "pom"
+
+  private def isSpringBootParent(parent: Parent): Boolean =
+    parent.getGroupId == SpringBoot.GroupId && parent.getArtifactId == SpringBoot.ParentArtifactId
+
+  private def findSpringBootBom(model: Model): Option[Dependency] =
+    Option(model.getDependencyManagement)
+      .flatMap(_.getDependencies.asScala.find(dep =>
+        dep.getGroupId == SpringBoot.GroupId &&
+          (dep.getArtifactId == SpringBoot.DependenciesArtifactId || dep.getArtifactId == SpringBoot.ParentArtifactId) &&
+          dep.getScope == "import" &&
+          dep.getType == "pom"
+      ))
+
+  /**
+   * Detect if the project is a Spring Boot project by checking if it inherits from spring-boot-starter-parent
+   * or imports spring-boot-dependencies/spring-boot-starter-parent as a BOM in its raw model.
+   */
+  private def isSpringBootProject(model: Model, rawModel: Model): Boolean =
+    Option(model.getParent).exists(isSpringBootParent) ||
+      findSpringBootBom(rawModel).isDefined ||
+      rawModel.getDependencies.asScala.exists(_.getGroupId == SpringBoot.GroupId)
+
+  private def nonEmpty(value: String): Option[String] = Option(value).filter(_.nonEmpty)
+
+  private def collectDependencyManagement(
+      dm: DependencyManagement,
+      toMvnOrModuleDep: Dependency => Either[MvnDep, ModuleDep],
+      moduleDepLookup: PartialFunction[Dependency, ModuleDep]
+  ): (Seq[MvnDep], Seq[MvnDep], Seq[ModuleDep]) = {
+    val (bomDeps, deps) = dm.getDependencies.asScala.toSeq.partition(isBom)
+    val (bomMvnDeps, bomModuleDeps) = bomDeps.partitionMap(toMvnOrModuleDep)
+    val depManagement = deps.collect {
+      case dep if !moduleDepLookup.isDefinedAt(dep) => toMvnDep(dep)
+    }
+    (bomMvnDeps, depManagement, bomModuleDeps)
+  }
+
+  private val PropertyRegex = """\$\{([^}]+)}""".r
+
+  /**
+   * Detect Spring Boot platform version from spring-boot-starter-parent or imported BOM
+   * (resolving property version from effective properties).
+   */
+  private def detectSpringBootVersion(model: Model, rawModel: Model): Option[String] = {
+    val parentVersion = Option(model.getParent)
+      .filter(isSpringBootParent)
+      .flatMap(parent => nonEmpty(parent.getVersion))
+
+    val fromBom = findSpringBootBom(rawModel)
+      .flatMap(dep => nonEmpty(dep.getVersion))
+      .map {
+        case PropertyRegex(propName) =>
+          Option(model.getProperties.getProperty(propName)).getOrElse(s"$${$propName}")
+        case other => other
+      }
+
+    parentVersion.orElse(fromBom).orElse {
+      val springBootVersions = model.getDependencies.asScala
+        .filter(_.getGroupId == SpringBoot.GroupId)
+        .flatMap(dep => nonEmpty(dep.getVersion))
+      springBootVersions
+        .groupBy(identity)
+        .map { case (k, v) => (k, v.size) }
+        .toSeq
+        .sortBy(-_._2)
+        .headOption
+        .map(_._1)
+    }
+  }
+
+  private val QuarkusPluginArtifactId = "quarkus-maven-plugin"
+
+  private def detectQuarkusPluginVersion(model: Model): Option[String] = {
+    model.getBuild.getPlugins.asScala.find(p =>
+      p.getArtifactId == QuarkusPluginArtifactId
+    ).flatMap(p => nonEmpty(p.getVersion))
+  }
+
+  private def isMicronautAotProject(model: Model): Boolean =
+    Option(model.getProperties).exists(p =>
+      nonEmpty(p.getProperty("micronaut.aot.packageName")).isDefined ||
+        nonEmpty(p.getProperty("micronaut.aot.package")).isDefined
+    ) ||
+      Option(model.getBuild).flatMap(b => Option(b.getPlugins)).exists(_.asScala.exists(p =>
+        p.getArtifactId == "micronaut-maven-plugin"
+      ))
+
+  private def detectMicronautAot(model: Model): (Value[String], Value[String], Value[String]) = {
+    val props = Option(model.getProperties).getOrElse(new java.util.Properties())
+
+    val ver = Option(model.getParent)
+      .filter(p =>
+        p.getGroupId == Micronaut.PlatformGroupId || Micronaut.isMicronautGroup(p.getGroupId)
+      )
+      .flatMap(p => nonEmpty(p.getVersion))
+      .orElse(nonEmpty(props.getProperty("micronaut.version")))
+      .orElse(nonEmpty(props.getProperty("micronaut.platform.version")))
+
+    val pkg = Option(props.getProperty("micronaut.aot.packageName")).filter(_.nonEmpty)
+      .orElse(Option(props.getProperty("micronaut.aot.package")).filter(_.nonEmpty))
+
+    val pluginOpt = Option(model.getBuild).flatMap(b =>
+      Option(b.getPlugins).flatMap(_.asScala.find(p => p.getArtifactId == "micronaut-maven-plugin"))
+    )
+
+    val configDom = pluginOpt.map(_.getConfiguration).collect {
+      case dom: org.codehaus.plexus.util.xml.Xpp3Dom => dom
+    }
+
+    val configFile =
+      configDom.flatMap(dom => Option(dom.getChild("configFile"))).map(_.getValue).flatMap(nonEmpty)
+
+    (
+      Value(ver),
+      Value(pkg),
+      Value(configFile)
+    )
+  }
+
+  private def isFrameworkBomSource(sourceId: String): Boolean = {
+    sourceId.split(":") match {
+      case Array(groupId, artifactId, _*) => {
+        (groupId == SpringBoot.GroupId && (artifactId == SpringBoot.DependenciesArtifactId || artifactId == SpringBoot.ParentArtifactId)) ||
+        (groupId == Micronaut.PlatformGroupId &&
+          (artifactId == Micronaut.PlatformArtifactId || Micronaut.BomArtifactIds.contains(
+            artifactId
+          )))
+      }
+      case _ => false
+    }
+  }
+
+  private def filterFrameworkBomDeps(dm: DependencyManagement): DependencyManagement = {
+    val filteredDeps = dm.getDependencies.asScala.filterNot { dep =>
+      val location = dep.getLocation("")
+      val source = if (location != null) location.getSource else null
+      val sourceId = if (source != null) Option(source.getModelId).getOrElse("") else ""
+      isFrameworkBomSource(sourceId)
+    }
+    val filteredDm = new DependencyManagement()
+    filteredDm.setDependencies(filteredDeps.asJava)
+    filteredDm
+  }
 
   private def toMvnDep(dep: Dependency) = {
     import dep.*

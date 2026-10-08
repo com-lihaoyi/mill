@@ -8,11 +8,12 @@ class Logger(mandatoryLogFolder: os.Path, logFolder: Option[os.Path]) {
   def log0[T: upickle.Writer](
       p: os.Path,
       res: sourcecode.Text[T],
-      prefix: String = ""
+      prefix: String = "",
+      indent: Int = 2
   ): Unit = {
     os.write(
       p / s"$prefix${res.source}.json",
-      upickle.stream(res.value, indent = 2),
+      upickle.stream(res.value, indent = indent),
       createFolders = true
     )
     count += 1
@@ -22,8 +23,9 @@ class Logger(mandatoryLogFolder: os.Path, logFolder: Option[os.Path]) {
   }
   def mandatoryLog[T: upickle.Writer](
       t: => sourcecode.Text[T],
-      prefix: String = ""
+      prefix: String = "",
+      indent: Int = -1
   ): Unit = {
-    log0(mandatoryLogFolder, t, prefix)
+    log0(mandatoryLogFolder, t, prefix, indent)
   }
 }

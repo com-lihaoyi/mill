@@ -50,7 +50,7 @@ object InvalidationForest {
       // Code edges: method->method and method->task from code signature tree
       val (methodForest, downstreamMethodEdges) = extractMethodEdges(
         codeSignatureTree,
-        upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq,
+        upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq.sortBy(_.ctx.segments),
         rootInvalidatedTasks.filter {
           case t: Task.Named[?] => tasksWithoutReasons.contains(t.ctx.segments.render)
           case _ => false

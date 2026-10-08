@@ -1,3 +1,4 @@
+//| mill-jvm-version: zulu:21
 // This Example provides the basic setup for building Android App Bundle using Mill Build Tool.
 
 // By extending `AndroidAppBundle`, we inherit all Android Bundle tasks such as
@@ -26,7 +27,7 @@ object bundle extends AndroidAppBundle {
   def androidApplicationId = "com.helloworld.app"
   def androidApplicationNamespace = "com.helloworld.app"
 
-  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+  def androidReleaseKeyName = Some("releaseKey.jks")
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }

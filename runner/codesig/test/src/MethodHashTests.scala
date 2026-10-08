@@ -52,7 +52,7 @@ object MethodHashTests extends TestSuite {
         )
         val hash1 = sig1.transitiveCallGraphHashes(mainMethod.toString)
         val hash2 = sig2.transitiveCallGraphHashes(mainMethod.toString)
-        if (hash1 == hash2) throw new Exception(
+        if (hash1 == hash2) throw Exception(
           s"main methods for $c1 and $c2 have identical main method hash: $hash1"
         )
 

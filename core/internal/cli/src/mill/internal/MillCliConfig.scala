@@ -62,7 +62,7 @@ case class MillCliConfig(
     help: Flag,
     @arg(doc = "Print a internal or advanced command flags not intended for common usage")
     helpAdvanced: Flag,
-    @arg(short = 'w', doc = "Watch and re-run the given tasks when when their inputs change.")
+    @arg(short = 'w', doc = "Watch and re-run the given tasks when their inputs change.")
     watch: Flag = Flag(),
     @arg(
       hidden = true,
@@ -78,10 +78,11 @@ case class MillCliConfig(
     )
     color: Option[Boolean] = None,
     @arg(
+      short = 'L',
       doc =
         """Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`,
            level 1 the first meta-build in `mill-build/build.mill`, etc.
-           If negative, -1 means the deepest meta-build (boostrap build), -2 the second deepest meta-build, etc."""
+           If negative, -1 means the deepest meta-build (bootstrap build), -2 the second deepest meta-build, etc."""
     )
     metaLevel: Option[Int] = None,
 
@@ -160,14 +161,15 @@ case class MillCliConfig(
     @arg(hidden = true, doc = "Unsupported, but kept for compatibility")
     enableTicker: Option[Boolean] = None,
     @arg(hidden = true, doc = "Deprecated, use `--ticker false` instead")
-    disableTicker: Flag
+    disableTicker: Flag,
+    @arg(doc = "Replay logs for cached tasks.")
+    replayLogs: Flag = Flag()
 ) {
   def noDaemonEnabled =
     Seq(
       interactive,
       noDaemon,
-      noServer,
-      bsp
+      noServer
     ).count(_.value)
 }
 
@@ -194,7 +196,7 @@ Task cheat sheet:
   ./mill foo.bar.compile           # compile the module `foo.bar`
 
   ./mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
-  ./mill foo.repl               # run the Scala repl for the module `foo` (if it is a ScalaModule)
+  ./mill foo.repl                  # run the Scala repl for the module `foo` (if it is a ScalaModule)
 
   ./mill foo.__.test               # run tests in modules nested within `foo` (recursively)
   ./mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`

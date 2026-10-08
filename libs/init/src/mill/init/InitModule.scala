@@ -31,7 +31,7 @@ trait InitModule extends Module {
       @mainargs.arg(positional = true, short = 'e') exampleId: Option[ExampleId],
       @arg(name = "show-all") showAll: Flag = Flag()
   ): Command[Seq[String]] =
-    Task.Command {
+    Task.Command(globalExclusive = true) {
       usingExamples { examples =>
         exampleId match {
           case None =>
@@ -75,7 +75,7 @@ trait InitModule extends Module {
             } yield rel
 
             if (conflicting.nonEmpty) {
-              throw new Exception(
+              throw Exception(
                 "Unable to unpack example because it conflicts with existing file: " +
                   conflicting.mkString(", ")
               )

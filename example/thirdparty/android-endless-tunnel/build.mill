@@ -1,3 +1,4 @@
+//| mill-jvm-version: zulu:21
 // This is how endless-tunnel from android ndk-sample can be built with mill.
 // The original code is in https://github.com/android/ndk-samples/tree/main/endless-tunnel
 
@@ -63,7 +64,7 @@ object `endless-tunnel` extends mill.api.Module {
 > ./mill show endless-tunnel.app.androidInstall
 ...All files should be loaded. Notifying the device...
 
-> ./mill show endless-tunnel.app.androidRun --activity android.app.NativeActivity
+> ./mill show endless-tunnel.app.androidRun
 [
   "Starting: Intent { cmp=com.google.sample.tunnel/android.app.NativeActivity }",
   "Status: ok",

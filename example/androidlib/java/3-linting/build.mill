@@ -1,3 +1,4 @@
+//| mill-jvm-version: zulu:21
 // == Linting with Basic Config
 
 // This Mill build configuration includes a linting step, which is essential for ensuring code

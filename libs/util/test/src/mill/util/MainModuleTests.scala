@@ -67,6 +67,7 @@ object MainModuleTests extends TestSuite {
 
       /** SubSub module */
       object subSub extends Module
+      object alpha extends Module
     }
 
     override lazy val millDiscover = Discover[this.type]
@@ -166,7 +167,7 @@ object MainModuleTests extends TestSuite {
 
     trait Cleanable extends Module {
       def theWorker = Task.Worker {
-        new TestWorker("shared", workers)
+        TestWorker("shared", workers)
       }
     }
 
@@ -175,7 +176,7 @@ object MainModuleTests extends TestSuite {
     }
     object bar extends Cleanable {
       override def theWorker = Task.Worker {
-        new TestWorker("bar", workers)
+        TestWorker("bar", workers)
       }
     }
     object bazz extends Cross[Bazz]("1", "2", "3")
@@ -251,6 +252,7 @@ object MainModuleTests extends TestSuite {
           res.contains("MainModuleTests.scala:"),
           res.contains("    Sub module"),
           res.contains("Inherited Modules:"),
+          res.contains("Sub-Modules:\n    sub.alpha\n    sub.subSub"),
           res.contains("Module Dependencies:"),
           res.contains("sub.subSub"),
           res.contains("Default Task: sub.hello"),
@@ -288,13 +290,13 @@ object MainModuleTests extends TestSuite {
       }
 
       test("single") {
-        val outStream = new ByteArrayOutputStream()
-        val errStream = new ByteArrayOutputStream()
+        val outStream = ByteArrayOutputStream()
+        val errStream = ByteArrayOutputStream()
         UnitTester(
           mainModule,
           null,
-          outStream = new PrintStream(outStream, true),
-          errStream = new PrintStream(errStream, true)
+          outStream = PrintStream(outStream, true),
+          errStream = PrintStream(errStream, true)
         ).scoped { evaluator =>
 
           val results =
@@ -321,13 +323,13 @@ object MainModuleTests extends TestSuite {
         }
       }
       test("multi") {
-        val outStream = new ByteArrayOutputStream()
-        val errStream = new ByteArrayOutputStream()
+        val outStream = ByteArrayOutputStream()
+        val errStream = ByteArrayOutputStream()
         UnitTester(
           mainModule,
           null,
-          outStream = new PrintStream(outStream, true),
-          errStream = new PrintStream(errStream, true)
+          outStream = PrintStream(outStream, true),
+          errStream = PrintStream(errStream, true)
         ).scoped { evaluator =>
 
           val results =
@@ -368,8 +370,8 @@ object MainModuleTests extends TestSuite {
         UnitTester(
           mainModule,
           null,
-          outStream = new PrintStream(OutputStream.nullOutputStream(), true),
-          errStream = new PrintStream(OutputStream.nullOutputStream(), true)
+          outStream = PrintStream(OutputStream.nullOutputStream(), true),
+          errStream = PrintStream(OutputStream.nullOutputStream(), true)
         ).scoped { evaluator =>
 
           val Left(ExecResult.Failure(msg = failureMsg)) =
@@ -391,8 +393,8 @@ object MainModuleTests extends TestSuite {
         UnitTester(
           mainModule,
           null,
-          outStream = new PrintStream(OutputStream.nullOutputStream(), true),
-          errStream = new PrintStream(OutputStream.nullOutputStream(), true)
+          outStream = PrintStream(OutputStream.nullOutputStream(), true),
+          errStream = PrintStream(OutputStream.nullOutputStream(), true)
         ).scoped { evaluator =>
 
           val Right(result) = evaluator.apply("show", "helloWorker").runtimeChecked
@@ -400,6 +402,42 @@ object MainModuleTests extends TestSuite {
           assert(res("toString").str == "theHelloWorker")
           assert(res("worker").str == "helloWorker")
           assert(res("inputsHash").numOpt.isDefined)
+        }
+      }
+
+      test("resolve") {
+        // Verify that `show resolve` sends the plain text task listing to stderr,
+        // and only the JSON array goes to stdout
+        val outStream = ByteArrayOutputStream()
+        val errStream = ByteArrayOutputStream()
+        UnitTester(
+          mainModule,
+          null,
+          outStream = PrintStream(outStream, true),
+          errStream = PrintStream(errStream, true)
+        ).scoped { evaluator =>
+
+          val results =
+            evaluator.evaluator.execute(Seq(mainModule.show(
+              evaluator.evaluator,
+              "resolve",
+              "_"
+            ))).executionResults
+
+          assert(results.transitiveFailing.size == 0)
+
+          // stdout should contain only the JSON array of resolved task names
+          val shown = ujson.read(outStream.toByteArray)
+          assert(shown.isInstanceOf[ujson.Arr])
+          val taskNames = shown.arr.map(_.str).toSet
+          assert(taskNames.contains("hello"))
+          assert(taskNames.contains("hello2"))
+          assert(taskNames.contains("helloCommand"))
+
+          // The plain text listing from `resolve` should go to stderr, not stdout
+          checkErrStream(errStream) { strippedErr =>
+            assert(strippedErr.contains("hello"))
+          }
         }
       }
     }
@@ -590,16 +628,57 @@ object MainModuleTests extends TestSuite {
           )
           checkExists(out, false)(
             os.sub / "bar/task.json",
-            os.sub / "bar/task.dest/dummy.txt"
+            os.sub / "bar/task.dest/dummy.txt",
+            os.sub / "bar/task.dest"
           )
         }
+      }
+
+      // Mill's own internal `out/mill-*` state must survive `clean`, whether it is invoked
+      // bare or with a selector that resolves the root module (e.g. `clean __`). Deleting
+      // `out/mill-daemon/processId` from under a running daemon makes it exit mid-command,
+      // surfacing to the user as "Worker wire broken".
+      // See https://github.com/com-lihaoyi/mill/issues/7053
+      test("keeps-mill-internals") {
+        // folders Mill keeps its own machinery in, e.g. `out/mill-daemon/processId`
+        val internalFolders = Seq(OutFiles.millDaemon, OutFiles.millNoDaemon)
+        // internal bookkeeping that lives directly in `out/` as plain files
+        val internalFiles = Seq(OutFiles.millOutLock, OutFiles.millProfile)
+
+        val markers =
+          internalFolders.map(os.sub / _ / "marker") ++ internalFiles.map(os.sub / _)
+
+        def check(selector: String*): Unit = UnitTester(cleanModule, null).scoped { ev =>
+          val out = ev.evaluator.outPath
+          val r1 = ev.evaluator.execute(Seq(cleanModule.all)).executionResults
+          assert(r1.transitiveFailing.size == 0)
+
+          // Stand in for the internal state a real daemon keeps under `out/`
+          markers.foreach(p => os.write.over(out / p, "x", createFolders = true))
+          checkExists(out, true)(markers*)
+
+          val r2 = ev.evaluator
+            .execute(Seq(cleanModule.clean(ev.evaluator, selector*)))
+            .executionResults
+          assert(r2.transitiveFailing.size == 0)
+
+          // task output is gone, but Mill's own state is untouched
+          checkExists(out, false)(os.sub / "foo/task.dest/dummy.txt")
+          checkExists(out, true)(markers*)
+          assert(os.exists(out))
+        }
+
+        test("no-selector") - check()
+        // `__` resolves the root module too, whose `Segments` is empty; that used to make
+        // `clean` treat `out/` itself as a module folder and wipe it wholesale.
+        test("wildcard-all") - check("__")
       }
     }
 
     test("cleanWorker") {
       test("all") {
         val workers = new mutable.HashSet[TestWorker]
-        val workerModule = new WorkerModule(workers)
+        val workerModule = WorkerModule(workers)
         UnitTester(workerModule, null).scoped { ev =>
 
           val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults
@@ -614,7 +693,7 @@ object MainModuleTests extends TestSuite {
 
       test("single-task") {
         val workers = new mutable.HashSet[TestWorker]
-        val workerModule = new WorkerModule(workers)
+        val workerModule = WorkerModule(workers)
         UnitTester(workerModule, null).scoped { ev =>
 
           val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults
@@ -646,7 +725,7 @@ object MainModuleTests extends TestSuite {
 
       test("single-task via rm") {
         val workers = new mutable.HashSet[TestWorker]
-        val workerModule = new WorkerModule(workers)
+        val workerModule = WorkerModule(workers)
         UnitTester(workerModule, null).scoped { ev =>
 
           ev.evaluator.execute(Seq(workerModule.foo.theWorker)).executionResults
@@ -695,7 +774,7 @@ object MainModuleTests extends TestSuite {
       }
       test("single-module") {
         val workers = new mutable.HashSet[TestWorker]
-        val workerModule = new WorkerModule(workers)
+        val workerModule = WorkerModule(workers)
         UnitTester(workerModule, null).scoped { ev =>
 
           val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults

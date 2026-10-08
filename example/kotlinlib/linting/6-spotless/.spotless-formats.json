@@ -15,7 +15,8 @@
     ],
     "steps": [
       {
-        "$type": "PalantirJavaFormat"
+        "$type": "GoogleJavaFormat",
+        "version": "1.35.0"
       },
       {
         "$type": "LicenseHeader",

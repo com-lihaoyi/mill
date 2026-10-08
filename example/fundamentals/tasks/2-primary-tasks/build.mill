@@ -360,3 +360,47 @@ foo.txt resource: My Example Text
 // Tasks are, and their returned metadata stored at the same `out/run.json`
 // path for consumption by external tools.
 //
+// ==== Exclusive Commands
+//
+// Commands declared with `exclusive = true` run serially at the end of an
+// evaluation, after all parallel tasks have completed, with no other tasks
+// running alongside them and without the per-task logging prefixes that are
+// applied to normal tasks. Exclusive commands are useful for "top-level"
+// commands that print output directly to the user (so the output is not
+// interleaved with parallel task logs) or for commands that take an
+// `Evaluator` parameter — such commands must be `exclusive`.
+//
+// `exclusive` commands do *not* take the daemon-wide workspace lock, so
+// concurrent Mill launchers can still run their own non-conflicting tasks
+// alongside an exclusive command.
+
+def printDepTree(evaluator: mill.api.Evaluator, tasks: String*) =
+  Task.Command(exclusive = true) {
+    evaluator.plan(evaluator.resolveTasks(tasks, mill.api.SelectMode.Multi).get)
+      .sortedGroups
+      .keys()
+      .foreach(println)
+  }
+
+// ==== Globally-Exclusive Commands
+//
+// Commands declared with `globalExclusive = true` behave like `exclusive`
+// commands, but additionally take the daemon-wide workspace Write lock for
+// the duration of their evaluation. While a globally-exclusive command runs,
+// no other Mill launcher in the same daemon can run any task — concurrent
+// launchers block until the globally-exclusive command completes.
+//
+// `globalExclusive` is reserved for commands that mutate workspace files in
+// ways that would race with concurrent launchers, e.g. `clean`, `init`, code
+// formatters that rewrite source files, etc. For example, a command that
+// regenerates a checked-in source file should be `globalExclusive` so a
+// concurrent launcher's `compile` cannot read the file mid-rewrite:
+
+def regenerateVersionFile() = Task.Command(globalExclusive = true) {
+  val path = mill.api.BuildCtx.workspaceRoot / "src" / "Version.java"
+  os.write.over(
+    path,
+    s"""public class Version { public static final String value = "1.0"; }"""
+  )
+}
+//

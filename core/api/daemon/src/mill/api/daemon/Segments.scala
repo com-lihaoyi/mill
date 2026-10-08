@@ -23,7 +23,7 @@ final case class Segments private (value: Seq[Segment]) {
   def last: Segment.Label = value.last match {
     case l: Segment.Label => l
     case _ =>
-      throw new IllegalArgumentException("Segments must end with a Label, but found a Cross.")
+      throw IllegalArgumentException("Segments must end with a Label, but found a Cross.")
   }
 
   def parts: List[String] = value.flatMap(_.pathSegments).toList

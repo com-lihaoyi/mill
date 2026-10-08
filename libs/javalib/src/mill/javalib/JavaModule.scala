@@ -35,17 +35,16 @@ import mill.javalib.bsp.{BspJavaModule, BspModule}
 import mill.javalib.internal.ModuleUtils
 import mill.javalib.publish.Artifact
 import mill.util.{JarManifest, JdkCommandsModule, Jvm}
-import os.Path
 
 import java.io.File
 import scala.util.chaining.scalaUtilChainingOps
-import scala.util.matching.Regex
 
 /**
  * Core configuration required to compile a single Java module
  */
 trait JavaModule
     extends mill.api.Module
+    with mill.api.ConfigModuleDepsModule
     with WithJvmWorkerModule
     with TestModule.JavaModuleBase
     with DefaultTaskModule
@@ -88,7 +87,10 @@ trait JavaModule
     hierarchyChecks()
 
     override def resources = super[JavaModule].resources
-    override def moduleDeps: Seq[JavaModule] = Seq(outer)
+    override def moduleDeps: Seq[JavaModule] =
+      Seq(outer) ++ outer.configModuleDeps
+        .getOrElse(moduleSegments.parts.last, Nil)
+        .collect { case m: JavaModule => m }
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
       outer.repositoriesTask()
     }
@@ -96,17 +98,20 @@ trait JavaModule
     override def enableBsp: Boolean = outer.enableBsp
 
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
-      outer.resolutionCustomizer
+      Task.Anon { outer.resolutionCustomizer() }
+
+    override def resolutionParams: Task[ResolutionParams] =
+      Task.Anon { outer.resolutionParams() }
 
     override def annotationProcessorsJavacOptions: T[Seq[String]] =
       outer.annotationProcessorsJavacOptions()
-    override def javacOptions = outer.javacOptions()
+    override def javacOptions: T[Seq[String]] = outer.javacOptions()
     override def jvmWorker = outer.jvmWorker
 
-    def jvmId = outer.jvmId
+    def jvmId = outer.jvmId()
 
-    def jvmVersion = outer.jvmVersion
-    def jvmIndexVersion = outer.jvmIndexVersion
+    def jvmVersion = outer.jvmVersion()
+    def jvmIndexVersion = outer.jvmIndexVersion()
 
     /**
      * Optional custom Java Home for the JvmWorker to use
@@ -114,13 +119,15 @@ trait JavaModule
      * If this value is None, then the JvmWorker uses the same Java used to run
      * the current mill instance.
      */
-    def javaHome = outer.javaHome
+    def javaHome = outer.javaHome()
 
     override def skipIdea = outer.skipIdea
     override def runUseArgsFile = outer.runUseArgsFile()
     override def sourcesFolders = outer.sourcesFolders
 
     override def bomMvnDeps = super.bomMvnDeps() ++ outer.bomMvnDeps()
+
+    override def mandatoryBomMvnDeps = outer.mandatoryBomMvnDeps()
 
     override def depManagement = super.depManagement() ++ outer.depManagement()
 
@@ -132,6 +139,10 @@ trait JavaModule
      * @throws MillException
      */
     protected def hierarchyChecks(): Unit = JavaModule.hierarchyChecks(outer, this)
+
+    protected def zincAnalysisFile = Task.Anon {
+      Some(compile().analysisFile)
+    }
   }
 
   def defaultTask(): String = "run"
@@ -178,9 +189,20 @@ trait JavaModule
    */
   def bomMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
+  /**
+   * Mandatory BOM dependencies that shouldn't be removed by overriding [[bomMvnDeps]].
+   */
+  def mandatoryBomMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+
+  /**
+   * Aggregation of mandatoryBomMvnDeps and bomMvnDeps.
+   * In most cases, instead of overriding this task you want to override `bomMvnDeps` instead.
+   */
+  def allBomMvnDeps: T[Seq[Dep]] = Task { bomMvnDeps() ++ mandatoryBomMvnDeps() }
+
   def allBomDeps: Task[Seq[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
-      bomMvnDeps().map(bindDependency()).map { bomDep =>
+      allBomMvnDeps().map(bindDependency()).map { bomDep =>
         val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.version)
         if (fromModVer == bomDep.dep)
           Right(bomDep.dep.asBomDependency)
@@ -197,7 +219,7 @@ trait JavaModule
         case Right(bomDep) => bomDep
       }
     else
-      throw new Exception(
+      throw Exception(
         "Found Bill of Material (BOM) dependencies with invalid parameters:" + System.lineSeparator() +
           malformed.map("- " + _.dep + System.lineSeparator()).mkString +
           "Only organization, name, and version are accepted."
@@ -230,7 +252,7 @@ trait JavaModule
       : Seq[(DependencyManagement.Key, DependencyManagement.Values)] = {
     val keyValuesOrErrors =
       deps.map { depMgmt =>
-        val fromUsedValues = coursier.core.Dependency(depMgmt.module, depMgmt.version)
+        val fromUsedValues = coursier.core.Dependency(depMgmt.module, depMgmt.versionConstraint)
           .withPublication(coursier.core.Publication(
             "",
             depMgmt.publication.`type`,
@@ -238,7 +260,7 @@ trait JavaModule
             depMgmt.publication.classifier
           ))
           .withMinimizedExclusions(depMgmt.minimizedExclusions)
-          .withOptional(depMgmt.optional)
+          .copy(optional0 = depMgmt.optional0)
         if (fromUsedValues == depMgmt) {
           val key = DependencyManagement.Key(
             depMgmt.module.organization,
@@ -249,9 +271,9 @@ trait JavaModule
           )
           val values = DependencyManagement.Values(
             Configuration.empty,
-            depMgmt.version,
+            depMgmt.versionConstraint,
             depMgmt.minimizedExclusions,
-            depMgmt.optional
+            depMgmt.optional0
           )
           Right(key -> values)
         } else
@@ -264,7 +286,7 @@ trait JavaModule
     if (errors.isEmpty)
       keyValuesOrErrors.collect { case Right(kv) => kv }
     else
-      throw new Exception(
+      throw Exception(
         "Found dependency management entries with invalid values. Only organization, name, version, type, classifier, exclusions, and optionality can be specified" + System.lineSeparator() +
           errors.map("- " + _ + System.lineSeparator()).mkString
       )
@@ -311,9 +333,22 @@ trait JavaModule
   }
 
   /**
-   * Options to pass to the java compiler
+   * Options to pass to the java compiler.
+   *
+   * When a custom `jvmVersion` is set, this can also be used to pass runtime flags
+   * to the JVM daemon running the compiler, e.g. `-J-Xss8m` to set its stack size
    */
   override def javacOptions: T[Seq[String]] = Task { Seq.empty[String] }
+
+  /**
+   * JVM options passed to the Java compiler worker process.
+   *
+   * Prefer this over `javacOptions` for JVM flags such as `-D`, `--add-opens`, and
+   * `-X` options.
+   */
+  def jvmOptions: T[Seq[String]] = Task { Seq.empty[String] }
+
+  private[mill] def javaCompilerRuntimeOptions: T[Seq[String]] = Task { jvmOptions() }
 
   /**
    * Additional options for the java compiler derived from other module settings.
@@ -327,19 +362,22 @@ trait JavaModule
    *  which uses a cached result which is also checked to be free of cycle.
    *  @see [[moduleDepsChecked]]
    */
-  def moduleDeps: Seq[JavaModule] = Seq()
+  def moduleDeps: Seq[JavaModule] =
+    configModuleDeps.getOrElse("", Nil).collect { case m: JavaModule => m }
 
   /**
    *  The compile-only direct dependencies of this module. These are *not*
    *  transitive, and only take effect in the module that they are declared in.
    */
-  def compileModuleDeps: Seq[JavaModule] = Seq()
+  def compileModuleDeps: Seq[JavaModule] =
+    configCompileModuleDeps.getOrElse("", Nil).collect { case m: JavaModule => m }
 
   /**
    * The runtime-only direct dependencies of this module. These *are* transitive,
    * and so get propagated to downstream modules automatically
    */
-  def runModuleDeps: Seq[JavaModule] = Seq()
+  def runModuleDeps: Seq[JavaModule] =
+    configRunModuleDeps.getOrElse("", Nil).collect { case m: JavaModule => m }
 
   /**
    *  Bill of Material (BOM) dependencies of this module.
@@ -348,7 +386,8 @@ trait JavaModule
    *  which uses a cached result which is also checked to be free of cycles.
    *  @see [[bomModuleDepsChecked]]
    */
-  def bomModuleDeps: Seq[BomModule] = Seq()
+  def bomModuleDeps: Seq[BomModule] =
+    configBomModuleDeps.getOrElse("", Nil).collect { case m: BomModule => m }
 
   /**
    * Same as [[moduleDeps]] but checked to not contain cycles.
@@ -504,6 +543,15 @@ trait JavaModule
    * repositories
    */
   def unmanagedClasspath: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+
+  /**
+   * Whether to check that entries in [[unmanagedClasspath]] exist on disk.
+   * When enabled (the default), a build error is raised if any entry does
+   * not exist, providing a clear error message instead of a confusing
+   * "package does not exist" compilation error. Set to `false` to disable
+   * this check if you have classpath entries that may not exist.
+   */
+  def unmanagedClasspathExistenceCheck: T[Boolean] = Task { true }
 
   /**
    * The `coursier.Dependency` to use to refer to this module
@@ -856,6 +904,37 @@ trait JavaModule
   def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   /**
+   * Pairs of original sources and their generated counterparts
+   *
+   * Original sources are user-facing sources, like `build.mill` or `package.mill`
+   * files in Mill builds. Generated ones are the final sources passed to the Scala
+   * compiler, like the Scala sources generated by Mill out of `build.mill` or
+   * `package.mill` files.
+   *
+   * Original sources shouldn't be passed to the compiler, while generated ones are.
+   *
+   * These sources are passed to BSP clients via the buildTarget/wrappedSources request,
+   * originally implemented in Scala CLI, and having an lsp4j-compatible implementation
+   * in org.virtuslab.scala-cli:scala-cli-bsp:*scala-cli-version*
+   *
+   * Generated sources are assumed to consist in a header, followed by the content
+   * of the original source, and lastly a footer. The header and the content of the
+   * original source must be separated by
+   *
+   *     //SOURCECODE_ORIGINAL_CODE_START_MARKER
+   *
+   * on a single line.
+   *
+   * Without this separator, these sources are not passed to BSP clients.
+   *
+   * As of writing this, further changes in the original sources prior to adding them
+   * in the generated ones (like removing package directives, which Mill does to its build
+   * files) are not reported to BSP clients, and must be handled by them in an ad hoc fashion.
+   */
+  @internal
+  private[mill] def wrappedSources: T[Seq[(original: PathRef, generated: PathRef)]] = Task(Seq())
+
+  /**
    * Path to sources generated as part of the `compile` step, eg.  by Java annotation
    * processors which often generate source code alongside classfiles during compilation.
    *
@@ -868,11 +947,18 @@ trait JavaModule
    */
   def allSources: T[Seq[PathRef]] = Task { sources() ++ generatedSources() }
 
+  /** Extensions of files to retain as source files */
+  protected def sourceFileExtensions: Seq[String] = Seq("java")
+
   /**
    * All individual source files fed into the Java compiler
    */
   def allSourceFiles: T[Seq[PathRef]] = Task {
-    Lib.findSourceFiles(allSources(), Seq("java")).map(PathRef(_))
+    val allSources0 = allSources() ++ wrappedSources().map(_.generated)
+    val toExclude = wrappedSources().map(_.original.path)
+    Lib.findSourceFiles(allSources0, sourceFileExtensions)
+      .filterNot(toExclude.contains)
+      .map(PathRef(_))
   }
 
   /**
@@ -910,10 +996,16 @@ trait JavaModule
       os.makeDir.all(compileGenSources)
     }
 
-    val jOpts = JavaCompilerOptions.split(Seq(
+    val (javacCompilerOptions, legacyRuntimeOptions) = JavaModule.splitJavacAndRuntimeOptions(Seq(
       "-s",
       compileGenSources.toString
     ) ++ javacOptions() ++ mandatoryJavacOptions() ++ annotationProcessorsJavacOptions())
+    if (legacyRuntimeOptions.nonEmpty) {
+      Task.log.warn(
+        "`-J` options in `javacOptions` are deprecated; use `jvmOptions` instead" +
+          s"\n  - Deprecated options: ${legacyRuntimeOptions.map("-J" + _).mkString(" ")}"
+      )
+    }
 
     val worker = jvmWorker().internalWorker()
 
@@ -921,13 +1013,13 @@ trait JavaModule
       ZincOp.CompileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
-        compileClasspath = compileClasspath().map(_.path),
-        javacOptions = jOpts.compiler,
+        compileClasspath = compileClasspath(),
+        javacOptions = javacCompilerOptions,
         incrementalCompilation = zincIncrementalCompilation(),
         workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
-      javaRuntimeOptions = jOpts.runtime,
+      javaRuntimeOptions = javaCompilerRuntimeOptions() ++ legacyRuntimeOptions,
       reporter = Task.reporter.apply(hashCode),
       reportCachedProblems = zincReportCachedProblems()
     )
@@ -1064,10 +1156,20 @@ trait JavaModule
    * excluding upstream modules and third-party dependencies
    */
   def localCompileClasspath: T[Seq[PathRef]] = Task {
-    compileResources() ++ unmanagedClasspath()
+    val unmanaged = unmanagedClasspath()
+    if (unmanagedClasspathExistenceCheck()) {
+      val missing = unmanaged.filter(p => !os.exists(p.path))
+      if (missing.nonEmpty) {
+        val missingList = missing.map(_.path).mkString("\n  ")
+        throw new MillException(
+          s"unmanagedClasspath entries do not exist:\n  $missingList"
+        )
+      }
+    }
+    compileResources() ++ unmanaged
   }
 
-  private def resolvedMvnDeps0(sources: Boolean) = Task.Anon {
+  private[mill] def resolvedMvnDeps0(sources: Boolean) = Task.Anon {
     millResolver().classpath(
       Seq(
         BoundDep(
@@ -1103,6 +1205,22 @@ trait JavaModule
       )
     }
     resolvedMvnDeps0(sources = false)()
+  }
+
+  /**
+   * Third-party dependency source JARs exposed to BSP clients.
+   *
+   * Override this task to avoid resolving sources for dependencies that are known not to
+   * publish them, or to provide those sources through another mechanism.
+   */
+  def bspMvnDependencySources: T[Seq[PathRef]] = Task {
+    millResolver().classpath(
+      Seq(
+        coursierDependencyTask().withConfiguration(cs.Configuration.provided),
+        coursierDependencyTask()
+      ),
+      sources = true
+    )
   }
 
   /**
@@ -1373,18 +1491,30 @@ trait JavaModule
             .filter(dep => matchers.exists(matcher => matcher.matches(dep.module))).toSeq
       }
 
-      val tree = coursier.util.Print.dependencyTree(
-        resolution = resolution,
-        roots = roots,
-        printExclusions = false,
-        reverse = if (whatDependsOn.isEmpty) inverse else true
-      )
+      // Both directions expand an already-expanded node only once, referencing it elsewhere.
+      // Without that, rendering walks every distinct path through the dependency graph rather than
+      // every distinct node, which for large graphs never finishes.
+      // Fix issue: https://github.com/com-lihaoyi/mill/issues/6823
+      // see also comment: https://github.com/coursier/coursier/pull/3671#issuecomment-4752734517
+      val tree =
+        if (whatDependsOn.isEmpty && !inverse)
+          // Coursier only offers deduplication for the inverted tree, so we render this one
+          // ourselves. See `DepsTreeRenderer`.
+          mill.javalib.internal.DepsTreeRenderer.forward(resolution = resolution, roots = roots)
+        else
+          coursier.util.Print.dependencyTree0(
+            resolution = resolution,
+            roots = roots,
+            printExclusions = false,
+            reverse = true,
+            reverseDeduplicateNodes = true
+          )
 
       // Filter the output, so that the special organization and version used for Mill's own modules
       // don't appear in the output. This only leaves the modules' name built from millModuleSegments.
       val processedTree = tree
         .replace(s"${JavaModule.internalOrg.value}:", "")
-        .pipe(JavaModule.removeInternalVersionRegex.replaceAllIn(_, "$1"))
+        .replace(s":${JavaModule.internalVersion}", "")
 
       processedTree
     }
@@ -1396,7 +1526,7 @@ trait JavaModule
     val treeTask = mvnDepsTree(args)
     Task.Command(exclusive = true) {
       val rendered = treeTask()
-      Task.log.streams.out.println(rendered)
+      Task.log.unprefixedStreams.out.println(rendered)
       rendered
     }
   }
@@ -1628,6 +1758,17 @@ trait JavaModule
 }
 
 object JavaModule {
+  private[javalib] type SplitJavacAndRuntimeOptions = (
+      compiler: Seq[String],
+      runtime: Seq[String]
+  )
+
+  private[javalib] def splitJavacAndRuntimeOptions(options: Seq[String])
+      : SplitJavacAndRuntimeOptions = {
+    val jOpts = JavaCompilerOptions.split(options)
+    (compiler = jOpts.compiler, runtime = jOpts.runtime)
+  }
+
   // Keep in sync with JavaModule#JavaTests, duplicated due to binary compatibility concerns
   trait JavaTests0 extends JavaModule with TestModule {
     private val outer: JavaModule = moduleDeps.head
@@ -1644,13 +1785,13 @@ object JavaModule {
 
     override def annotationProcessorsJavacOptions: T[Seq[String]] =
       outer.annotationProcessorsJavacOptions()
-    override def javacOptions = outer.javacOptions()
-    override def jvmWorker = outer.jvmWorker
+    override def javacOptions: T[Seq[String]] = outer.javacOptions()
+    override def jvmWorker: ModuleRef[JvmWorkerModule] = outer.jvmWorker
 
-    def jvmId = outer.jvmId
-    def jvmVersion = outer.jvmVersion
+    def jvmId: T[String] = outer.jvmId()
+    def jvmVersion: T[String] = outer.jvmVersion()
 
-    def jvmIndexVersion = outer.jvmIndexVersion
+    def jvmIndexVersion: T[String] = outer.jvmIndexVersion()
 
     /**
      * Optional custom Java Home for the JvmWorker to use
@@ -1658,15 +1799,17 @@ object JavaModule {
      * If this value is None, then the JvmWorker uses the same Java used to run
      * the current mill instance.
      */
-    def javaHome = outer.javaHome
+    def javaHome: T[Option[PathRef]] = outer.javaHome()
 
-    override def skipIdea = outer.skipIdea
-    override def runUseArgsFile = outer.runUseArgsFile()
-    override def sourcesFolders = outer.sourcesFolders
+    override def skipIdea: Boolean = outer.skipIdea
+    override def runUseArgsFile: T[Boolean] = outer.runUseArgsFile()
+    override def sourcesFolders: Seq[os.SubPath] = outer.sourcesFolders
 
-    override def bomMvnDeps = super.bomMvnDeps() ++ outer.bomMvnDeps()
+    override def bomMvnDeps: T[Seq[Dep]] = super.bomMvnDeps() ++ outer.bomMvnDeps()
 
-    override def depManagement = super.depManagement() ++ outer.depManagement()
+    override def mandatoryBomMvnDeps: T[Seq[Dep]] = outer.mandatoryBomMvnDeps()
+
+    override def depManagement: T[Seq[Dep]] = super.depManagement() ++ outer.depManagement()
 
     /**
      * JavaModule and its derivatives define inner test modules.
@@ -1745,9 +1888,6 @@ object JavaModule {
   private[mill] def internalOrg = coursier.core.Organization("mill-internal")
   private[mill] def internalVersion = "0+mill-internal"
 
-  private lazy val removeInternalVersionRegex =
-    (":" + Regex.quote(JavaModule.internalVersion) + "(\\w*$|\\n)").r
-
 }
 
 /**
@@ -1759,14 +1899,14 @@ trait BomModule extends JavaModule {
   abstract override def compile: T[CompilationResult] = Task {
     val sources = allSourceFiles()
     if (sources.nonEmpty)
-      throw new Exception("A BomModule cannot have sources")
+      throw Exception("A BomModule cannot have sources")
     CompilationResult(Task.dest / "zinc", PathRef(Task.dest / "classes"))
   }
 
   abstract override def resources: T[Seq[PathRef]] = Task {
     val value = super.resources()
     if (value.nonEmpty)
-      throw new Exception("A BomModule cannot have resources")
+      throw Exception("A BomModule cannot have resources")
     Seq.empty[PathRef]
   }
 

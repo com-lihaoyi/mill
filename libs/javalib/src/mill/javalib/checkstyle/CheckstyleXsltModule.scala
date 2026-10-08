@@ -21,16 +21,16 @@ trait CheckstyleXsltModule extends CheckstyleModule {
       if (os.exists(checkOutput)) {
         checkstyleXsltReports().foreach {
           case CheckstyleXsltReport(xslt, output) =>
-            val xsltSource = new StreamSource(xslt.path.getInputStream)
+            val xsltSource = StreamSource(xslt.path.getInputStream)
             xsltSource.setSystemId(
               xslt.path.toIO
             ) // so that relative URI references can be resolved
 
             val checkSource =
-              new StreamSource(checkOutput.getInputStream)
+              StreamSource(checkOutput.getInputStream)
 
             val outputResult =
-              new StreamResult(os.write.outputStream(output.path, createFolders = true))
+              StreamResult(os.write.outputStream(output.path, createFolders = true))
 
             Task.log.info(s"transforming checkstyle output report with $xslt")
 

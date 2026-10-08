@@ -6,6 +6,38 @@ object ScriptTests extends TestSuite {
   def tests = Tests {
     val home = os.home
     val nativeSuffix = sys.env("MILL_NATIVE_SUFFIX")
+
+    test("provenanceHeaders") {
+      val version = sys.env("MILL_EXPECTED_DEFAULT_VERSION")
+      val projectUrl = sys.env("MILL_EXPECTED_PROJECT_URL")
+      val downloadUrl = sys.env("MILL_EXPECTED_DOWNLOAD_URL")
+      val documentationUrl = sys.env("MILL_EXPECTED_BOOTSTRAP_DOC_URL")
+
+      val shHeader = Seq(
+        "#!/usr/bin/env sh",
+        "",
+        s"# Mill Build Tool: $projectUrl",
+        s"# Download: $downloadUrl/mill-dist-$version-mill.sh",
+        s"# Documentation: $documentationUrl",
+        s"# Script Version: $version",
+        ""
+      )
+      val batHeader = Seq(
+        "@echo off",
+        "",
+        s"rem Mill Build Tool: $projectUrl",
+        s"rem Download: $downloadUrl/mill-dist-$version-mill.bat",
+        s"rem Documentation: $documentationUrl",
+        s"rem Script Version: $version",
+        ""
+      )
+
+      val shScript = os.Path(sys.env("MILL_TEST_SH_SCRIPT"), os.pwd)
+      val batScript = os.Path(sys.env("MILL_TEST_BAT_SCRIPT"), os.pwd)
+      assert(os.read.lines(shScript).take(shHeader.size) == shHeader)
+      assert(os.read.lines(batScript).take(batHeader.size) == batHeader)
+    }
+
     case class VersionPaths(
         version: String,
         downloadUrl: String,

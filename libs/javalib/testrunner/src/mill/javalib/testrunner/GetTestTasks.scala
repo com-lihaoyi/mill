@@ -17,7 +17,8 @@ import mill.api.daemon.internal.internal
           Seq.from(testCp),
           args,
           cls => globFilter(cls.getName),
-          classLoader
+          classLoader,
+          discoveredClassesOpt
         )
         .toSeq
     }

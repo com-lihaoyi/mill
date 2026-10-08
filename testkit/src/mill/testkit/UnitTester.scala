@@ -1,7 +1,7 @@
 package mill.testkit
 
 import mill.Task
-import mill.api.{BuildCtx, DummyInputStream, ExecResult, Result, SystemStreams, Val}
+import mill.api.{BuildCtx, DummyInputStream, EnvMap, ExecResult, Result, SystemStreams, Val}
 import mill.api.ExecResult.OuterStack
 import mill.constants.OutFiles.OutFiles.millChromeProfile
 import mill.constants.OutFiles.OutFiles.millProfile
@@ -81,7 +81,7 @@ class UnitTester(
   } else {
     sourceRoot match {
       case Some(sourceRoot) =>
-        throw new IllegalArgumentException(
+        throw IllegalArgumentException(
           s"Cannot provide sourceRoot=$sourceRoot when resetSourcePath=false"
         )
       case None => // ok
@@ -122,7 +122,7 @@ class UnitTester(
     else Some(mill.exec.ExecutionContexts.createExecutor(effectiveThreadCount))
 
   val execution = new mill.exec.Execution(
-    baseLogger = new mill.internal.PrefixLogger(logger, Nil),
+    baseLogger = mill.internal.PrefixLogger(logger, Nil),
     profileLogger = new mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
     workspace = module.moduleDir,
     outPath = outPath,
@@ -131,21 +131,24 @@ class UnitTester(
     classLoaderSigHash = 0,
     classLoaderIdentityHash = 0,
     workerCache = collection.mutable.Map.empty,
-    env = env,
+    env = EnvMap.asEnvMap(env),
     failFast = failFast,
     ec = ec,
     codeSignatures = Map(),
     systemExit = (reason, exitCode) =>
       throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
-    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
+    exclusiveSystemStreams = SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
     useFileLocks = false,
+    workspaceLocking = mill.api.daemon.internal.LauncherLocking.Noop,
+    runArtifacts = mill.api.daemon.internal.LauncherOutFiles.noop(outPath.toNIO),
     enableTicker = false,
     staticBuildOverrideFiles = Map(),
     depth = 0,
     isFinalDepth = true,
-    spanningInvalidationTree = None
+    spanningInvalidationTree = None,
+    replayLogs = false
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
@@ -206,7 +209,8 @@ class UnitTester(
     val res = evaluator.execute(Seq(task)).executionResults
 
     val cleaned = res.results.map {
-      case ExecResult.Exception(ex, _) => ExecResult.Exception(ex, new OuterStack(Nil))
+      case ExecResult.Exception(ex, _) =>
+        ExecResult.Exception(ex, OuterStack(Nil))
       case x => x.map(_.value)
     }
 

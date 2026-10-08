@@ -70,7 +70,7 @@ private[launcher] class JLineNativeLoader(jlineNativeVersion: String) {
           case _: java.nio.file.FileAlreadyExistsException =>
           // Ignored, file should have been created by another Mill process
           case e: java.nio.file.AccessDeniedException =>
-            if (!os.exists(millJLineNativeLibLocation)) throw new RuntimeException(e)
+            if (!os.exists(millJLineNativeLibLocation)) throw RuntimeException(e)
           // else ignored, file should have been created by another Mill process
           case _: java.nio.file.AtomicMoveNotSupportedException =>
             try {
@@ -98,7 +98,7 @@ object JLineNativeLoader {
   private def doInitJLineNative(): Unit = synchronized {
     if (initialized) return
 
-    val loader = new JLineNativeLoader(mill.client.Versions.jlineNativeVersion)
+    val loader = JLineNativeLoader(mill.client.Versions.jlineNativeVersion)
     if (!loader.tryLoadFast) loader.loadSlow()
 
     // In theory, this should be enough for org.jline.nativ.JLineNativeLoader

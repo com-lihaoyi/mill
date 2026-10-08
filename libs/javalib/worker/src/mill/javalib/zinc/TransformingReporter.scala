@@ -1,19 +1,11 @@
 package mill.javalib.zinc
 
-private trait TransformingReporter(
-    color: Boolean,
-    optPositionMapper: (xsbti.Position => xsbti.Position) | Null,
-    workspaceRoot: os.Path
-) extends xsbti.Reporter {
+private trait TransformingReporter(color: Boolean, workspaceRoot: os.Path) extends xsbti.Reporter {
 
   // Overriding this is necessary because for some reason the LoggedReporter doesn't transform positions
   // of Actions and DiagnosticRelatedInformation
   abstract override def log(problem0: xsbti.Problem): Unit = {
-    val localMapper = optPositionMapper
-    // Always transform to apply path relativization, even if there's no position mapper for build files
-    val mapper = if localMapper == null then (pos: xsbti.Position) => pos else localMapper
-    val problem = TransformingReporter.transformProblem(color, problem0, mapper, workspaceRoot)
-    super.log(problem)
+    super.log(TransformingReporter.transformProblem(color, problem0, workspaceRoot))
   }
 }
 
@@ -27,17 +19,10 @@ private object TransformingReporter {
   private def transformProblem(
       color: Boolean,
       problem0: xsbti.Problem,
-      mapper: xsbti.Position => xsbti.Position,
       workspaceRoot: os.Path
   ): xsbti.Problem = {
-    val unMappedPos = problem0.position()
-    val related0 = problem0.diagnosticRelatedInformation()
-    val actions0 = problem0.actions()
-    val pos = mapper(unMappedPos)
-    val related = transformRelateds(related0, mapper)
-    val actions = transformActions(actions0, mapper)
-    val rendered =
-      dottyStyleMessage(color, problem0, pos = pos, unMappedPos = unMappedPos, workspaceRoot)
+    val pos = problem0.position()
+    val rendered = dottyStyleMessage(color, problem0, pos, workspaceRoot)
     InterfaceUtil.problem(
       cat = problem0.category(),
       pos = pos,
@@ -45,8 +30,8 @@ private object TransformingReporter {
       sev = problem0.severity(),
       rendered = Some(rendered),
       diagnosticCode = InterfaceUtil.jo2o(problem0.diagnosticCode()),
-      diagnosticRelatedInformation = anyToList(related),
-      actions = anyToList(actions)
+      diagnosticRelatedInformation = anyToList(problem0.diagnosticRelatedInformation()),
+      actions = anyToList(problem0.actions())
     )
   }
 
@@ -62,7 +47,6 @@ private object TransformingReporter {
       color: Boolean,
       problem0: xsbti.Problem,
       pos: xsbti.Position,
-      unMappedPos: xsbti.Position,
       workspaceRoot: os.Path
   ): String = {
 
@@ -82,7 +66,8 @@ private object TransformingReporter {
     InterfaceUtil.jo2o(pos.sourcePath()) match {
       case None => message
       case Some(path) =>
-        val absPath = os.Path(path)
+        // Assume relative paths are relative to the current workspaceRoot
+        val absPath = os.Path(path, workspaceRoot)
         // Render paths within the current workspaceRoot as relative paths to cut down on verbosity
         val displayPath =
           if absPath.startsWith(workspaceRoot) then absPath.subRelativeTo(workspaceRoot).toString
@@ -90,7 +75,6 @@ private object TransformingReporter {
 
         val line = intValue(pos.line(), -1)
         val pointer0 = intValue(pos.pointer(), -1)
-        val colNum = pointer0 + 1
 
         val space = pos.pointerSpace().orElse("")
         val endCol = intValue(pos.endColumn(), pointer0 + 1)
@@ -106,9 +90,7 @@ private object TransformingReporter {
         // rendering entire expressions which can be arbitrarily large and spammy in the terminal.
         val scraped = mill.api.internal.Util.scrapeColoredLineContent(
           renderedLines,
-          // Use the unmapped line to scrape the corresponding line from the error message,
-          // since the raw compiler error would not have gone through line mapping
-          intValue(unMappedPos.line(), -1),
+          intValue(pos.line(), -1),
           pos.lineContent()
         )
 
@@ -134,17 +116,30 @@ private object TransformingReporter {
             ).render
           } else lineContent0
 
+        val plainLineContent0 = fansi.Str(lineContent0).plainText
+        val plainLineLength = fansi.Str(lineContent).length
+
+        val rawColNum =
+          if (!isJavaFile || pointer0 < 0 || plainLineContent0.isEmpty) pointer0 + 1
+          else visualToSourceColumn(plainLineContent0, pointer0 + 1)
+        val colNum =
+          if (isJavaFile && rawColNum <= 0 && plainLineContent0.nonEmpty) 1
+          else rawColNum
+
+        val displayPointer0 = colNum - 1
+        val pointerPrefix =
+          if (displayPointer0 > 0 && plainLineContent0.nonEmpty)
+            plainLineContent0
+              .take(math.min(displayPointer0, plainLineContent0.length))
+              .map {
+                case '\t' => '\t'
+                case _ => ' '
+              }
+          else ""
         val pointerLength =
-          if (space.nonEmpty && pointer0 >= 0 && endCol >= 0)
-            math.max(
-              1,
-              math.min(
-                endCol - pointer0,
-                // Make sure to use the plaintext length of lineContent,
-                // since it may have color codes
-                fansi.Str(lineContent).length - space.length
-              )
-            )
+          if (space.nonEmpty && displayPointer0 >= 0 && endCol >= 0)
+            math.max(1, math.min(endCol - displayPointer0, plainLineLength - space.length))
+          else if (space.nonEmpty) math.max(1, plainLineLength - space.length)
           else 1
 
         mill.constants.Util.formatError(
@@ -154,74 +149,30 @@ private object TransformingReporter {
           lineContent,
           message,
           pointerLength,
+          pointerPrefix,
           shade
         )
     }
   }
 
-  /** Implements a transformation that returns the same list if the mapper has no effect */
-  private def transformActions(
-      actions0: java.util.List[xsbti.Action],
-      mapper: xsbti.Position => xsbti.Position
-  ): JOrSList[xsbti.Action] = {
-    if actions0.iterator().asScala.exists(a =>
-        a.edit().changes().iterator().asScala.exists(e =>
-          mapper(e.position()) ne e.position()
-        )
-      )
-    then {
-      actions0.iterator().asScala.map(transformAction(_, mapper)).toList
-    } else {
-      actions0
+  /**
+   * Java diagnostics report columns with tabs expanded to 8 spaces, but our source
+   * lines keep tabs as one char. Convert from visual columns to source-code columns
+   * so pointer location and width match the rendered line.
+   */
+  private def visualToSourceColumn(line: String, visualCol: Int): Int = {
+    if (visualCol <= 1) 1
+    else {
+      var visual = 1
+      var code = 1
+      val iter = line.iterator
+      while (iter.hasNext && visual < visualCol) {
+        val char = iter.next()
+        if (char == '\t') visual += 8 - ((visual - 1) % 8)
+        else visual += 1
+        code += 1
+      }
+      code
     }
-  }
-
-  /** Implements a transformation that returns the same list if the mapper has no effect */
-  private def transformRelateds(
-      related0: java.util.List[xsbti.DiagnosticRelatedInformation],
-      mapper: xsbti.Position => xsbti.Position
-  ): JOrSList[xsbti.DiagnosticRelatedInformation] = {
-
-    if related0.iterator().asScala.exists(r => mapper(r.position()) ne r.position()) then
-      related0.iterator().asScala.map(transformRelated(_, mapper)).toList
-    else
-      related0
-  }
-
-  private def transformRelated(
-      related0: xsbti.DiagnosticRelatedInformation,
-      mapper: xsbti.Position => xsbti.Position
-  ): xsbti.DiagnosticRelatedInformation = {
-    InterfaceUtil.diagnosticRelatedInformation(mapper(related0.position()), related0.message())
-  }
-
-  private def transformAction(
-      action0: xsbti.Action,
-      mapper: xsbti.Position => xsbti.Position
-  ): xsbti.Action = {
-    InterfaceUtil.action(
-      title = action0.title(),
-      description = InterfaceUtil.jo2o(action0.description()),
-      edit = transformEdit(action0.edit(), mapper)
-    )
-  }
-
-  private def transformEdit(
-      edit0: xsbti.WorkspaceEdit,
-      mapper: xsbti.Position => xsbti.Position
-  ): xsbti.WorkspaceEdit = {
-    InterfaceUtil.workspaceEdit(
-      edit0.changes().iterator().asScala.map(transformTEdit(_, mapper)).toList
-    )
-  }
-
-  private def transformTEdit(
-      edit0: xsbti.TextEdit,
-      mapper: xsbti.Position => xsbti.Position
-  ): xsbti.TextEdit = {
-    InterfaceUtil.textEdit(
-      position = mapper(edit0.position()),
-      newText = edit0.newText()
-    )
   }
 }

@@ -5,12 +5,22 @@ import mill.constants.ProxyStream
 import utest.*
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
+import java.nio.charset.StandardCharsets
 object PromptLoggerTests extends TestSuite {
 
+  private class RecordingOutputStream extends ByteArrayOutputStream {
+    val writes = collection.mutable.ArrayBuffer.empty[String]
+
+    override def write(bytes: Array[Byte], offset: Int, length: Int): Unit = {
+      writes.append(String(bytes, offset, length, StandardCharsets.UTF_8))
+      super.write(bytes, offset, length)
+    }
+  }
+
   def setup(now: () => Long, terminalDimsCallback: () => Option[(Option[Int], Option[Int])]) = {
-    val baos = new ByteArrayOutputStream()
-    val baosOut = new PrintStream(new ProxyStream.Output(baos, ProxyStream.OUT))
-    val baosErr = new PrintStream(new ProxyStream.Output(baos, ProxyStream.ERR))
+    val baos = ByteArrayOutputStream()
+    val baosOut = PrintStream(ProxyStream.Output(baos, ProxyStream.OUT))
+    val baosErr = PrintStream(ProxyStream.Output(baos, ProxyStream.ERR))
     val promptLogger = new PromptLogger(
       colored = false,
       enableTicker = true,
@@ -19,7 +29,7 @@ object PromptLoggerTests extends TestSuite {
       errorColor = fansi.Attrs.Empty,
       successColor = fansi.Attrs.Empty,
       highlightColor = fansi.Attrs.Empty,
-      systemStreams0 = new SystemStreams(baosOut, baosErr, System.in),
+      systemStreams0 = SystemStreams(baosOut, baosErr, System.in),
       debugEnabled = false,
       titleText = "TITLE",
       terminalDimsCallback = terminalDimsCallback,
@@ -34,7 +44,7 @@ object PromptLoggerTests extends TestSuite {
         super.refreshPrompt(ending)
       }
     }
-    val prefixLogger = new PrefixLogger(promptLogger, Seq("1"))
+    val prefixLogger = PrefixLogger(promptLogger, Seq("1"))
     (baos, promptLogger, prefixLogger)
   }
 
@@ -44,11 +54,11 @@ object PromptLoggerTests extends TestSuite {
       width: Int = 80
   )(expected: String*) = {
     promptLogger.streamsAwaitPumperEmpty()
-    val finalBaos = new ByteArrayOutputStream()
+    val finalBaos = ByteArrayOutputStream()
     val pumper =
-      new ProxyStream.Pumper(new ByteArrayInputStream(baos.toByteArray), finalBaos, finalBaos)
+      ProxyStream.Pumper(ByteArrayInputStream(baos.toByteArray), finalBaos, finalBaos)
     pumper.run()
-    val term = new TestTerminal(width)
+    val term = TestTerminal(width)
     term.writeAll(finalBaos.toString)
     val lines = term.grid.map(_.stripSuffix("\r"))
 
@@ -143,14 +153,14 @@ object PromptLoggerTests extends TestSuite {
       // Adding new ticker entries doesn't appear immediately,
       // Only after some time has passed do we start displaying the new ticker entry,
       // to ensure it is meaningful to read and not just something that will flash and disappear
-      val newPrefixLogger2 = new PrefixLogger(promptLogger, Seq("2"))
+      val newPrefixLogger2 = PrefixLogger(promptLogger, Seq("2"))
       newPrefixLogger2.prompt.setPromptLine(Seq("2"), "/456", "my-task-new")
       newPrefixLogger2.streams.err.println("I AM COW")
       newPrefixLogger2.streams.err.println("HEAR ME MOO")
 
       // For short-lived ticker entries that are removed quickly, they never
       // appear in the prompt at all even though they can run and generate logs
-      val newPrefixLogger3 = new PrefixLogger(promptLogger, Seq("3"))
+      val newPrefixLogger3 = PrefixLogger(promptLogger, Seq("3"))
       newPrefixLogger3.prompt.setPromptLine(Seq("3"), "/456", "my-task-short-lived")
       newPrefixLogger3.streams.err.println("hello short lived")
       newPrefixLogger3.streams.err.println("goodbye short lived")
@@ -252,6 +262,46 @@ object PromptLoggerTests extends TestSuite {
         "123/456] TITLE 32s",
         ""
       )
+    }
+
+    test("interactiveRefreshIsSingleWrite") {
+      var now = 0L
+      val recordedErr = new RecordingOutputStream
+      val promptLogger = new PromptLogger(
+        colored = false,
+        enableTicker = true,
+        infoColor = fansi.Attrs.Empty,
+        warnColor = fansi.Attrs.Empty,
+        errorColor = fansi.Attrs.Empty,
+        successColor = fansi.Attrs.Empty,
+        highlightColor = fansi.Attrs.Empty,
+        systemStreams0 = SystemStreams(
+          PrintStream(ByteArrayOutputStream()),
+          PrintStream(recordedErr),
+          System.in
+        ),
+        debugEnabled = false,
+        titleText = "TITLE",
+        terminalDimsCallback = () => Some((Some(80), Some(40))),
+        currentTimeMillis = () => now,
+        autoUpdate = false,
+        chromeProfileLogger = new JsonArrayLogger.ChromeProfile(os.temp())
+      )
+
+      try {
+        promptLogger.prompt.setPromptLine(Seq("1"), "/1", "task")
+        now = 1000L
+        promptLogger.refreshPrompt()
+
+        recordedErr.writes.clear()
+        now = 2000L
+        promptLogger.refreshPrompt()
+
+        assert(recordedErr.writes.size == 1)
+        val repaint = recordedErr.writes.head
+        assert(repaint.startsWith(AnsiNav.left(9999) + AnsiNav.up(2)))
+        assert(repaint.endsWith(AnsiNav.clearScreen(0)))
+      } finally promptLogger.close()
     }
 
     test("detail") {

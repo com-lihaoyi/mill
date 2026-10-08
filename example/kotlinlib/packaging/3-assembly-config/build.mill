@@ -5,7 +5,7 @@ import mill.javalib.Assembly.*
 
 object foo extends KotlinModule {
 
-  def kotlinVersion = "1.9.24"
+  def kotlinVersion = "2.2.20"
 
   def moduleDeps = Seq(bar)
   def assemblyRules = Seq(
@@ -21,5 +21,5 @@ object foo extends KotlinModule {
 }
 
 object bar extends KotlinModule {
-  def kotlinVersion = "1.9.24"
+  def kotlinVersion = "2.2.20"
 }

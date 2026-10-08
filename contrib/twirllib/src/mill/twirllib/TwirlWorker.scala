@@ -25,7 +25,7 @@ object TwirlWorker {
     // * the java api uses java collections, manipulating which using reflection is much simpler
     //
     // NOTE: When creating the cl classloader with passing the current classloader as the parent:
-    //   val cl = new URLClassLoader(twirlClasspath.map(_.toIO.toURI.toURL).toArray, getClass.getClassLoader)
+    //   val cl = URLClassLoader(twirlClasspath.map(_.toIO.toURI.toURL).toArray, getClass.getClassLoader)
     // it is possible to cast the default to a Seq[String], construct our own Seq[String], and pass it to the method invoke -
     // classes will be compatible (the tests passed).
     // But when run in an actual mill project with this module enabled, there were exceptions like this:
@@ -63,7 +63,7 @@ object TwirlWorker {
           codec: Codec,
           inclusiveDot: Boolean
       ): Unit = {
-        // val twirlImports = new HashSet()
+        // val twirlImports = HashSet()
         // imports.foreach(twirlImports.add)
         val twirlImports = hashSetClass.getConstructor().newInstance().asInstanceOf[Object]
         val hashSetAddMethod = twirlImports.getClass.getMethod("add", classOf[Object])
@@ -73,7 +73,7 @@ object TwirlWorker {
         val twirlCodec =
           codecApplyMethod.invoke(null, charsetForNameMethod.invoke(null, codec.charSet.name()))
 
-        // val twirlConstructorAnnotations = new ArrayList()
+        // val twirlConstructorAnnotations = ArrayList()
         // constructorAnnotations.foreach(twirlConstructorAnnotations.add)
         val twirlConstructorAnnotations =
           arrayListClass.getConstructor().newInstance().asInstanceOf[Object]
@@ -169,7 +169,7 @@ object TwirlWorker {
 
   private def twirlExtensionClass(name: String, formats: Map[String, String]) =
     formats.collectFirst { case (ext, klass) if name.endsWith(ext) => klass }.getOrElse {
-      throw new IllegalStateException(
+      throw IllegalStateException(
         s"Unknown twirl extension for file: $name. Known extensions: ${formats.keys.mkString(", ")}"
       )
     }

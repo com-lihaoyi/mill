@@ -55,7 +55,6 @@ trait UnidocModule extends ScalaModule {
     val scalaVersion0 = scalaVersion()
     val onScala3 = JvmWorkerUtil.isScala3(scalaVersion0)
 
-    val scalaOrganization0 = scalaOrganization()
     val scalaDocClasspath0 = scalaDocClasspath()
     val scalacPluginClasspath0 = scalacPluginClasspath()
     val unidocSourceFiles0 = unidocSourceFiles()
@@ -94,9 +93,9 @@ trait UnidocModule extends ScalaModule {
       } ++ unidocOptions()
 
     Task.log.info(
-      s"""|Running Unidoc with: 
+      s"""|Running Unidoc with:
           |  scalaVersion: ${scalaVersion0}
-          |  scalaOrganization: ${scalaOrganization0}
+          |  scalaOrganization: ${JvmWorkerUtil.scalaOrganization(scalaVersion0)}
           |  options: $options
           |  scalaDocClasspath: ${scalaDocClasspath0.map(_.path)}
           |  scalacPluginClasspath: ${scalacPluginClasspath0.map(_.path)}
@@ -108,7 +107,7 @@ trait UnidocModule extends ScalaModule {
     worker.apply(
       ZincOp.ScaladocJar(
         scalaVersion(),
-        scalaOrganization(),
+        JvmWorkerUtil.scalaOrganization(scalaVersion()),
         scalaDocClasspath(),
         scalacPluginClasspath(),
         scalaCompilerBridge(),

@@ -1,7 +1,7 @@
 package mill.javalib
 
 import java.lang.reflect.Modifier
-import scala.util.control.NonFatal
+import mill.api.daemon.internal.NonFatal
 import mill.api.BuildCtx
 import mainargs.arg
 import mill.api.Result
@@ -278,9 +278,9 @@ object RunModule {
     method.setAccessible(true)
     val modifiers = method.getModifiers
     if (!Modifier.isPublic(modifiers))
-      throw new NoSuchMethodException(mainClassName + ".main is not public")
+      throw NoSuchMethodException(mainClassName + ".main is not public")
     if (!Modifier.isStatic(modifiers))
-      throw new NoSuchMethodException(mainClassName + ".main is not static")
+      throw NoSuchMethodException(mainClassName + ".main is not static")
     method
   }
 
@@ -407,20 +407,21 @@ object RunModule {
             propagateEnv = false
           )
         } else {
-          Jvm.callProcess(
+          val exitCode = Jvm.callInteractiveProcess(
             mainClass = mainClass1,
             classPath = classPath,
             jvmArgs = jvmArgs,
             env = (if (propEnv) ctx.env else Map()) ++ env,
             mainArgs = mainArgs,
             cwd = cwd,
-            stdin = os.Inherit,
-            stdout = os.Inherit,
-            stderr = os.Inherit,
             cpPassingJarPath = cpPassingJarPath,
             javaHome = javaHome,
+            // We explicitly pass in the full env map above; don't double-propagate.
             propagateEnv = false
           )
+
+          // Keep legacy semantics: non-zero exit is treated as task failure.
+          if (exitCode != 0) throw RuntimeException("Subprocess failed")
         }
       }
     }

@@ -97,5 +97,25 @@ object TarjanTests extends TestSuite {
       Seq(Seq(0, 1), Seq(2), Seq(9), Seq(6), Seq(7), Seq(3, 4), Seq(8), Seq(5))
     )
 
+    // Deep linear chain that would overflow recursive DFS
+    test("deepChain") {
+      val n = 100000
+      val graph = (0 until n).map(i => if (i < n - 1) Seq(i + 1) else Seq.empty)
+      val result = Tarjans(graph.toArray.map(_.toArray)).map(_.sorted).toSeq.map(_.toSeq)
+      // Each node is its own SCC, in reverse topological order
+      assert(result.length == n)
+      assert(result.head == Seq(n - 1))
+      assert(result.last == Seq(0))
+    }
+
+    // Dense graph where every node connects to every other (would create deep recursion)
+    test("denseGraph") {
+      val n = 10000
+      val graph = (0 until n).map(i => (0 until n).filter(_ != i))
+      val result = Tarjans(graph.toArray.map(_.toArray)).map(_.sorted).toSeq.map(_.toSeq)
+      // All nodes form one big SCC
+      assert(result.length == 1)
+      assert(result.head == (0 until n).toSeq)
+    }
   }
 }

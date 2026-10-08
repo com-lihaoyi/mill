@@ -31,3 +31,15 @@ include::partial$example/javalib/web/4-todo-micronaut.adoc[]
 == Micronaut Native (GraalVM)
 
 include::partial$example/javalib/web/5-micronaut-native.adoc[]
+
+== Quarkus Example
+
+include::partial$example/javalib/web/6-quarkus-getting-started.adoc[]
+
+== Quarkus TodoMVC Example
+
+include::partial$example/javalib/web/7-quarkus-todo.adoc[]
+
+== Vaadin Flow Example
+
+include::partial$example/javalib/web/8-vaadin.adoc[]

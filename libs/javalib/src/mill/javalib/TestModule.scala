@@ -53,6 +53,7 @@ trait TestModule
    * - [[TestModule.Utest]]
    * - [[TestModule.Weaver]]
    * - [[TestModule.ZioTest]]
+   * - [[TestModule.KyoTest]]
    * - [[TestModule.Spock]]
    *
    * Most of these provide additional `xxxVersion` tasks, to manage the test framework dependencies for you.
@@ -60,21 +61,88 @@ trait TestModule
   def testFramework: T[String]
 
   /**
+   * By adding java options the discoveredTestClasses happens in an independent
+   * jvm process. Override this method to gain full control on the classpath of the
+   * test class discovery. Useful when the classloader approach does not work.
+   */
+  def testDiscoverRuntimeOptions: T[Seq[String]] = Task {
+    Seq.empty[String]
+  }
+
+  /**
+   * Enables test class discovery using Zinc analysis file
+   *
+   * Set this to true to have Mill find test classes reading the Zinc analysis file
+   * rather than by reading class files. This is required when using junit4 from Scala.js
+   * tests, by using Scala.js junit compatibility library, for example.
+   */
+  protected def discoverTestsWithZinc: Boolean = false
+
+  /**
+   * Path to the Zinc analysis file
+   *
+   * Only used when `discoverTestsWithZinc` is true. See `discoverTestsWithZinc` for more details.
+   */
+  protected def zincAnalysisFile: Task[Option[os.Path]] = Task.Anon(None)
+
+  /**
    * Test classes (often called test suites) discovered by the configured [[testFramework]].
    */
-  def discoveredTestClasses: T[Seq[String]] = Task {
-    val worker = jvmWorker().internalWorker()
-    val discoveredTests = worker.apply(
-      ZincOp.DiscoverTests(
-        runClasspath().map(_.path),
-        testClasspath().map(_.path),
-        testFramework()
-      ),
-      javaHome().map(_.path)
-    )
+  def discoveredTestClasses: T[Seq[String]] =
+    if (discoverTestsWithZinc)
+      Task {
+        zincAnalysisFileDiscoveredTestClasses().map(_._1)
+      }
+    else
+      Task {
+        val worker = jvmWorker().internalWorker()
+        val discoveredTests = worker.apply(
+          ZincOp.DiscoverTests(
+            runClasspath().map(_.path),
+            testClasspath().map(_.path),
+            testFramework()
+          ),
+          javaHome().map(_.path),
+          javaRuntimeOptions = testDiscoverRuntimeOptions()
+        )
 
-    discoveredTests.sorted
-  }
+        discoveredTests.sorted
+      }
+
+  /**
+   * Test classes discovered by reading the Zinc analysis file
+   */
+  protected def zincAnalysisFileDiscoveredTestClasses: T[Seq[(String, Int)]] =
+    Task {
+      val worker = jvmWorker().internalWorker()
+      worker.apply(
+        ZincOp.DiscoverTestsZinc(
+          runClasspath().map(_.path),
+          zincAnalysisFile().getOrElse {
+            Task.fail(
+              "No zinc analysis file available. discoverTestsWithZinc can only be set to true on JavaTests and its sub-classes."
+            )
+          },
+          testFramework()
+        ),
+        javaHome().map(_.path),
+        javaRuntimeOptions = testDiscoverRuntimeOptions()
+      )
+    }
+
+  /**
+   * When running tests, do not let the Mill test runner re-discover test classes, but use those instead
+   *
+   * For now, this is only used when test class discovery using the Zinc analysis file is enabled,
+   * see `discoverTestsWithZinc`.
+   */
+  protected def aheadOfTimeDiscoveredTestClassesIfNeeded: Task[Option[Seq[(String, Int)]]] =
+    if (discoverTestsWithZinc)
+      Task.Anon {
+        Some(zincAnalysisFileDiscoveredTestClasses())
+      }
+    else
+      Task.Anon(None)
 
   /**
    * Default arguments to be passed to `testForked`, `testOnly`, and `testCached`
@@ -145,6 +213,22 @@ trait TestModule
   def testParallelism: T[Boolean] = Task { true }
 
   /**
+   * Whether Mill should pass each fork group's full selected `TaskDef` batch to
+   * `Runner.tasks` inside one forked test JVM.
+   *
+   * Some sbt-testing frameworks use `Runner.tasks` to wire relationships between related
+   * `TaskDef`s. For example, Weaver's `GlobalResource` setup is connected to suites from
+   * the full `TaskDef` batch. Set this to true for such frameworks.
+   *
+   * Setting this to true disables intra-group queue parallelism: all classes in a
+   * `testForkGrouping` group run in one subprocess. Separate fork groups can still run
+   * independently.
+   *
+   * See also: https://github.com/com-lihaoyi/mill/issues/7113
+   */
+  def testBatchFrameworkTasks: T[Boolean] = Task { false }
+
+  /**
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
    * Arguments before "--" will be used as wildcard selector to select
@@ -207,7 +291,8 @@ trait TestModule
         colored = Task.log.prompt.colored,
         testCp = testClasspath().map(_.path),
         globSelectors = Left(selectors),
-        logLevel = testLogLevel()
+        logLevel = testLogLevel(),
+        discoveredTestClasses = aheadOfTimeDiscoveredTestClassesIfNeeded()
       )
 
       val argsFile = Task.dest / "testargs"
@@ -246,7 +331,7 @@ trait TestModule
       globSelectors: Task[Seq[String]]
   ): Task[(msg: String, results: Seq[TestResult])] =
     Task.Anon {
-      val testModuleUtil = new TestModuleUtil(
+      val testModuleUtil = TestModuleUtil(
         testUseArgsFile(),
         forkArgs(),
         globSelectors(),
@@ -266,7 +351,9 @@ trait TestModule
         testParallelism(),
         testLogLevel(),
         propagateEnv(),
-        jvmWorker().internalWorker()
+        jvmWorker().internalWorker(),
+        discoveredClassesOpt = aheadOfTimeDiscoveredTestClassesIfNeeded(),
+        testBatchFrameworkTasks = testBatchFrameworkTasks()
       )
       testModuleUtil.runTests()
     }
@@ -282,7 +369,8 @@ trait TestModule
         runClasspath().map(_.path),
         Seq.from(testClasspath().map(_.path)),
         args,
-        Task.testReporter
+        Task.testReporter,
+        discoveredTestClasses = aheadOfTimeDiscoveredTestClassesIfNeeded()
       )
       TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
     }
@@ -306,7 +394,7 @@ trait TestModule
       ) { classLoader =>
         val framework = Framework.framework(testFramework())(classLoader)
         framework.name() -> TestRunnerUtils
-          .discoverTests(classLoader, framework, testClasspath().map(_.path))
+          .discoverTests(classLoader, framework, testClasspath().map(_.path), None)
       }
     val classes = classFingerprint.map(classF => classF._1.getName.stripSuffix("$"))
     (frameworkName = frameworkName, classes = classes)
@@ -563,7 +651,7 @@ object TestModule {
   /**
    * TestModule that uses Weaver to run tests.
    * You can override the [[weaverVersion]] task or provide the Weaver-dependency yourself.
-   * https://github.com/disneystreaming/weaver-test
+   * https://github.com/typelevel/weaver-test
    */
   trait Weaver extends TestModule {
 
@@ -574,7 +662,14 @@ object TestModule {
       super.mandatoryMvnDeps() ++
         Seq(weaverVersion())
           .filter(!_.isBlank())
-          .map(v => mvn"com.disneystreaming::weaver-scalacheck::${v.trim()}")
+          .map(_.trim())
+          .map { v =>
+            v.split('.').toSeq.take(2).flatMap(_.toIntOption) match
+              case Seq(0, n) if n <= 8 =>
+                mvn"com.disneystreaming::weaver-scalacheck::$v"
+              case _ =>
+                mvn"org.typelevel::weaver-cats::$v"
+          }
     }
   }
 
@@ -597,6 +692,23 @@ object TestModule {
               mvn"dev.zio::zio-test-sbt:${v.trim()}"
             )
           )
+    }
+  }
+
+  /**
+   * TestModule that uses Kyo Test Framework to run tests.
+   * You can override the [[kyoTestVersion]] task or provide the Kyo Test-dependency yourself.
+   */
+  trait KyoTest extends TestModule {
+
+    /** The Kyo Test version to use, or the empty string, if you want to provide the Kyo Test-dependency yourself. */
+    def kyoTestVersion: T[String] = Task { "" }
+    override def testFramework: T[String] = "kyo.test.runner.SbtFramework"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(kyoTestVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"io.getkyo::kyo-test-runner:${v.trim()}")
     }
   }
 
@@ -683,6 +795,7 @@ object TestModule {
     def mandatoryMvnDeps: T[Seq[Dep]] = Seq()
     def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
     def bomMvnDeps: T[Seq[Dep]] = Seq()
+    def mandatoryBomMvnDeps: T[Seq[Dep]] = Seq()
   }
 
   trait ScalaModuleBase extends mill.Module {

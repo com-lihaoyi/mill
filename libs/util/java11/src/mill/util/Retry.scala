@@ -1,6 +1,7 @@
 package mill.util
 
 import mill.api.TaskCtx
+import mill.api.daemon.internal.NonFatal
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets
@@ -47,7 +48,7 @@ case class Retry(
         else {
           val result = Promise[T]
           mill.api.daemon.StartThread("RetryThread") {
-            result.complete(scala.util.Try(t(retryCount)))
+            result.complete(NonFatal.Try(t(retryCount)))
           }
 
           Await.result(result.future, Duration.apply(timeoutMillis, TimeUnit.MILLISECONDS))
@@ -81,7 +82,7 @@ object Retry {
 
   private def printException(ex: Throwable): String = {
     val baos = new ByteArrayOutputStream
-    ex.printStackTrace(new PrintStream(baos, true, StandardCharsets.UTF_8))
-    new String(baos.toByteArray, StandardCharsets.UTF_8)
+    ex.printStackTrace(PrintStream(baos, true, StandardCharsets.UTF_8))
+    String(baos.toByteArray, StandardCharsets.UTF_8)
   }
 }

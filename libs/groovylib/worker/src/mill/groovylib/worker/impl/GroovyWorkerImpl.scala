@@ -20,7 +20,7 @@ class GroovyWorkerImpl extends GroovyWorker {
       outputDir: Path,
       config: GroovyCompilerConfiguration
   )(implicit ctx: TaskCtx): Result[Unit] = {
-    val compilerConfig = new CompilerConfiguration()
+    val compilerConfig = CompilerConfiguration()
     compilerConfig.setTargetDirectory(outputDir.toIO)
     compilerConfig.setClasspathList(classpath.map(_.toIO.getAbsolutePath).asJava)
     compilerConfig.setJointCompilationOptions(Map(
@@ -36,7 +36,7 @@ class GroovyWorkerImpl extends GroovyWorker {
     // we need to set the classloader for groovy to use the worker classloader
     val parentCl: ClassLoader = this.getClass.getClassLoader
     // compilerConfig in the GroovyClassLoader is needed when the CL itself is compiling classes
-    val gcl = new GroovyClassLoader(parentCl, compilerConfig)
+    val gcl = GroovyClassLoader(parentCl, compilerConfig)
     // compilerConfig for actual compilation
     val stubUnit = JavaStubCompilationUnit(compilerConfig, gcl)
 
@@ -64,7 +64,7 @@ class GroovyWorkerImpl extends GroovyWorker {
 
     val extendedClasspath = classpath :+ outputDir
 
-    val compilerConfig = new CompilerConfiguration()
+    val compilerConfig = CompilerConfiguration()
     compilerConfig.setTargetDirectory(outputDir.toIO)
     compilerConfig.setClasspathList(extendedClasspath.map(_.toIO.getAbsolutePath).asJava)
     compilerConfig.setDisabledGlobalASTTransformations(
@@ -76,10 +76,10 @@ class GroovyWorkerImpl extends GroovyWorker {
     // we need to set the classloader for groovy to use the worker classloader
     val parentCl: ClassLoader = this.getClass.getClassLoader
     // compilerConfig in the GroovyClassLoader is needed when the CL itself is compiling classes
-    val gcl = new GroovyClassLoader(parentCl, compilerConfig)
+    val gcl = GroovyClassLoader(parentCl, compilerConfig)
 
     // compilerConfig for actual compilation
-    val unit = new CompilationUnit(compilerConfig, null, gcl)
+    val unit = CompilationUnit(compilerConfig, null, gcl)
 
     sourceFiles.foreach { sourceFile =>
       unit.addSource(sourceFile.toIO)

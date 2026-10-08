@@ -21,7 +21,7 @@ import scala.xml.XML
  * TODO explicit sdk root to sdkmanager via --sdk_root
  */
 @mill.api.experimental
-trait AndroidSdkManagerModule extends ExternalModule {
+trait AndroidSdkManagerModule extends Module {
 
   def androidMillHomeDir(): os.Path = {
     val globalDebugFileLocation = os.home / ".mill-android"
@@ -32,12 +32,12 @@ trait AndroidSdkManagerModule extends ExternalModule {
 
   def androidSdkManagerLockFile: os.Path = androidMillHomeDir() / ".sdkmanager.lock"
 
-  def androidSdkManagerWorkerMaxWaitAttempts: Task[Int] = Task {
+  def androidSdkManagerWorkerMaxWaitAttempts: Task.Simple[Int] = Task {
     25
   }
 
   def androidSdkManagerWorker: Task.Worker[AndroidSdkManagerWorker] = Task.Worker {
-    new AndroidSdkManagerWorker(androidMillHomeDir(), androidSdkManagerWorkerMaxWaitAttempts())
+    AndroidSdkManagerWorker(androidMillHomeDir(), androidSdkManagerWorkerMaxWaitAttempts())
   }
 
   /**
@@ -53,7 +53,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
       if (isWin) "win"
       else if (isMac) "mac"
       else if (isLinux) "linux"
-      else throw new IllegalStateException("Unknown platform")
+      else throw IllegalStateException("Unknown platform")
 
     s"https://dl.google.com/android/repository/commandlinetools-$platform-${versionLong}_latest.zip"
   }
@@ -75,7 +75,10 @@ trait AndroidSdkManagerModule extends ExternalModule {
     val repositoryInfo = XML.loadFile(remoteReposInfo.toIO)
     val remotePackage = (repositoryInfo \ "remotePackage")
       .filter(_ \@ "path" == packageName)
-      .head
+      .headOption
+      .getOrElse {
+        sys.error(s"Couldn't find package $packageName in repository info at ${remoteReposInfo}")
+      }
     val licenseName = (remotePackage \ "uses-license").head \@ "ref"
     val licenseText = (repositoryInfo \ "license")
       .filter(_ \@ "id" == licenseName)
@@ -94,7 +97,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
   private def sha1 = MessageDigest.getInstance("sha1")
 
   private def hexArray(arr: Array[Byte]) =
-    String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
+    String.format("%0" + (arr.length << 1) + "x", BigInteger(1, arr))
 
   private def acceptLicenses(sdkManagerExePath: os.Path) = {
     val args = if (isWin)
@@ -121,7 +124,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
       case "17.0" => "12700392"
       case "19.0" => "13114758"
       case _ =>
-        throw new IllegalArgumentException(s"Unsupported cmdline tools version: $versionShort")
+        throw IllegalArgumentException(s"Unsupported cmdline tools version: $versionShort")
     }
   }
 
@@ -226,7 +229,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
     androidSdkManagerInstall(
       Task.Anon(cmdlineToolsComponents().sdkmanagerExe),
       Task.Anon(Seq("emulator"))
-    )
+    )()
     toolPathRef(sdkPath() / "emulator/emulator")
   }
 
@@ -249,35 +252,52 @@ trait AndroidSdkManagerModule extends ExternalModule {
   }
 
   /**
-   * Installs the necessary Android SDK components such as platform-tools, build-tools, and Android platforms.
+   * The list of Android packages and components for Mill to install in order
+   * to prepare this local environment for Android development with mill
+   */
+  protected def androidSdkComponentsToInstall(
+      buildToolsVersion: Task[String],
+      platformsVersion: Task[String],
+      installPlatformSources: Task[Boolean]
+  ): Task[Seq[String]] = Task.Anon {
+    val installPlatformSources0 = installPlatformSources()
+
+    Seq(
+      "platform-tools", // adb
+      s"build-tools;${buildToolsVersion()}",
+      s"platforms;${platformsVersion()}"
+    ) ++ Option.when(installPlatformSources0)(s"sources;${platformsVersion()}")
+  }
+
+  /**
+   * Installs the necessary Android SDK components listed in [[androidSdkComponentsToInstall]] .
    *
    * For more details on the `sdkmanager` tool, refer to:
    * [[https://developer.android.com/tools/sdkmanager sdkmanager Documentation]]
    */
-
   def androidSdk(
       sdkPath: Task[os.Path],
       cmdlineToolsComponents: Task[CmdlineToolsComponents],
       buildToolsVersion: Task[String],
       platformsVersion: Task[String],
       remoteReposInfo: Task[PathRef],
-      autoAcceptLicenses: Task[Boolean]
+      autoAcceptLicenses: Task[Boolean],
+      installPlatformSources: Task[Boolean]
   ): Task[AndroidSdkComponents] = Task.Anon {
     androidSdkManagerWorker().processInFunnel { () =>
 
-      val packages = Seq(
-        "platform-tools", // adb
-        s"build-tools;${buildToolsVersion()}",
-        s"platforms;${platformsVersion()}",
-        "tools" // proguard
-      )
+      val installPlatformSources0 = installPlatformSources()
+
+      val packages =
+        androidSdkComponentsToInstall(buildToolsVersion, platformsVersion, installPlatformSources)()
 
       val sdkManagerPath = cmdlineToolsComponents().sdkmanagerExe.path
 
       // sdkmanager executable and state of the installed package is a shared resource, which can be accessed
       // from the different Android SDK modules.
       val missingPackages = packages.filter(p => !isPackageInstalled(sdkPath(), p))
-      Task.log.info(s"Found ${missingPackages} missing packages...")
+      if (missingPackages.nonEmpty)
+        Task.log.info(s"Found ${missingPackages} missing packages...")
       val packagesWithoutLicense = missingPackages
         .map(p => (p, isLicenseAccepted(sdkPath(), remoteReposInfo().path, p)))
         .filter(!_._2)
@@ -305,6 +325,19 @@ trait AndroidSdkManagerModule extends ExternalModule {
       }
 
       val androidJar = toolPathRef(sdkPath() / "platforms" / platformsVersion() / "android.jar")
+
+      if (installPlatformSources0) {
+        // If not done before, try to create a sources jar next to the android.jar,
+        // since current GenIdeaImpl searches for sources in the same directory as the classes jar.
+        val sourcesDir = sdkPath() / "sources" / platformsVersion()
+        val targetSourcesJar = sdkPath() / "platforms" / platformsVersion() / "android-sources.jar"
+        if (os.exists(sourcesDir) && !os.exists(targetSourcesJar))
+          os.zip(
+            targetSourcesJar,
+            Seq(sourcesDir)
+          )
+      }
+
       val libs = Seq(
         os.sub / "core-for-system-modules.jar",
         os.sub / "optional" / "org.apache.http.legacy.jar",
@@ -394,7 +427,7 @@ trait AndroidSdkManagerModule extends ExternalModule {
 
 }
 
-object AndroidSdkManagerModule extends AndroidSdkManagerModule {
+object AndroidSdkManagerModule extends ExternalModule, AndroidSdkManagerModule {
   lazy val millDiscover = Discover[this.type]
 }
 

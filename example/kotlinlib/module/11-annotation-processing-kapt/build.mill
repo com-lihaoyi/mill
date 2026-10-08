@@ -1,0 +1,29 @@
+/** See Also: build.mill.yaml */
+/** See Also: test/package.mill.yaml */
+
+// This is a basic Mill build for a single `kapt.KaptModule`, with
+// the purpose to demonstrate Kotlin annotation processing with KAPT
+// using MapStruct on both main and test sources.
+
+/** Usage
+
+> ./mill show generatedSources
+[
+  "ref:v0:.../out/generatedSourcesWithKapt.dest/generated/sources"
+]
+
+> ls out/generatedSourcesWithKapt.dest/generated/sources/com/example/kapt/
+PersonMapperImpl.java
+...
+
+> ./mill run
+Mill
+
+> ./mill test
+...
+
+> ls out/test/generatedSourcesWithKapt.dest/generated/sources/com/example/kapt/
+TestPersonMapperImpl.java
+...
+
+*/

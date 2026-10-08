@@ -48,13 +48,13 @@ object TestModuleUtilTests extends TestSuite {
       Some("utest.AssertionError"),
       Some("assert(1 == 2)"),
       Some(Seq(
-        new StackTraceElement(
+        StackTraceElement(
           "utest.asserts.Util$",
           "$anonfun$makeAssertError$1",
           "Util.scala",
           26
         ),
-        new StackTraceElement(
+        StackTraceElement(
           "utest.framework.StackMarker$",
           "dropInside",
           "StackMarker.scala",
@@ -115,15 +115,15 @@ object TestModuleUtilTests extends TestSuite {
       2400,
       "Error",
       Some("java.lang.RuntimeException"),
-      Some("throw new RuntimeException()"),
+      Some("throw RuntimeException()"),
       Some(Seq(
-        new StackTraceElement(
+        StackTraceElement(
           "utest.asserts.Util$",
           "$anonfun$makeAssertError$1",
           "Util.scala",
           26
         ),
-        new StackTraceElement(
+        StackTraceElement(
           "utest.framework.StackMarker$",
           "dropInside",
           "StackMarker.scala",
@@ -133,7 +133,7 @@ object TestModuleUtilTests extends TestSuite {
     )
     val errorTestCaseElement =
       <testcase classname="mill.scalalib.TestModuleTests" name="error" time="2.4">
-        <error message="throw new RuntimeException()" type="java.lang.RuntimeException"> java.lang.RuntimeException: throw new RuntimeException() at utest.asserts.Util$.$anonfun$makeAssertError$1(Util.scala:26) at utest.framework.StackMarker$.dropInside(StackMarker.scala:11) </error>
+        <error message="throw RuntimeException()" type="java.lang.RuntimeException"> java.lang.RuntimeException: throw RuntimeException() at utest.asserts.Util$.$anonfun$makeAssertError$1(Util.scala:26) at utest.framework.StackMarker$.dropInside(StackMarker.scala:11) </error>
       </testcase>
     test("error") - {
       val expectedReport =
@@ -295,6 +295,40 @@ object TestModuleUtilTests extends TestSuite {
     }
 
     // format: on
+    test("testSubprocessCount") {
+      assert(
+        TestModuleUtil.testSubprocessCount(
+          testParallelism = false,
+          filteredClassCount = 2,
+          jobs = 8,
+          numTests = 2
+        ) == 1
+      )
+      assert(
+        TestModuleUtil.testSubprocessCount(
+          testParallelism = true,
+          filteredClassCount = 2,
+          jobs = 8,
+          numTests = 2
+        ) == 2
+      )
+      assert(
+        TestModuleUtil.testSubprocessCount(
+          testParallelism = true,
+          filteredClassCount = 1,
+          jobs = 8,
+          numTests = 1
+        ) == 1
+      )
+      assert(
+        TestModuleUtil.testSubprocessCount(
+          testParallelism = true,
+          filteredClassCount = 0,
+          jobs = 8,
+          numTests = 0
+        ) == 1
+      )
+    }
     test("collapseTestClassNames") {
       val res = TestModuleUtil.collapseTestClassNames(
         Seq(
@@ -408,5 +442,5 @@ object TestModuleUtilTests extends TestSuite {
     assert(exp == act)
   }
 
-  private def asString(elem: Elem) = new PrettyPrinter(Int.MaxValue, 0, true).format(elem)
+  private def asString(elem: Elem) = PrettyPrinter(Int.MaxValue, 0, true).format(elem)
 }

@@ -15,10 +15,10 @@ import scala.annotation.unused
 /**
  * An API that allows you to resolve, plan, and execute Mill tasks.
  *
- * [[Evaluator]] can be taken as a parameter to [[Task.Command]]s marked as `exclusive = true`,
- * providing those commands with the ability to inspect the build and dynamically decide what
- * to evaluate. Many builtin commands like `show`, `plan`, `path`, etc. are implemented in
- * this way
+ * [[Evaluator]] can be taken as a parameter to [[Task.Command]]s marked as `exclusive = true`
+ * (or `globalExclusive = true`), providing those commands with the ability to inspect the
+ * build and dynamically decide what to evaluate. Many builtin commands like `show`, `plan`,
+ * `path`, etc. are implemented in this way
  */
 trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def allowPositionalCommandArgs: Boolean
@@ -33,6 +33,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
   private[mill] def offline: Boolean
+  private[mill] def isFinalDepth: Boolean = true
   private[mill] def useFileLocks: Boolean = false
   private[mill] def staticBuildOverrides: Map[String, Located[internal.Appendable[BufferedValue]]] =
     Map()
@@ -142,7 +143,7 @@ object Evaluator {
   // the EvaluatorTokenReader#read call, which does not accept additional parameters.
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
   // in directly) we are forced to pass it in via a ThreadLocal
-  private val currentEvaluator0 = new DynamicVariable[Evaluator](null)
+  private val currentEvaluator0 = DynamicVariable[Evaluator](null)
   private[mill] def withCurrentEvaluator[T](ev: Evaluator)(t: => T) = {
     // Make sure we only put a `EvaluatorProxy` in the `DynamicVariable` rather than a
     // raw `Evaluator`, and `.close()` it after we're done to `null` out the contents.

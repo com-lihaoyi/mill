@@ -9,7 +9,7 @@ import utest.{TestSuite, Tests, assert, test}
 import mill.util.TokenReaders.*
 object KtfmtModuleTests extends TestSuite {
 
-  val kotlinVersion = "1.9.24"
+  val kotlinVersion = "2.2.20"
 
   object module extends TestRootModule with KotlinModule with KtfmtModule {
     override def kotlinVersion: T[String] = KtfmtModuleTests.kotlinVersion

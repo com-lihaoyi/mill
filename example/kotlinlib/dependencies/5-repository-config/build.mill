@@ -6,7 +6,7 @@ import mill.api.ModuleRef
 
 object foo extends KotlinModule {
 
-  def kotlinVersion = "1.9.24"
+  def kotlinVersion = "2.2.20"
 
   def mvnDeps = Seq(
     mvn"com.github.ajalt.clikt:clikt:4.4.0",
@@ -24,7 +24,7 @@ object CustomJvmWorkerModule extends JvmWorkerModule, CoursierModule {
 
 object bar extends KotlinModule {
 
-  def kotlinVersion = "1.9.24"
+  def kotlinVersion = "2.2.20"
 
   def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions

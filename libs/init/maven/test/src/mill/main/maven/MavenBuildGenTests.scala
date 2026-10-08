@@ -32,6 +32,20 @@ trait MavenBuildGenTests extends TestSuite {
         initArgs = Seq() ++ extraArgs
       ))
     }
+    test("spring-start-no-parent") {
+      assert(checker.check(
+        sourceRel = os.sub / "spring-start-no-parent",
+        expectedRel = os.sub / expectedDir / "spring-start-no-parent",
+        initArgs = Seq() ++ extraArgs
+      ))
+    }
+    test("micronaut-getting-started") {
+      assert(checker.check(
+        sourceRel = os.sub / "micronaut-getting-started",
+        expectedRel = os.sub / expectedDir / "micronaut-getting-started",
+        initArgs = Seq("--mill-jvm-id", "25") ++ extraArgs
+      ))
+    }
     test("with-args") {
       val args = Seq("--publish-properties", "--merge", "--no-meta")
       test("maven-samples") {
@@ -52,13 +66,9 @@ trait MavenBuildGenTests extends TestSuite {
   }
 }
 
-object MavenBuildGenTests extends MavenBuildGenTests {
-  override def expectedDir: os.SubPath = "expected"
-}
-
 object MavenBuildGenYamlTests extends MavenBuildGenTests {
   override def expectedDir: os.SubPath = "expected"
-  override def extraArgs = Seq("--declarative", "true")
+  // No extra args, equivalent to `--declarative true`
 }
 
 object MavenBuildGenScalaTests extends MavenBuildGenTests {

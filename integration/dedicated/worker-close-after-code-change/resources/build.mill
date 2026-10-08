@@ -7,7 +7,7 @@ class Foo extends AutoCloseable {
   override def close(): Unit = {
     // Make sure using a class that is only initialized during worker teardown
     // doesn't cause class loading errors
-    val _ = new Late()
+    val _ = Late()
   }
 }
 

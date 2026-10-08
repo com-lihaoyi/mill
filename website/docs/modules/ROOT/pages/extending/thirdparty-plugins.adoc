@@ -292,9 +292,48 @@ Optionally, you can specify the ensime server version using the –server flag l
 > mill fun.valycorp.mill.GenEnsime/ensimeConfig --server "3.0.0-SNAPSHOT"
 ----
 
+== Explicit Dependencies
+
+A plugin that helps to manage dependency hell by avoiding unused declared
+dependencies and used undeclared transitive dependencies. It is a 
+reimplementation of https://github.com/cb372/sbt-explicit-dependencies[sbt-explicit-dependencies]
+and supports both external and module dependencies.
+
+It supports any Mill version starting from 1.0.5 and includes CI-friendly tasks.
+
+Project home: https://github.com/MarmaladeSky/mill-explicit-dependencies
+
+.`build.mill`
+[source,scala]
+----
+//| mvnDeps:
+//|   - digital.junkie::mill-explicit-dependencies:$MILL_VERSION
+
+import digital.junkie.milledependencies.ExplicitDependencies
+
+object myproject extends ScalaModule, ExplicitDependencies {
+
+  // [optional] filter out unwanted results
+  override def undeclaredCompileDependenciesFilter: Seq[Dep] = Seq.empty
+  override def unusedCompileDependenciesFilter: Seq[Dep] = Seq.empty
+  override def undeclaredCompileModulesFilter: Seq[Module] = Seq.empty
+  override def unusedCompileModulesFilter: Seq[Module] = Seq.empty
+}
+----
+
+[source,console]
+----
+> mill __.undeclaredCompileDependencies       # find all undeclared dependencies
+> mill __.undeclaredCompileDependenciesTest   # fail if there are undeclared dependencies
+> mill __.unusedCompileDependencies           # find all unused dependencies
+> mill __.unusedCompileDependenciesTest       # fail if there are unused dependencies
+----
+
 == Explicit Deps
 
 A plugin that checks that `mvnDeps` and `mvnCompileDeps` accurately reflect the direct dependencies of your source code.
+
+It supports Mill versions 0.9.X and 0.10.X.
 
 Project home: https://github.com/kierendavies/mill-explicit-deps
 
@@ -757,44 +796,64 @@ and more, check the project readme.
 
 == OpenApi
 
-Mill plugin for generating source files from an OpenApi spec.
+Official Openapitools Mill plugin for generating source files from an OpenApi spec.
 
-Project home: https://github.com/mikybars/openapi-generator-mill-plugin
+Project home: https://github.com/OpenAPITools/openapi-generator/
 
 .`build.mill`
 [,scala]
 ----
-//| mvnDeps: ["io.github.mikybars::openapi-generator-mill-plugin::0.1.0"]
-package build
+//| mvnDeps:
+//|   - org.openapitools:openapi-generator-mill-plugin:7.20.0 # <1>
 
-import mill.*, scalalib.*
-import mill.api.BuildCtx
+import mill.*
 
-import io.github.mikybars.mill.openapi.OpenApiModule
+import org.openapitools.generator.mill.OpenApiModule // <2>
 
-object foo extends JavaModule, OpenApiModule {
+object `package` extends JavaModule with MavenModule with OpenApiModule { // <3>
 
-  object openapi extends OpenApiConfig {
-     def inputSpec = Task.Source(BuildCtx.workspaceRoot / "api/rest/v1/openapi.yml")
-    def apiPackage: T[String] = "com.example.foo.rest.api"
-    def modelPackage: T[String] = "com.example.foo.rest.model"
-    def generatorName: T[String] = "spring"
-    def modelNameSuffix: T[String] = "Dto"
+  override def mvnDeps = Seq(
+    mvn"jakarta.platform:jakarta.jakartaee-api:11.0.0",
+    mvn"com.fasterxml.jackson.core:jackson-databind:2.20.0",
+  )
+
+  object openapi extends OpenApiConfig { // <4>
+    def inputSpec: T[PathRef] = Task.Source(BuildCtx.workspaceRoot / "api" / "petstore.yaml")
+    def apiPackage: T[String] = "com.acme.foo.boundary.web.api"
+    def modelPackage: T[String] = "com.acme.foo.boundary.web.model"
+    def generatorName: T[String] = "jaxrs-spec"
+    def sourceFolder: T[String] = "src/main/java" // <5>
+
     def additionalProperties: T[Map[String, String]] = Map(
-      // ...
-      "useSpringBoot3" -> "true",
-      // ...
+      "dateLibrary" -> "java8",
+      "useJakartaEe" -> "true",
+      "useSwaggerAnnotations" -> "false",
+      "interfaceOnly" -> "true",
+      "useTags" -> "true",
     )
   }
 
+  override def generatedSources: T[Seq[PathRef]] = Seq( // <6>
+    PathRef(Task.dest),
+    openapi.generate())
 }
 ----
+<1> load dependency to build-script
+<2> import namespace
+<3> mark your module as `OpenApiModule`
+<4> configure a submodule where the generated artifacts will be produced
+<5> define the source-root folder. This is needed because different generators use different defaults, and otherwise we cannot create the correct folder for `generatedSources`.
+<6> attach the previously defined object to the compile phase by overwriting `generatedSources`
 
 .Generate source files
 [,console]
 ----
-$ ./mill foo.openapi.generate
+$ ./mill openapi.generate
 ----
+Here, `openapi` refers to the object defined previously.
+
+For all defined options and tasks, please see the
+https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-mill-plugin[official documentation].
 
 
 == OpenApi4s
@@ -1076,6 +1135,80 @@ object app extends ScalaModule, SqueryGeneratorModule {
 $ ./mill app.squeryGenerate
 ----
 
+
+== Strict Deps
+
+`mill-strict-deps` implements the idea from
+https://blog.bazel.build/2017/06/28/sjd-unused_deps.html[Bazel's Strict Java Deps and unused_deps]
+for Mill JVM modules. It compares declared direct internal module dependencies
+against class usage recorded in Zinc analysis, then reports unused direct module
+dependencies and transitive module dependencies that should be declared directly.
+
+Project home: https://github.com/nguyenyou/mill-strict-deps
+
+.`build.mill`
+[source,scala]
+----
+//| mvnDeps:
+//|   - io.github.nguyenyou::mill-strict-deps::0.1.0
+
+import mill.*
+import mill.scalalib.*
+import io.github.nguyenyou.millstrictdeps.StrictDepsModule
+
+object app extends ScalaModule with StrictDepsModule {
+  def scalaVersion = "3.8.3"
+  def moduleDeps = Seq(core)
+}
+----
+
+[source,console]
+----
+> ./mill app.strictDepsReport
+> ./mill app.strictDepsJsonReport
+> ./mill app.strictDepsFixPlan
+> ./mill app.strictDepsCheck
+----
+
+`strictDepsCheck` fails when a module has unused direct module dependencies or
+uses transitive module dependencies without declaring them directly.
+
+== Stryker4s
+
+Mutation testing for Scala. 
+
+Mutation testing introduces changes to your code, then runs your unit tests against the changed code. It is expected that your unit tests will now fail. If they don't fail, it might indicate your tests do not sufficiently cover the code. It is similar to code coverage, but instead of just measuring which lines of code are executed, it measures what code is actually tested.
+
+Project home: https://stryker-mutator.io
+
+Source: https://github.com/stryker-mutator/stryker4s
+
+.`build.mill`
+[source,scala,subs="attributes,verbatim"]
+----
+//| mvnDeps: ["io.stryker-mutator::mill-stryker4s::1.0.2"]
+
+import mill.*
+import mill.scalalib.*
+import stryker4s.mill.Stryker4sModule
+
+object app extends ScalaModule with Stryker4sModule {
+  // All settings are configurable and prefixed with `stryker`
+  def strykerExcludedMutations = Some(Seq("BooleanLiteral", "StringLiteral"))
+  def strykerReporters = Some(Seq("html", "json", "console"))
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"org.scalameta::munit:1.3.4")
+    def testFramework = "munit.Framework"
+  }
+}
+----
+
+.Run Stryker
+[source,console]
+----
+> ./mill app.stryker
+----
 
 == Universal Packager
 

@@ -1,7 +1,7 @@
 package millbuild
 
 import build_.package_ as build
-import mill.{Task, PathRef, T}
+import mill.{PathRef, T, Task}
 import mill.scalalib.PublishModule
 import mill.scalalib.publish.{
   Artifact,
@@ -10,10 +10,11 @@ import mill.scalalib.publish.{
   LocalM2Publisher,
   Pom,
   PomSettings,
-  VersionControl,
-  PublishInfo
+  PublishInfo,
+  VersionControl
 }
 import mill.api.TaskCtx
+import mill.javalib.publish.LocalIvyPublisher
 
 trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 
@@ -53,6 +54,21 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
     os.copy(jarRaw().path, destJar, replaceExisting = true)
     MillPublishJavaModule.processJarInPlace(destJar, build.millVersion())
     PathRef(destJar)
+  }
+
+  /** Copy of the internal machinery to get a cached version of publishLocal without docs */
+  def publishLocalCachedWoDocs: T[Seq[PathRef]] = Task {
+    val publishInfos = allPublishInfos(sources = true, docs = false)()
+    val artifact = artifactMetadata()
+    val contents = LocalIvyPublisher.createFileSetContents(
+      artifact = artifact,
+      pom = pom().path,
+      ivy = ivy().path,
+      publishInfos = publishInfos
+    )
+    LocalIvyPublisher
+      .publishLocal(artifact, contents)
+      .map(p => PathRef(p).withRevalidateOnce)
   }
 
   /**
@@ -117,7 +133,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
     val pomPath = Task.dest / s"${artifactId()}-$snapshotVersion.pom"
     os.write.over(pomPath, snapshotPom)
 
-    val publisher = new LocalM2Publisher(Task.dest)
+    val publisher = LocalM2Publisher(Task.dest)
     // Use jarRaw() for the main jar to keep SNAPSHOT in buildinfo
     // Don't include sourceJar to avoid dependency on manifest/publishVersion/millVersion
     val rawJarInfo = pomPackagingType match {
@@ -134,6 +150,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
         override def log: mill.api.daemon.Logger = mill.api.Logger.DummyLogger
       }
     )
+    os.remove(pomPath)
     PathRef(Task.dest)
   }
 }

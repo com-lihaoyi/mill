@@ -29,7 +29,7 @@ trait ArtifactoryPublishModule extends PublishModule {
       connectTimeout: Int = 5000
   ): Command[Unit] = Task.Command {
     val (artifacts, artifactInfo) = publishArtifacts().withConcretePath
-    new ArtifactoryPublisher(
+    ArtifactoryPublisher(
       artifactoryUri,
       artifactorySnapshotUri,
       checkArtifactoryCreds(credentials)(),
@@ -64,7 +64,7 @@ object ArtifactoryPublishModule extends ExternalModule {
     val artifacts = Task.sequence(publishArtifacts.value)().map {
       case data @ PublishModule.PublishData(_, _) => data.withConcretePath
     }
-    new ArtifactoryPublisher(
+    ArtifactoryPublisher(
       artifactoryUri,
       artifactorySnapshotUri,
       checkArtifactoryCreds(credentials)(),

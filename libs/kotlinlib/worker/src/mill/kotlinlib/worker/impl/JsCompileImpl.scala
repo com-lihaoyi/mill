@@ -1,18 +1,19 @@
 package mill.kotlinlib.worker.impl
 
-import mill.api.TaskCtx
+import mill.api.{PathRef, TaskCtx}
 import org.jetbrains.kotlin.cli.js.K2JSCompiler
 
 class JsCompileImpl extends Compiler() {
 
   def compile(
       args: Seq[String],
-      sources: Seq[os.Path]
+      sources: Seq[os.Path],
+      classpath: Seq[PathRef]
   )(using
       ctx: TaskCtx
   ): (Int, String) = {
 
-    val compiler = new K2JSCompiler()
+    val compiler = K2JSCompiler()
     val allArgs = args ++ sources.map(_.toString)
 
     val exitCode = compiler.exec(ctx.log.streams.err, allArgs*)

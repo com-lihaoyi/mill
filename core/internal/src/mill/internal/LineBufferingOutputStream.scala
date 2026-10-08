@@ -13,7 +13,7 @@ import java.io.{ByteArrayOutputStream, OutputStream}
 class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStream => Unit)
     extends OutputStream {
 
-  val buffer = new ByteArrayOutputStream()
+  val buffer = ByteArrayOutputStream()
   // Track if the last byte written was \r, so we can handle \r\n as a single line terminator
   private var lastByteWasCR = false
 

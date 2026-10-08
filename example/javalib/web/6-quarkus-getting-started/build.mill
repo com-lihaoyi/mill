@@ -1,0 +1,43 @@
+/** See Also: build.mill.yaml */
+
+// You can run and test the app as follows:
+
+/** Usage
+
+> ./mill show quarkusRunJar
+...out/quarkusApp.dest/quarkus/quarkus-app/quarkus-run.jar...
+
+> ./mill show runBackground
+
+> curl http://localhost:${PORT:-8080}/hello
+Hello from Quarkus REST
+
+> ./mill clean runBackground
+
+> ./mill show test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "org.acme.GreetingResourceTest",
+      "selector": "testHelloEndpoint()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+> ./mill show native-test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "org.acme.GreetingResourceIT",
+      "selector": "testHelloEndpoint()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+*/

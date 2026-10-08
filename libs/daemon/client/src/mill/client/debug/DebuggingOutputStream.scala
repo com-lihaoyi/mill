@@ -13,7 +13,7 @@ class DebuggingOutputStream(
 ) extends OutputStream {
 
   private val debugOutput: OutputStream =
-    new FileOutputStream(workingDir.resolve(name.replaceAll("\\W", "_")).toFile)
+    FileOutputStream(workingDir.resolve(name.replaceAll("\\W", "_")).toFile)
 
   override def write(b: Int): Unit = {
     if (writeSeparateOps)
@@ -30,7 +30,7 @@ class DebuggingOutputStream(
   override def write(b: Array[Byte], off: Int, len: Int): Unit = {
     if (writeSeparateOps)
       debugOutput.write(
-        s"${LocalDateTime.now} write(off=$off, len=$len): ${new String(b, off, len)}\n".getBytes
+        s"${LocalDateTime.now} write(off=$off, len=$len): ${String(b, off, len)}\n".getBytes
       )
     else
       debugOutput.write(b, off, len)

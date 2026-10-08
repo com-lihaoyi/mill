@@ -1,0 +1,35 @@
+package build
+import mill.*, javalib.*
+import spring.boot.SpringBootModule
+
+object `package` extends SpringBootModule {
+
+  def springBootPlatformVersion = "3.5.7"
+
+  def mvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-starter-web",
+    mvn"org.springframework.boot:spring-boot-starter-actuator"
+  )
+
+  def annotationProcessorsMvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-configuration-processor"
+  )
+
+  object test extends SpringBootTestsModule, TestModule.Junit5 {
+    def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-test")
+  }
+}
+
+/** Usage
+
+> ./mill test
+...Test com.example.ConfigProcessorTest#shouldReturnMessageFromConfig() finished...
+
+> ./mill runBackground
+
+> curl http://localhost:${PORT:-8080}
+...Hello from Configuration Properties!...
+
+> ./mill clean runBackground
+
+*/

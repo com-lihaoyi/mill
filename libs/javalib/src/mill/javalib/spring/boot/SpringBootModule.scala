@@ -3,26 +3,41 @@ package mill.javalib.spring.boot
 import mainargs.Flag
 import mill.{T, Task}
 import mill.api.{ModuleRef, PathRef}
+import mill.javalib.repackage.RepackageModule
 import mill.javalib.{Dep, DepSyntax, JavaModule, NativeImageModule}
 
 /**
  * A module that can be used to configure Spring Boot projects and provides functionality
  * for AOT processing and native GraalVM builds.
  *
+ * In addition this module also extends [[RepackageModule]] to provide the ready-to-use
+ * [[repackagedJar]] task.
+ *
  * For compatibility with initializr projects ([[https://start.spring.io/]]),
  * mix this module with the [[MavenModule]].
  */
 @mill.api.experimental
-trait SpringBootModule extends JavaModule {
+trait SpringBootModule extends JavaModule, RepackageModule {
   outer =>
 
   /** Spring boot version as can be found in [[https://start.spring.io/]] */
   def springBootPlatformVersion: T[String]
 
   /** org.springframework.boot:spring-boot-dependencies with [[springBootPlatformVersion]] as the version */
-  override def bomMvnDeps: T[Seq[Dep]] = Seq(
-    mvn"org.springframework.boot:spring-boot-dependencies:${springBootPlatformVersion()}"
-  )
+  override def mandatoryBomMvnDeps: T[Seq[Dep]] = Task {
+    super.mandatoryBomMvnDeps() ++ Seq(
+      mvn"org.springframework.boot:spring-boot-dependencies:${springBootPlatformVersion()}"
+    )
+  }
+
+  /**
+   * Spring boot relies a lot on reflection, so enabling parameter names is a good default.
+   */
+  override def mandatoryJavacOptions: Task.Simple[Seq[String]] = Task {
+    super.mandatoryJavacOptions() ++ Seq(
+      "-parameters"
+    )
+  }
 
   /**
    * The Module holding the Spring Boot tools.

@@ -7,7 +7,7 @@ import utest.*
 // Regress test for issue https://github.com/com-lihaoyi/mill/issues/1901
 object AuxiliaryClassFilesTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    test("tasty files are deleted together with companion class files") - integrationTest {
+    test("tasty") - integrationTest {
       tester =>
         import tester.*
         assert(eval("app.jvm.compile").isSuccess)
@@ -25,7 +25,7 @@ object AuxiliaryClassFilesTests extends UtestIntegrationTestSuite {
         assert(secondRun == Seq.empty)
     }
 
-    test("compilation fails when deleting a class used by other files") - integrationTest {
+    test("compileFail") - integrationTest {
       tester =>
         import tester.*
         os.write(workspacePath / "app/src/bar.scala", "object bar { println(foo) }")
@@ -53,7 +53,7 @@ object AuxiliaryClassFilesTests extends UtestIntegrationTestSuite {
         assert(secondRun == Seq.empty)
     }
 
-    test("nir files are deleted together with companion class files") - integrationTest { tester =>
+    test("nir") - integrationTest { tester =>
       import tester.*
       assert(eval("app.native.compile").isSuccess)
 
@@ -70,7 +70,7 @@ object AuxiliaryClassFilesTests extends UtestIntegrationTestSuite {
       assert(secondRun == Seq.empty)
     }
 
-    test("sjsir files are deleted together with companion class files") - integrationTest {
+    test("sjsir") - integrationTest {
       tester =>
         import tester.*
         assert(eval("app.js.compile").isSuccess)

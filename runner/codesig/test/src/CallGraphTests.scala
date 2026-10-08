@@ -70,6 +70,8 @@ object CallGraphTests extends TestSuite {
       test("16-external-method-edge-to-inherited-method-override") - testExpectedCallGraph()
       test("17-jcanvas") - testExpectedCallGraph()
       test("18-external-method-calls-parent-method") - testExpectedCallGraph()
+      test("19-external-constructor-precise-receiver") - testExpectedCallGraph()
+      test("20-static-object-arg-tostring") - testExpectedCallGraph()
     }
     test("realistic") {
       test("1-tetris") - testExpectedCallGraph()
