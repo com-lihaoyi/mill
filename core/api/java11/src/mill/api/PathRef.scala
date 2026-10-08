@@ -100,8 +100,7 @@ object PathRef {
     "Bin compat shim. Use other overload (with parameter size) instead.",
     "Mill after 1.3.0-M1"
   )
-  @publicInBinary
-  private[PathRef] def apply(path: os.Path, quick: Boolean, sig: Int, revalidate: Revalidate): PathRef =
+  def apply(path: os.Path, quick: Boolean, sig: Int, revalidate: Revalidate): PathRef =
     new PathRef(path, quick, sig, revalidate, -1L, -1, false)
 
   def apply(
