@@ -2,6 +2,8 @@ package mill.client.lock
 
 import mill.constants.DaemonFiles
 
+import scala.annotation.nowarn
+
 /** Container for launcher and daemon locks. */
 final class Locks(
     /** The lock used by the client process (the launcher that launches the server). */
@@ -31,7 +33,8 @@ object Locks {
 
   def memory(): Locks = Locks(MemoryLock(), MemoryLock())
 
-  def forDirectory(daemonDir: String, useFileLocks: Boolean): Locks =
-    if (useFileLocks) files(daemonDir)
-    else pid(daemonDir)
+  def forDirectory(daemonDir: String, useFileLocks: Boolean): Locks = {
+    if (useFileLocks) files(daemonDir): @nowarn("cat=deprecation")
+    else pid(daemonDir): @nowarn("cat=deprecation")
+  }
 }

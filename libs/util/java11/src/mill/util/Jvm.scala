@@ -924,15 +924,15 @@ object Jvm {
       .map(d => mapDependencies.fold(d)(_.apply(d)))
       .toSeq
 
-    val forceVersions = force.iterator
+    val forceVersionConstraints = force.iterator
       .map(mapDependencies.getOrElse(identity[Dependency](_)))
-      .map { d => d.module -> d.version }
+      .map { d => d.module -> d.versionConstraint }
       .toMap
 
     val offlineMode = ctx.fold(false)(_.offline)
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
 
-    val resolutionParams0 = resolutionParams.addForceVersion(forceVersions.toSeq*)
+    val resolutionParams0 = resolutionParams.addForceVersion0(forceVersionConstraints.toSeq*)
 
     val repositories0 =
       if (checkGradleModules)
