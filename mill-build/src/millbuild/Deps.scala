@@ -42,7 +42,7 @@ object Deps {
     val scalajsEnvSelenium =
       mvn"org.scala-js::scalajs-env-selenium:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvPlaywright =
-      mvn"io.github.thijsbroersen::scala-js-env-playwright:0.2.3"
+      mvn"io.github.thijsbroersen::scala-js-env-playwright:0.3.2"
     val scalajsJsEnvs = mvn"org.scala-js::scalajs-js-envs:1.6.0".withDottyCompat(scalaVersion)
     val scalajsSbtTestAdapter =
       mvn"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}".withDottyCompat(scalaVersion)
@@ -87,7 +87,7 @@ object Deps {
     override def scalaVersion: String = Deps.scala2Version
   }
   object Play_2_9 extends Play {
-    val playVersion = "2.9.9"
+    val playVersion = "2.9.12"
   }
   object Play_3_0 extends Play {
     val playVersion = "3.0.11"
@@ -310,9 +310,8 @@ object Deps {
     val ktfmt_runtime = mvn"com.facebook:ktfmt:0.64"
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
     val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:13.0.0"
-    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.94.0"
+    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.102.0"
     val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.28.0"
-    val proguard_runtime = mvn"com.guardsquare:proguard-base:7.9.1"
     val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.1"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
     val slf4jSimple_runtime = mvn"org.slf4j:slf4j-simple:2.0.20"
@@ -360,7 +359,7 @@ object Deps {
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.19.0"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.20"
     val utest = mvn"com.lihaoyi::utest:0.10.0-RC1"
-    val zioTest = mvn"dev.zio::zio-test:2.1.14"
+    val zioTest = mvn"dev.zio::zio-test:2.1.26"
     val kyoTest = mvn"io.getkyo::kyo-test-runner:1.0.0-RC6"
   }
 
