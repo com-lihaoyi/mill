@@ -21,9 +21,9 @@ case class PathRef private[mill] (
     quick: Boolean,
     sig: Int,
     revalidate: PathRef.Revalidate,
-    size: Long,
-    count: Int,
-    isDir: Boolean
+    override val size: Long,
+    override val count: Int,
+    override val isDir: Boolean
 ) extends PathRefApi {
   private[mill] def javaPath = path.toNIO
 
