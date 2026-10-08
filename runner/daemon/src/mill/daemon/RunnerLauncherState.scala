@@ -158,7 +158,7 @@ object RunnerLauncherState {
     }
 
     private def paths(ws: Seq[Watchable]): Seq[os.Path] =
-      ws.collect { case Watchable.Path(p, _, _) => os.Path(p) }.distinct
+      ws.collect { case Watchable.Path(p = p) => os.Path(p) }.distinct
 
     def fromMetaFrame(f: MetaFrame): Logged = Logged(
       workerCache = summarizeWorkerCache(f.evaluator.workerCache),
