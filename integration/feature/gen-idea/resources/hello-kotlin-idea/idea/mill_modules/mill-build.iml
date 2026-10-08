@@ -104,7 +104,7 @@
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-upickle_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="sourcecode_3-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="specification-level_3-<version>.jar" level="project"/>
-        <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>
+        <orderEntry type="library" name="test-interface-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="tika-core-<version>.jar" level="project"/>
         <orderEntry type="library" name="ujson_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="unroll-annotation_3-<version>.jar" level="project"/>
@@ -117,8 +117,8 @@
         <orderEntry type="library" scope="RUNTIME" name="versions_2.13-0.6.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-ansi-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-jni-utils-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="xbean-reflect-3.7.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="xz-1.12.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="xbean-reflect-<version>.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="xz-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="zstd-jni-1.5.7-16.jar" level="project"/>
     </component>
 </module>

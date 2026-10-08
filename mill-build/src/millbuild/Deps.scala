@@ -42,8 +42,8 @@ object Deps {
     val scalajsEnvSelenium =
       mvn"org.scala-js::scalajs-env-selenium:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvPlaywright =
-      mvn"io.github.thijsbroersen::scala-js-env-playwright:0.2.3"
-    val scalajsJsEnvs = mvn"org.scala-js::scalajs-js-envs:1.5.0".withDottyCompat(scalaVersion)
+      mvn"io.github.thijsbroersen::scala-js-env-playwright:0.3.2"
+    val scalajsJsEnvs = mvn"org.scala-js::scalajs-js-envs:1.6.0".withDottyCompat(scalaVersion)
     val scalajsSbtTestAdapter =
       mvn"org.scala-js::scalajs-sbt-test-adapter:${scalaJsVersion}".withDottyCompat(scalaVersion)
     val scalajsLinker =
@@ -87,7 +87,7 @@ object Deps {
     override def scalaVersion: String = Deps.scala2Version
   }
   object Play_2_9 extends Play {
-    val playVersion = "2.9.9"
+    val playVersion = "2.9.12"
   }
   object Play_3_0 extends Play {
     val playVersion = "3.0.11"
@@ -102,7 +102,7 @@ object Deps {
   val asmTree = mvn"org.ow2.asm:asm-tree:${asmVersion}"
 
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
-  val bouncyCastleVersion = "1.85"
+  val bouncyCastleVersion = "1.86"
   val keytoolDeps = Seq(
     mvn"org.bouncycastle:bcpkix-jdk18on:${bouncyCastleVersion}",
     mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}",
@@ -111,7 +111,7 @@ object Deps {
   val bouncyCastleProv = mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}"
   val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
 
-  val classgraph = mvn"io.github.classgraph:classgraph:4.8.189"
+  val classgraph = mvn"io.github.classgraph:classgraph:4.8.197"
   val coursierVersion = "2.1.26"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
@@ -129,7 +129,7 @@ object Deps {
   val coursierJvm =
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
 
-  val cask = mvn"com.lihaoyi::cask:0.9.4"
+  val cask = mvn"com.lihaoyi::cask:0.9.7"
   val castor = mvn"com.lihaoyi::castor:0.3.0"
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = mvn"org.flywaydb:flyway-core:11.8.2"
@@ -156,7 +156,7 @@ object Deps {
     mvn"com.caoccao.javet:javet-macos:4.0.0"
   )
 
-  val jline = mvn"org.jline:jline:3.30.16"
+  val jline = mvn"org.jline:jline:3.30.17"
   val jnaVersion = "5.16.0"
 
   val jna = mvn"net.java.dev.jna:jna:${jnaVersion}"
@@ -193,7 +193,7 @@ object Deps {
     .exclude("org.scala-sbt" -> "compiler-interface")
 
   def scalaCompilerInterface = mvn"org.scala-sbt:compiler-interface:${zinc.version}"
-  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.11.1".withDottyCompat(scalaVersion)
+  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.11.5".withDottyCompat(scalaVersion)
   def scalaReflect(scalaVersion: String) =
     if (JvmWorkerUtil.isScala3(scalaVersion))
       mvn"org.scala-lang:scala-reflect:${Deps.scala2Version}"
@@ -234,7 +234,7 @@ object Deps {
   val javaparser = mvn"com.github.javaparser:javaparser-core:3.28.2"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.18.1"
   val requests = mvn"com.lihaoyi::requests:0.9.3"
-  val logback = mvn"ch.qos.logback:logback-classic:1.6.4"
+  val logback = mvn"ch.qos.logback:logback-classic:1.6.5"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
@@ -283,7 +283,7 @@ object Deps {
 
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10"
   val mimaCore_api = mvn"com.typesafe::mima-core:1.2.1"
-  val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.1.1"
+  val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.2"
   val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.3.1"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
   // subsequent releases require Java 17+
@@ -310,9 +310,9 @@ object Deps {
     val ktfmt_runtime = mvn"com.facebook:ktfmt:0.64"
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
     val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:13.0.0"
-    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.94.0"
+    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.102.0"
     val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.24.0"
-    val proguard_runtime = mvn"com.guardsquare:proguard-base:7.9.1"
+    val proguard_runtime = mvn"com.guardsquare:proguard-base:7.10.0"
     val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.1"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
     val slf4jSimple_runtime = mvn"org.slf4j:slf4j-simple:2.0.20"
@@ -349,7 +349,7 @@ object Deps {
     Deps.commonsIo,
     Deps.gson,
     mvn"com.google.protobuf:protobuf-java:4.33.5",
-    mvn"com.google.guava:guava:33.4.0-jre",
+    mvn"com.google.guava:guava:33.7.2-jre",
     mvn"org.yaml:snakeyaml:2.7",
     mvn"org.apache.commons:commons-compress:1.28.0"
   )
@@ -360,7 +360,7 @@ object Deps {
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.19.0"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.20"
     val utest = mvn"com.lihaoyi::utest:0.10.0-RC1"
-    val zioTest = mvn"dev.zio::zio-test:2.1.14"
+    val zioTest = mvn"dev.zio::zio-test:2.1.26"
     val kyoTest = mvn"io.getkyo::kyo-test-runner:1.0.0-RC6"
   }
 
@@ -370,7 +370,7 @@ object Deps {
   }
 
   object AndroidDeps {
-    val manifestMerger = mvn"com.android.tools.build:manifest-merger:31.10.0"
+    val manifestMerger = mvn"com.android.tools.build:manifest-merger:31.10.1"
     val bundleTool = mvn"com.android.tools.build:bundletool:1.17.2"
     val ndkVersion = "27.0.12077973"
     val cmakeVersion = "3.22.1"
