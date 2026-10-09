@@ -18,6 +18,7 @@ import mill.scalanativelib.worker.{
 }
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 import os.{Path, Shellable}
+import mill.api.opt.*
 
 import java.lang
 
@@ -183,13 +184,13 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   def nativeTarget: T[Option[String]] = Task { None }
 
   // Options that are passed to clang during compilation
-  def nativeCompileOptions = Task {
-    withScalaNativeBridge.apply().apply(_.discoverCompileOptions())
+  def nativeCompileOptions: Task.Simple[Opts] = Task {
+    Opts(withScalaNativeBridge.apply().apply(_.discoverCompileOptions()))
   }
 
   // Options that are passed to clang during linking
-  def nativeLinkingOptions = Task {
-    withScalaNativeBridge.apply().apply(_.discoverLinkingOptions())
+  def nativeLinkingOptions: Task.Simple[Opts] = Task {
+    Opts(withScalaNativeBridge.apply().apply(_.discoverLinkingOptions()))
   }
 
   // Whether to link `@stub` methods, or ignore them
@@ -264,8 +265,8 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
       nativeClang().path.toIO,
       nativeClangPP().path.toIO,
       nativeTarget(),
-      nativeCompileOptions(),
-      nativeLinkingOptions(),
+      nativeCompileOptions().toStringSeq,
+      nativeLinkingOptions().toStringSeq,
       nativeGC(),
       nativeLinkStubs(),
       nativeLTO().value,
@@ -394,8 +395,8 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     NativeRunner(
       mainClassDefault = finalMainClassOpt(),
       nativeExe = nativeLink(),
-      forkArgsDefault = forkArgs(),
-      forkEnvDefault = allForkEnv(),
+      forkArgsDefault = forkArgs().toStringSeq,
+      forkEnvDefault = allForkEnv().toStringMap,
       propagateEnvDefault = propagateEnv()
     )
   }
@@ -404,8 +405,8 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     NativeRunner(
       mainClassDefault = Right(mainClass),
       nativeExe = nativeLinkOtherMain(mainClass)(),
-      forkArgsDefault = forkArgs(),
-      forkEnvDefault = allForkEnv(),
+      forkArgsDefault = forkArgs().toStringSeq,
+      forkEnvDefault = allForkEnv().toStringMap,
       propagateEnvDefault = propagateEnv()
     )
   }
@@ -496,7 +497,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
 
     val (close, framework) = withScalaNativeBridge.apply().apply(_.getFramework(
       nativeLink().path.toIO,
-      allForkEnv(),
+      allForkEnv().toStringMap,
       toWorkerApi(logLevel()),
       testFramework()
     ))

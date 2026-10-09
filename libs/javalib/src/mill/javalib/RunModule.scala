@@ -16,6 +16,7 @@ import mill.util.Jvm
 import mill.{Args, T}
 import os.{Path, ProcessOutput}
 import mill.constants.EnvVars
+import mill.api.opt.*
 
 /**
  * Trait that provides the functionality around running JVM code: forked in subprocesses via [[run]],
@@ -33,22 +34,24 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * Any command-line parameters you want to pass to the forked JVM.
    */
-  def forkArgs: T[Seq[String]] = Task { Seq.empty[String] }
+  def forkArgs: T[Opts] = Task { Opts() }
 
   /**
    * Any environment variables you want to pass to the forked JVM.
    */
-  def forkEnv: T[Map[String, String]] = Task { Map.empty[String, String] }
+  def forkEnv: T[OptMap] = Task { OptMap() }
 
   /**
    * Environment variables to pass to the forked JVM.
    *
    * Includes [[forkEnv]] and the variables defined by Mill itself.
    */
-  def allForkEnv: T[Map[String, String]] = Task {
-    javaHomePathForkEnv() ++ forkEnv() ++ Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> BuildCtx.workspaceRoot.toString
-    )
+  def allForkEnv: T[OptMap] = Task {
+    javaHomePathForkEnv() ++
+      forkEnv() ++
+      OptMap(
+        EnvVars.MILL_WORKSPACE_ROOT -> BuildCtx.workspaceRoot
+      )
   }
 
   private def javaHomeFromCurrentRuntime: Task[os.Path] = Task.Input {
@@ -56,14 +59,15 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
     os.Path(sys.props("java.home"))
   }
 
-  def javaHomePathForkEnv: T[Map[String, String]] = Task {
-    val javaHomeBin = (javaHome().fold(javaHomeFromCurrentRuntime())(_.path) / "bin").toString
+  def javaHomePathForkEnv: T[OptMap] = Task {
+    val javaHomeBin = javaHome().fold(javaHomeFromCurrentRuntime())(_.path) / "bin"
+
     val newPath = Task.env.find(_._1.equalsIgnoreCase("PATH")).map(_._2) match {
-      case Some(p) => s"$javaHomeBin${java.io.File.pathSeparator}$p"
-      case None => javaHomeBin
+      case Some(p) => opt"$javaHomeBin${java.io.File.pathSeparator}$p"
+      case None => Opt(javaHomeBin)
     }
 
-    Map("PATH" -> newPath)
+    OptMap("PATH" -> newPath)
   }
 
   def forkWorkingDir: T[os.Path] = Task { BuildCtx.workspaceRoot }
@@ -185,8 +189,8 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
     new RunModule.RunnerImpl(
       finalMainClassOpt(),
       runClasspath().map(_.path),
-      forkArgs(),
-      allForkEnv(),
+      forkArgs().toStringSeq,
+      allForkEnv().toStringMap,
       runUseArgsFile(),
       javaHome().map(_.path),
       propagateEnv()
@@ -261,7 +265,7 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
         Seq(classpathJar)
       }
 
-    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs(), Task.dest)
+    Jvm.createLauncher(finalMainClass(), launchClasspath, forkArgs().toStringSeq, Task.dest)
   }
 
   /**

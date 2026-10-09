@@ -8,6 +8,7 @@ import mill.api.ModuleCtx
 import mill.api.JsonFormatters.given
 import mill.javalib.{JavaModule, RunModule, TestModule}
 import mill.{Args, Task}
+import mill.api.opt.*
 
 @internal
 private[mill] trait BspRunModule(runModule: RunModule) extends mill.api.Module {
@@ -21,9 +22,9 @@ private[mill] trait BspRunModule(runModule: RunModule) extends mill.api.Module {
 
     override private[mill] def bspJvmRunEnvironment: Task.Simple[(
         runClasspath: Seq[Path],
-        forkArgs: Seq[String],
+        forkArgs: Opts,
         forkWorkingDir: Path,
-        forkEnv: Map[String, String],
+        forkEnv: OptMap,
         mainClass: Option[String],
         localMainClasses: Seq[String]
     )] =
@@ -40,9 +41,9 @@ private[mill] trait BspRunModule(runModule: RunModule) extends mill.api.Module {
 
     override private[mill] def bspJvmTestEnvironment: Task.Simple[(
         runClasspath: Seq[Path],
-        forkArgs: Seq[String],
+        forkArgs: Opts,
         forkWorkingDir: Path,
-        forkEnv: Map[String, String],
+        forkEnv: OptMap,
         mainClass: Option[String],
         testEnvVars: Option[(
             mainClass: String,

@@ -16,6 +16,7 @@ import mill.javalib.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.util.Version
 import upickle.implicits.namedTuples.default.given
 import sbt.testing.Framework
+import mill.api.opt.*
 
 /**
  * Core configuration required to compile a single Scala.js module
@@ -226,15 +227,17 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     )
   }
 
-  override def mandatoryScalacOptions: T[Seq[String]] = Task {
+  override def mandatoryScalacOptions: T[Opts] = Task {
+    val superOpts = super.mandatoryScalacOptions()
+
     // Scala 3 requires -scalajs flag to emit Scala.js IR (.sjsir files).
     // Scala 2 uses a compiler plugin instead (see scalacPluginMvnDeps).
     // Don't add flag twice, e.g. if a test suite inherits it both directly
     // from ScalaJSModule as well as from the enclosing non-test ScalaJSModule
-    val useScalaJsFlag =
-      isScala3(scalaVersion()) && !super.mandatoryScalacOptions().contains("-scalajs")
+    val useScalaJsFlag = isScala3(scalaVersion()) &&
+      superOpts.filterGroup(_.headOption.contains("-scalajs")).isEmpty
 
-    super.mandatoryScalacOptions() ++ Option.when(useScalaJsFlag)("-scalajs")
+    superOpts ++ Opts.when(useScalaJsFlag)("-scalajs")
   }
 
   override def scalacPluginMvnDeps = Task {

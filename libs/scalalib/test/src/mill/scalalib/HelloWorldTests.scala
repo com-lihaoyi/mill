@@ -11,6 +11,7 @@ import mill.api.ExecutionPaths
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
+import mill.api.opt.*
 
 object HelloWorldTests extends TestSuite {
 
@@ -78,7 +79,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldFatalWarnings extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalacOptions = Task { Seq("-Ywarn-unused", "-Xfatal-warnings") }
+      override def scalacOptions = Task { Opts("-Ywarn-unused", "-Xfatal-warnings") }
     }
     lazy val millDiscover = Discover[this.type]
   }
@@ -154,7 +155,7 @@ object HelloWorldTests extends TestSuite {
         val Right(result) = eval.apply(HelloWorldFatalWarnings.core.scalacOptions).runtimeChecked
 
         assert(
-          result.value == Seq("-Ywarn-unused", "-Xfatal-warnings"),
+          result.value.toStringSeq == Seq("-Ywarn-unused", "-Xfatal-warnings"),
           result.evalCount > 0
         )
       }

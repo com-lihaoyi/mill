@@ -17,6 +17,7 @@ import mill.api.daemon.internal.{CompileProblemReporter, KotlinModuleApi, intern
 import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.{Jvm, Version}
 import mill.*
+import mill.api.opt.*
 
 import java.io.File
 import mainargs.Flag
@@ -339,7 +340,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           javaSourceFiles = javaSourceFiles,
           compileCp = compileCp,
           javaHome = javaHome().map(_.path),
-          javacOptions = javacOptions(),
+          javacOptions = javacOptions().toStringSeq,
           compileProblemReporter = ctx.reporter(hashCode),
           reportOldProblems = internalReportOldProblems(),
           workDir = dest
@@ -363,7 +364,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
             "-classpath",
             compileCpPaths.iterator.mkString(File.pathSeparator)
           ),
-          allKotlincOptions(),
+          allKotlincOptions().toStringSeq,
           extraKotlinArgs
         ).flatten
 
@@ -434,7 +435,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   /**
    * Additional Kotlin compiler options to be used by [[compile]].
    */
-  def kotlincOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  def kotlincOptions: T[Opts] = Task { Opts() }
 
   /**
    * Enable use of new Kotlin Build API (Beta).
@@ -451,42 +452,40 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    * For JVM, this is `-module-name`. For JS, this is overridden to be empty
    * (JS uses `-Xir-module-name` set separately in the compile task).
    */
-  protected def kotlinModuleNameOption: T[Seq[String]] = Task {
+  protected def kotlinModuleNameOption: T[Opts] = Task {
     // Use artifactName if available, otherwise fall back to "main" for root modules
     val moduleName = Option(artifactName()).filter(_.nonEmpty).getOrElse("main")
-    Seq("-module-name", moduleName)
+    Opts(OptGroup("-module-name", moduleName))
   }
 
   /**
    * Mandatory command-line options to pass to the Kotlin compiler
    * that shouldn't be removed by overriding [[kotlincOptions]].
    */
-  protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
+  protected def mandatoryKotlincOptions: T[Opts] = Task {
     val languageVersion = kotlinLanguageVersion()
     val kotlinkotlinApiVersion = kotlinApiVersion()
     val plugins = kotlincPluginJars().map(_.path)
 
-    val friendPathsOption = if (kotlinFriendModulesChecked.isEmpty) {
-      Seq.empty[String]
-    } else {
+    val friendPathsOption = Opts.when(kotlinFriendModulesChecked.nonEmpty){
       val compilations = Task.traverse(kotlinFriendModulesChecked) { friend => friend.compile }()
-      Seq(compilations.map(_.classes.path.toString).mkString("-Xfriend-paths=", ",", ""))
+      Opt.mkPath(compilations.map(_.classes.path), sep = ",", prefix = "-Xfriend-paths=")
     }
 
-    Seq("-no-stdlib") ++
+    Opts("-no-stdlib") ++
       kotlinModuleNameOption() ++
-      when(!languageVersion.isBlank)("-language-version", languageVersion) ++
-      when(!kotlinkotlinApiVersion.isBlank)("-api-version", kotlinkotlinApiVersion) ++
-      plugins.map(p => s"-Xplugin=$p") ++
+      Opts.when(!languageVersion.isBlank)(OptGroup("-language-version", languageVersion)) ++
+      Opts.when(!kotlinkotlinApiVersion.isBlank)(OptGroup("-api-version", kotlinkotlinApiVersion)) ++
+      Opts(plugins.map(p => opt"-Xplugin=$p")) ++
       friendPathsOption ++
-      when(kotlinExplicitApi())("-Xexplicit-api=strict")
+      Opts.when(kotlinExplicitApi())("-Xexplicit-api=strict")
   }
 
   /**
    * Aggregation of all the options passed to the Kotlin compiler.
    * In most cases, instead of overriding this Target you want to override [[kotlincOptions]] instead.
    */
-  def allKotlincOptions: T[Seq[String]] = Task {
+  def allKotlincOptions: T[Opts] = Task {
     mandatoryKotlincOptions() ++ kotlincOptions()
   }
 
@@ -555,8 +554,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       super.kotlinFriendModules ++
         // auto-add outer module, iff we depend on it
         Seq(outer).filter(recursiveModuleDeps.toSet ++ compileModuleDeps)
-    override def kotlincOptions: T[Seq[String]] = Task {
-      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources"))
+    override def kotlincOptions: T[Opts] = Task {
+      outer.kotlincOptions().filterGroup(!_.startsWith("-Xcommon-sources"))
     }
     override def kotlinUseEmbeddableCompiler: T[Boolean] =
       Task { outer.kotlinUseEmbeddableCompiler() }
@@ -579,8 +578,8 @@ object KotlinModule {
       super.kotlinFriendModules ++
         // auto-add outer module, iff we depend on it
         Seq(outer).filter(recursiveModuleDeps.toSet ++ compileModuleDeps)
-    override def kotlincOptions: T[Seq[String]] = Task {
-      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources"))
+    override def kotlincOptions: T[Opts] = Task {
+      outer.kotlincOptions().filterGroup(!_.startsWith("-Xcommon-sources"))
     }
     override def kotlinUseEmbeddableCompiler: T[Boolean] =
       Task { outer.kotlinUseEmbeddableCompiler() }

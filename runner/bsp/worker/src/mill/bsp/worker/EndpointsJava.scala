@@ -33,7 +33,7 @@ private trait EndpointsJava extends JavaBuildServer with EndpointsApi {
       val res = ctx.value(ctx.evaluator)
       new JavacOptionsItem(
         ctx.id,
-        res.javacOptions.asJava,
+        res.javacOptions.toStringSeq.asJava,
         res.classpath.asJava,
         sanitizeUri(res.classesPath)
       )
