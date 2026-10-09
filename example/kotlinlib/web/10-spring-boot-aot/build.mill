@@ -5,6 +5,7 @@ import mill.kotlinlib.*
 import mill.javalib.spring.boot.SpringBootModule
 import mill.javalib.TestModule.{Junit4, Junit5}
 import mill.javalib.publish.*
+import mill.api.opt.*
 
 object `package` extends SpringBootModule, KotlinModule { outer =>
 
@@ -13,9 +14,8 @@ object `package` extends SpringBootModule, KotlinModule { outer =>
   override def kotlinVersion = "2.2.21"
   override def artifactName: T[String] = "spring-boot-native-demo"
 
-  override def kotlincOptions: T[Seq[String]] = super.kotlincOptions() ++ Seq(
-    "-jvm-target",
-    "17",
+  override def kotlincOptions: T[Opts] = super.kotlincOptions() ++ Opts(
+    OptGroup("-jvm-target", "17"),
     "-Xjsr305=strict",
     "-Xannotation-default-target=param-property"
   )
@@ -38,7 +38,7 @@ object `package` extends SpringBootModule, KotlinModule { outer =>
 
     // Suppress warning about -H:IncludeResources
     override def nativeImageOptions = Task {
-      Seq(
+      Opts(
         "-H:+UnlockExperimentalVMOptions"
       ) ++ super.nativeImageOptions()
     }
