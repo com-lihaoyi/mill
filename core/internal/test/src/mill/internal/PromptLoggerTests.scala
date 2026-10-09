@@ -139,6 +139,8 @@ object PromptLoggerTests extends TestSuite {
       )
 
       prefixLogger.streams.out.println("WORLD")
+      // This should not be necessary, but make the next check less flaky
+      Thread.sleep(1)
       // Prompt doesn't change, no need to call `refreshPrompt()` for it to be
       // re-rendered below the latest prefixed output. Subsequent log line with `[1]`
       // prefix does not re-render title line `[1/456] ...`
