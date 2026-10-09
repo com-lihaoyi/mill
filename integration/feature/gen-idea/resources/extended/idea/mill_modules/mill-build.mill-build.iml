@@ -122,7 +122,7 @@
         <orderEntry type="library" name="upickle-implicits-named-tuples_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="upickle-implicits_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="upickle_3-<version>.jar" level="project"/>
-        <orderEntry type="library" name="versions_2.13-0.5.1.jar" level="project"/>
+        <orderEntry type="library" name="versions_2.13-0.5.3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="versions_2.13-0.6.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-ansi-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-jni-utils-<version>.jar" level="project"/>
