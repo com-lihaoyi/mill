@@ -129,7 +129,10 @@ object `package` extends mill.Module {
       ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
 
         val env = forkEnv()
-        val skip = env.getOrElse("MILL_TEST_FORKED0_SKIP", "0") == "1" && env.get("MILL_EXAMPLE_COMMAND_OVERRIDE") != null
+        val skip = env.getOrElse(
+          "MILL_TEST_FORKED0_SKIP",
+          "0"
+        ) == "1" && env.get("MILL_EXAMPLE_COMMAND_OVERRIDE") != null
 
         if (skip) (msg = "Skipped, no example mill project", results = Seq())
         else sharedOutFolder().withValue(()) { workerInfo =>
@@ -172,11 +175,12 @@ object `package` extends mill.Module {
       def testCompileExampleBuild = Task {
         testForked0(
           forkEnv = Task.Anon {
-            val isExampleTest = discoveredTestClasses().contains("mill.testkit.UtestExampleTestSuite")
+            val isExampleTest =
+              discoveredTestClasses().contains("mill.testkit.UtestExampleTestSuite")
             allForkEnv() ++ Map(
               "MILL_EXAMPLE_COMMAND_OVERRIDE" -> "> mill -L1 compile",
               "MILL_TEST_USE_IN_MEMORY" -> "1",
-              "MILL_TEST_FORKED0_SKIP" -> (if(isExampleTest) "0" else "1")
+              "MILL_TEST_FORKED0_SKIP" -> (if (isExampleTest) "0" else "1")
             )
           },
           args = Seq("mill.testkit.UtestExampleTestSuite.exampleTest")
