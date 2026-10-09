@@ -26,8 +26,8 @@ object myplugin extends ScalaModule, PublishModule {
     def forkEnv = Task {
       val repos = Seq(publishLocalTestRepo().path.toNIO.toUri.toASCIIString) ++
         Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
-      Map(
-        "MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString,
+      OptMap(
+        "MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path,
         "COURSIER_REPOSITORIES" -> repos.mkString("|")
       )
     }
