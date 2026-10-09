@@ -1,6 +1,8 @@
 package mill.javascriptlib
+
 import mill.*
 import os.*
+import mill.api.opt.*
 
 // create-react-app: https://create-react-app.dev/docs/documentation-intro
 trait ReactScriptsModule extends TypeScriptModule {
@@ -116,20 +118,17 @@ trait ReactScriptsModule extends TypeScriptModule {
       ("node", compiled / "node_modules/react-scripts/bin/react-scripts.js", "build"),
       cwd = compiled,
       stdout = os.Inherit,
-      env = forkEnv()
+      env = forkEnv().toStringMap
     )
 
     PathRef(compiled / "build")
   }
 
-  override def forkEnv =
-    Task {
-      Map("NODE_PATH" -> Seq(
-        ".",
-        compile().path,
-        compile().path / "node_modules"
-      ).mkString(":"))
-    }
+  override def forkEnv: T[OptMap] = Task {
+    OptMap(
+      "NODE_PATH" -> opt".:${compile().path}:${compile().path / "node_modules"}"
+    )
+  }
 
   private def copyNodeModules: Task[Unit] = Task.Anon {
     val nodeModulesPath = npmInstall().path / "node_modules"
@@ -153,7 +152,7 @@ trait ReactScriptsModule extends TypeScriptModule {
       ),
       cwd = compiled,
       stdout = os.Inherit,
-      env = forkEnv()
+      env = forkEnv().toStringMap
     )
   }
 

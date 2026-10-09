@@ -5,6 +5,7 @@ import mill.scalalib.HelloWorldTests.*
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.*
 import utest.*
+import mill.api.opt.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
@@ -14,7 +15,7 @@ object ScalaColorOutputTests extends TestSuite {
     object core extends ScalaModule {
       def scalaVersion = scala213Version
 
-      override def scalacOptions = super.scalacOptions() ++ Seq(
+      override def scalacOptions = super.scalacOptions() ++ Opts(
         "-Vimplicits"
       )
     }

@@ -1,6 +1,7 @@
 package build.utils
 
 import mill.*
+import mill.api.opt.*
 import mill.javalib.*
 import mill.kotlinlib.*
 import millbuild.*
@@ -13,7 +14,7 @@ object `package` extends ProjectBaseModule {
     mvn"org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2"
   )
 
-  def kotlincOptions = Seq("-Xjsr305=strict")
+  def kotlincOptions = Opts("-Xjsr305=strict")
 
   def kotlincPluginMvnDeps = Seq(
     mvn"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin-embeddable:2.4.0"
@@ -23,7 +24,7 @@ object `package` extends ProjectBaseModule {
 
     def mvnDeps = Seq(mvn"org.jetbrains.kotlin:kotlin-test-junit5:2.4.0")
 
-    def kotlincOptions = Seq("-Xjsr305=strict")
+    def kotlincOptions = Opts("-Xjsr305=strict")
 
   }
 

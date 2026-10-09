@@ -178,11 +178,16 @@ object BuildGenScala extends BuildGen {
     lines += renderDefValue("moduleKind", moduleKind, identity[String])
     lines += renderDefValue("scalaNativeVersion", scalaNativeVersion, encodeString)
     lines += renderDefValue("scalaVersion", scalaVersion, encodeString)
-    lines += renderDefValues("scalacOptions", scalacOptions, encodeLiteralOpt)
+    lines += renderDefValues("scalacOptions", scalacOptions, encodeLiteralOpt, collection = "Opts")
     lines += renderDefValues("scalacPluginMvnDeps", scalacPluginMvnDeps, encodeMvnDep)
-    lines += renderDefValues("javacOptions", javacOptions, encodeOpt)
+    lines += renderDefValues("javacOptions", javacOptions, encodeOpt, collection = "Opts")
     lines += renderDefValue("kotlinVersion", kotlinVersion, encodeString)
-    lines += renderDefValues("kotlincOptions", kotlincOptions, encodeLiteralOpt)
+    lines += renderDefValues(
+      "kotlincOptions",
+      kotlincOptions,
+      encodeLiteralOpt,
+      collection = "Opts"
+    )
     lines += renderDefValues("kotlincPluginMvnDeps", kotlincPluginMvnDeps, encodeMvnDep)
     lines += renderDefValue("micronautPackage", micronautPackage, encodeString)
     lines += renderDefValue("micronautAotConfigFile", micronautAotConfigFile, encodePathRef)
@@ -223,14 +228,15 @@ object BuildGenScala extends BuildGen {
       lines += renderDefSources("sources", sources)
       lines += renderDefSources("resources", resources)
     }
-    lines += renderDefValues("forkArgs", forkArgs, encodeOpt)
+    lines += renderDefValues("forkArgs", forkArgs, encodeOpt, collection = "Opts")
     lines += renderDefValue("forkWorkingDir", forkWorkingDir, identity[String])
     lines += renderDefValues("errorProneDeps", errorProneDeps, encodeMvnDep)
     lines += renderDefValues("errorProneOptions", errorProneOptions, encodeString)
     lines += renderDefValues(
       "errorProneJavacEnableOptions",
       errorProneJavacEnableOptions,
-      encodeOpt
+      encodeOpt,
+      collection = "Opts"
     )
     lines += renderDefValue("jmhCoreVersion", jmhCoreVersion, encodeString)
     lines += renderDefValue("scalafixConfig", scalafixConfig, encodeSome)

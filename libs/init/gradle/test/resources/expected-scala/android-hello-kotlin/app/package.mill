@@ -2,6 +2,7 @@ package build.app
 
 import mill.*
 import mill.androidlib.*
+import mill.api.opt.*
 import mill.kotlinlib.*
 
 object `package` extends AndroidAppKotlinModule {

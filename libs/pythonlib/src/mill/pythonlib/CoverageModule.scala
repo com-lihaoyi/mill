@@ -1,6 +1,7 @@
 package mill.pythonlib
 
 import mill.*
+import mill.api.opt.*
 
 /**
  * Code coverage via Python's [coverage](https://coverage.readthedocs.io/)
@@ -124,18 +125,18 @@ trait CoverageModule extends PythonModule {
 trait CoverageTests extends CoverageModule with TestModule {
 
   override def pythonOptions = Task {
-    Seq(
+    Opts(
       "-m",
       "coverage",
       "run",
       "--data-file",
-      coverageDataFile().toString
+      coverageDataFile()
     ) ++
       super.pythonOptions()
   }
 
   override protected def repeatedPythonOptions = Task {
-    super.repeatedPythonOptions() ++ Seq("--append")
+    super.repeatedPythonOptions() ++ Opts("--append")
   }
 
   override def coverageTask = testCached

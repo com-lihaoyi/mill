@@ -6,6 +6,7 @@ import mill.{T, Task}
 import mill.javalib.{CoursierModule, Dep, DepSyntax, JavaModule, OsDetectorModule, PublishModule}
 import mill.util.Jvm
 import upickle.default.ReadWriter.join
+import mill.api.opt.*
 
 import java.io.File
 import java.net.URLClassLoader
@@ -478,8 +479,8 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
    * This is required for Quarkus Qute Checked Templates and
    * improved Reflection-based dependency injection.
    */
-  override def mandatoryJavacOptions: T[Seq[String]] = Task {
-    super.mandatoryJavacOptions() ++ Seq("-parameters")
+  override def mandatoryJavacOptions: Task.Simple[Opts] = Task {
+    super.mandatoryJavacOptions() ++ Opts("-parameters")
   }
 
   /**
@@ -630,9 +631,9 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
       )
     }
 
-    override def forkArgs: T[Seq[String]] = Task {
-      Seq(
-        s"-Dquarkus-internal-test.serialized-app-model.path=${quarkusSerializedAppModel().path}",
+    override def forkArgs: T[Opts] = Task {
+      Opts(
+        opt"-Dquarkus-internal-test.serialized-app-model.path=${quarkusSerializedAppModel()}",
         // Configure Log Manager and add the required opens/exports
         // See https://github.com/quarkusio/quarkus/blob/main/devtools/gradle/gradle-application-plugin/src/test/java/io/quarkus/gradle/tasks/JvmArgsConfigTest.java
         "-Djava.util.logging.manager=org.jboss.logmanager.LogManager",
@@ -649,10 +650,10 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
     override def quarkusModuleClassifier: T[ApplicationModelWorker.ModuleClassifier] =
       ApplicationModelWorker.ModuleClassifier.NativeTests
 
-    override def forkArgs: T[Seq[String]] = Task {
-      Seq(
-        s"-Dbuild.output.directory=${outer.quarkusNativeApp().buildOutput.path}",
-        s"-Dnative.image.path=${outer.quarkusNativePath().path}"
+    override def forkArgs: T[Opts] = Task {
+      Opts(
+        opt"-Dbuild.output.directory=${outer.quarkusNativeApp().buildOutput.path}",
+        opt"-Dnative.image.path=${outer.quarkusNativePath().path}"
       ) ++ super.forkArgs()
     }
   }

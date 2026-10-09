@@ -3,6 +3,7 @@
 package build
 
 import mill.*
+import mill.api.opt.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalalib.*
@@ -22,7 +23,7 @@ object `package` extends Module {
 
     def scalaVersion = "2.12.3"
 
-    def scalacOptions = Seq(
+    def scalacOptions = Opts(
       "-unchecked",
       "-feature",
       "-language:existentials",
@@ -100,7 +101,7 @@ object `package` extends Module {
 
     def scalaVersion = "2.12.3"
 
-    def scalacOptions = Seq(
+    def scalacOptions = Opts(
       "-unchecked",
       "-feature",
       "-language:existentials",
@@ -178,7 +179,7 @@ object `package` extends Module {
 
     def scalaVersion = "2.12.3"
 
-    def scalacOptions = Seq(
+    def scalacOptions = Opts(
       "-unchecked",
       "-feature",
       "-language:existentials",
@@ -247,7 +248,7 @@ object `package` extends Module {
 
       def scalaVersion = "2.12.3"
 
-      def scalacOptions = Seq(
+      def scalacOptions = Opts(
         "-unchecked",
         "-feature",
         "-language:existentials",

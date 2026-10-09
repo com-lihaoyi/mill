@@ -2,6 +2,7 @@ package mill.javascriptlib
 
 import mill.*
 import mill.api.BuildCtx
+import mill.api.opt.*
 
 trait TestModule extends DefaultTaskModule {
   import TestModule.TestResult
@@ -192,7 +193,7 @@ object TestModule {
           getPathToTest()
         ),
         stdout = os.Inherit,
-        env = forkEnv(),
+        env = forkEnv().toStringMap,
         cwd = compileDir
       )
       ()
@@ -260,7 +261,7 @@ object TestModule {
           getPathToTest()
         ),
         stdout = os.Inherit,
-        env = forkEnv(),
+        env = forkEnv().toStringMap,
         cwd = compileDir
       )
       ()
@@ -317,7 +318,7 @@ object TestModule {
           getPathToTest()
         ),
         stdout = os.Inherit,
-        env = forkEnv(),
+        env = forkEnv().toStringMap,
         cwd = compileDir
       )
       ()
@@ -338,7 +339,7 @@ object TestModule {
           getPathToTest()
         ),
         stdout = os.Inherit,
-        env = forkEnv(),
+        env = forkEnv().toStringMap,
         cwd = compileDir
       )
       ()
@@ -416,7 +417,7 @@ object TestModule {
           getPathToTest()
         ),
         stdout = os.Inherit,
-        env = forkEnv(),
+        env = forkEnv().toStringMap,
         cwd = compileDir
       )
       ()
@@ -473,7 +474,7 @@ object TestModule {
           getPathToTest()
         ),
         stdout = os.Inherit,
-        env = forkEnv(),
+        env = forkEnv().toStringMap,
         cwd = compileDir
       )
       ()
@@ -542,7 +543,7 @@ object TestModule {
           s"--require=$tsconfigPath"
         ),
         stdout = os.Inherit,
-        env = forkEnv(),
+        env = forkEnv().toStringMap,
         cwd = compile().path
       )
       ()
@@ -567,7 +568,7 @@ object TestModule {
           s"--require=$tsconfigPath"
         ),
         stdout = os.Inherit,
-        env = forkEnv(),
+        env = forkEnv().toStringMap,
         cwd = compile().path
       )
       ()
@@ -614,12 +615,14 @@ object TestModule {
       ()
     }
 
-    override def forkEnv: T[Map[String, String]] =
+    override def forkEnv: T[OptMap] =
       Task {
-        Map("NODE_PATH" -> Seq(
-          npmInstall().path,
-          npmInstall().path / "node_modules"
-        ).mkString(":"))
+        OptMap(
+          "NODE_PATH" -> Opt.mkPath(
+            Seq(npmInstall().path, npmInstall().path / "node_modules"),
+            sep = ":"
+          )
+        )
       }
 
     private def runTest: T[TestResult] = Task {
@@ -627,7 +630,7 @@ object TestModule {
       val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
       val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
       val port_ = port()
-      val env = service.forkEnv() + ("PORT" -> port_)
+      val env = service.forkEnv().toStringMap + ("PORT" -> port_)
 
       val serviceProcess = os.proc("node", tsnode, "-r", tsconfigpaths, mainFile).spawn(
         stdout = os.Inherit,
@@ -643,7 +646,7 @@ object TestModule {
           "run"
         ),
         stdout = os.Inherit,
-        env = forkEnv(),
+        env = forkEnv().toStringMap,
         cwd = compile().path
       )
 
@@ -688,7 +691,7 @@ object TestModule {
       val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
       val tsconfigpaths = npmInstall().path / "node_modules/tsconfig-paths/register"
       val port_ = port()
-      val env = service.forkEnv() + ("PORT" -> port_)
+      val env = service.forkEnv().toStringMap + ("PORT" -> port_)
 
       val serviceProcess = os.proc("node", tsnode, "-r", tsconfigpaths, mainFile).spawn(
         stdout = os.Inherit,
@@ -703,7 +706,7 @@ object TestModule {
           "test"
         ),
         stdout = os.Inherit,
-        env = forkEnv(),
+        env = forkEnv().toStringMap,
         cwd = compile().path
       )
 
