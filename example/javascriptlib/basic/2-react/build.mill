@@ -1,9 +1,10 @@
 package build
 
 import mill.*, javascriptlib.*
+import mill.api.opt.*
 
 object foo extends RsWithServeModule {
-  override def forkEnv = super.forkEnv() + ("PORT" -> "3000")
+  override def forkEnv = super.forkEnv() ++ OptMap("PORT" -> "3000")
 
 }
 
