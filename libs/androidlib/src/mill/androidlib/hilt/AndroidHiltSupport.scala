@@ -5,6 +5,7 @@ import mill.api.{ModuleRef, PathRef}
 import mill.kotlinlib.ksp.KspModule
 import mill.javalib.api.CompilationResult
 import mill.{T, Task}
+import mill.api.opt.*
 
 /**
  * Trait for mixing in AndroidAppKotlinModule to
@@ -23,8 +24,8 @@ import mill.{T, Task}
 @mill.api.experimental
 trait AndroidHiltSupport extends KspModule, AndroidKotlinModule {
 
-  override def kspProcessorOptions: T[Map[String, String]] = Task {
-    super.kspProcessorOptions() ++ Map(
+  override def kspProcessorOptions: T[OptMap] = Task {
+    super.kspProcessorOptions() ++ OptMap(
       "dagger.fastInit" -> "enabled",
       "dagger.hilt.android.internal.disableAndroidSuperclassValidation" -> "true",
       "dagger.hilt.android.internal.projectType" -> "APP",

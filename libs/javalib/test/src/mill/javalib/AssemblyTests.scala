@@ -1,8 +1,10 @@
 package mill.javalib
 
 import mill.*
+import mill.api.daemon.internal.{OptsApi, TaskApi}
 import mill.testkit.UnitTester
 import utest.*
+import mill.api.opt.{*, given}
 
 import java.util.jar.JarFile
 
@@ -10,11 +12,11 @@ object AssemblyTests extends TestSuite with AssemblyTestUtils {
 
   object HelloJavaWithMain extends mill.testkit.TestRootModule {
     object core extends JavaModule {
-      override def javacOptions = Seq("--release", "17")
+      override def javacOptions: Task.Simple[Opts] = Opts(OptGroup("--release", "17"))
     }
     object app extends JavaModule {
       override def moduleDeps = Seq(core)
-      override def javacOptions = Seq("--release", "17")
+      override def javacOptions: Task.Simple[Opts] = Opts(OptGroup("--release", "17"))
       override def mainClass: T[Option[String]] = Some("hello.Main")
     }
 

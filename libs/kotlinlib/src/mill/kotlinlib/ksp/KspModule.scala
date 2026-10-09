@@ -8,6 +8,7 @@ import mill.kotlinlib.ksp2.{KspWorker, KspWorkerArgs}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
 import mill.util.{Jvm, Version}
+import mill.api.opt.*
 
 import java.io.File
 
@@ -103,8 +104,8 @@ trait KspModule extends KotlinModule { outer =>
   /**
    * Processor options to be passed to KSP.
    */
-  def kspProcessorOptions: T[Map[String, String]] = Task {
-    Map.empty[String, String]
+  def kspProcessorOptions: T[OptMap] = Task {
+    OptMap()
   }
 
   /**

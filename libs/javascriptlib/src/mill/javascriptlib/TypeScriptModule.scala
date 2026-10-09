@@ -6,6 +6,7 @@ import os.*
 import scala.annotation.tailrec
 import mill.javalib.publish.JsonFormatters.licenseFormat
 import mill.api.BuildCtx
+import mill.api.opt.*
 
 trait TypeScriptModule extends Module { outer =>
   // custom module names
@@ -545,7 +546,7 @@ trait TypeScriptModule extends Module { outer =>
 
   def mainFilePath: T[Path] = Task { compile().path / "src" / mainFileName() }
 
-  def forkEnv: T[Map[String, String]] = Task { Map.empty[String, String] }
+  def forkEnv: T[OptMap] = Task { OptMap() }
 
   def computedArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
@@ -553,7 +554,7 @@ trait TypeScriptModule extends Module { outer =>
 
   def run(args: mill.api.Args): Command[CommandResult] = Task.Command {
     val mainFile = mainFilePath()
-    val env = forkEnv()
+    val env = forkEnv().toStringMap
 
     val tsnode: String =
       if (enableEsm()) "ts-node/esm"
@@ -670,7 +671,7 @@ trait TypeScriptModule extends Module { outer =>
   }
 
   def bundle: T[PathRef] = Task {
-    val env = forkEnv()
+    val env = forkEnv().toStringMap
     val tsnode = npmInstall().path / "node_modules/.bin/ts-node"
     val bundle = Task.dest / "bundle.js"
     val out = compile().path
