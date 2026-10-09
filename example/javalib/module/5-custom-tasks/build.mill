@@ -1,6 +1,8 @@
 //// SNIPPET:BUILD
 package build
+
 import mill.*, javalib.*
+import mill.api.opt.*
 
 object `package` extends JavaModule {
   def mvnDeps = Seq(mvn"net.sourceforge.argparse4j:argparse4j:0.9.0")
@@ -35,7 +37,7 @@ object `package` extends JavaModule {
       .sum
   }
 
-  def forkArgs: T[Seq[String]] = Seq(s"-Dmy.line.count=${lineCount()}")
+  def forkArgs: T[Opts] = Opts(s"-Dmy.line.count=${lineCount()}")
 
   def printLineCount() = Task.Command { println(lineCount()) }
 }
