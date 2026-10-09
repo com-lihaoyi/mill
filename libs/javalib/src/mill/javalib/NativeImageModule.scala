@@ -7,6 +7,7 @@ import mill.*
 import mill.api.BuildCtx
 import mill.constants.{DaemonFiles, Util}
 import mill.javalib.graalvm.{GraalVMMetadataWorker, MetadataQuery, MetadataResult}
+import mill.api.opt.*
 
 import java.io.File
 import scala.util.Properties
@@ -39,7 +40,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val executeableName = "native-executable"
     val command = Seq.newBuilder[String]
       .+=(nativeImageTool().path.toString)
-      .++=(nativeImageOptions())
+      .++=(nativeImageOptions().toStringSeq)
       .+=("-cp")
       .+=(nativeImageClasspath().iterator.map(_.path).mkString(java.io.File.pathSeparator))
       .+=(finalMainClass())
@@ -105,17 +106,25 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
   /**
    * Additional options for the `native-image` Tool.
    */
-  def nativeImageOptions: T[Seq[String]] = Task {
-    val configurations =
-      nativeMetadataConfigurations()
+  def nativeImageOptions: T[Opts] = Task {
+    val configurations = nativeMetadataConfigurations()
     val configurationDirectoriesArg = if (configurations.isEmpty) {
-      Seq.empty[String]
+      Opts()
     } else {
-      val configurationFileDirectoriesValue =
-        configurations.map(_.metadataLocation.toString).mkString(",")
-      Seq(s"-H:ConfigurationFileDirectories=$configurationFileDirectoriesValue")
+      val configurationFileDirs = configurations
+        .toSeq
+        .map(_.metadataLocation)
+        .sorted // was a Set, sort it to make task result stable
+      Opts(
+        Opt(
+          "-H:ConfigurationFileDirectories=",
+          Opt.mkPath(configurationFileDirs, sep = ",")
+        )
+      )
     }
-    nativeExcludedConfig() ++ configurationDirectoriesArg ++ nativeIncludedResourcesImageOptions()
+    nativeExcludedConfig() ++
+      configurationDirectoriesArg ++
+      nativeIncludedResourcesImageOptions()
   }
 
   /**
@@ -281,13 +290,9 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    * in [[nativeIncludedResources]]
    * @return
    */
-  def nativeIncludedResourcesImageOptions: T[Seq[String]] = Task {
+  def nativeIncludedResourcesImageOptions: T[Opts] = Task {
     val resources = nativeIncludedResources()
-    if (resources.isEmpty)
-      Seq.empty[String]
-    else {
-      Seq(s"-H:IncludeResources=${resources.mkString("|")}")
-    }
+    Opts.when(resources.nonEmpty)(s"-H:IncludeResources=${resources.mkString("|")}")
   }
 
   /**
@@ -348,12 +353,18 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    * artifacts that these configs should be excluded from.
    * To find more about the syntax see [[https://github.com/paketo-buildpacks/native-image/issues/196]]
    */
-  def nativeExcludedConfig: T[Seq[String]] = Task {
-    nativeExcludedConfigJars()
-      .distinct
-      .flatMap(file =>
-        Seq("--exclude-config", s"\\Q${file.path.toString}\\E", s"^/META-INF/native-image/.*")
-      )
+  def nativeExcludedConfig: T[Opts] = Task {
+    Opts(
+      nativeExcludedConfigJars()
+        .distinct
+        .map(file =>
+          OptGroup(
+            "--exclude-config",
+            opt"\\Q${file.path}\\E",
+            "^/META-INF/native-image/.*"
+          )
+        )
+    )
   }
 
   /**

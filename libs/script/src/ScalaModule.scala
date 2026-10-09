@@ -1,10 +1,12 @@
 package mill.script
+
 import mill.*
 import mill.api.{Discover, ExternalModule, PathRef, Result, ScriptModule}
 import mill.javalib.{TestModule, DepSyntax, Dep}
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerUtil
 import mill.util.{Jvm, Version}
+import mill.api.opt.*
 
 class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig) {
   override lazy val millDiscover = Discover[this.type]
@@ -17,8 +19,8 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     mvn"com.lihaoyi::mainargs:${mill.script.BuildInfo.mainargsVersion}"
   )
 
-  override protected def mandatoryScalacOptions: T[Seq[String]] = Task {
-    super.mandatoryScalacOptions() ++ Seq("-Ymagic-offset-header:SOURCE_CODE_START")
+  override protected def mandatoryScalacOptions: T[Opts] = Task {
+    super.mandatoryScalacOptions() ++ Opts("-Ymagic-offset-header:SOURCE_CODE_START")
   }
 
   override def allSourceFiles = Task {

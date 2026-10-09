@@ -7,6 +7,7 @@ import mill.util.Jvm
 import mill.api.TaskCtx
 import mill.javalib.JavaHomeModule
 import mill.api.BuildCtx
+import mill.api.opt.*
 
 trait PythonModule extends UvModule with DefaultTaskModule with JavaHomeModule { outer =>
 
@@ -49,7 +50,7 @@ trait PythonModule extends UvModule with DefaultTaskModule with JavaHomeModule {
    */
   def venv: T[PathRef] = Task {
     val venv = Task.dest / "venv"
-    val uvEnv = uvEnvTask()
+    val uvEnv = uvEnvTask().toStringMap
     os.call(
       (uvExe().path, "venv", "--python", pythonVersion(), venv),
       env = uvEnv,
@@ -154,28 +155,28 @@ trait PythonModule extends UvModule with DefaultTaskModule with JavaHomeModule {
   /**
    * Any environment variables you want to pass to the forked Env
    */
-  def forkEnv: T[Map[String, String]] = Task { Map.empty[String, String] }
+  def forkEnv: T[OptMap] = Task { OptMap() }
 
   /**
    * Command-line options to pass to the Python Interpreter defined by the user.
    */
-  def pythonOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  def pythonOptions: T[Opts] = Task { Opts() }
 
   /** Additional interpreter options for a second and later related invocation. */
-  protected def repeatedPythonOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  protected def repeatedPythonOptions: T[Opts] = Task { Opts() }
 
   /**
    * Command-line options to pass as bundle configuration defined by the user.
    */
-  def bundleOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  def bundleOptions: T[Opts] = Task { Opts() }
 
   // TODO: right now, any task that calls this helper will have its own python
   // cache. This is slow. Look into sharing the cache between tasks.
   def runner: Task[PythonModule.Runner] = Task.Anon {
     new PythonModule.RunnerImpl(
       command0 = pythonExe().path.toString,
-      options = pythonOptions(),
-      env0 = runnerEnvTask() ++ forkEnv(),
+      options = pythonOptions().toStringSeq,
+      env0 = runnerEnvTask().toStringMap ++ forkEnv().toStringMap,
       workingDir0 = Task.dest
     )
   }
@@ -185,30 +186,31 @@ trait PythonModule extends UvModule with DefaultTaskModule with JavaHomeModule {
     new PythonModule.RunnerImpl(
       command0 = uvExe().path.toString,
       options = Nil,
-      env0 = uvEnvTask(),
+      env0 = uvEnvTask().toStringMap,
       workingDir0 = Task.dest
     )
   }
 
-  private def processEnvTask = Task.Anon {
-    Map(
+  private def processEnvTask: Task[OptMap] = Task.Anon {
+    OptMap(
       if (Task.log.prompt.colored) { "FORCE_COLOR" -> "1" }
       else { "NO_COLOR" -> "1" }
-    ) ++ javaHome().map(javaHome => "JAVA_HOME" -> javaHome.path.toString)
+    ) ++ OptMap(javaHome().map(javaHome => "JAVA_HOME" -> javaHome.path).toSeq*)
   }
 
   private def uvEnvTask = Task.Anon {
     PythonModule.uvEnvironment(processEnvTask(), forkEnv(), Task.offline)
   }
 
-  private def runnerEnvTask = Task.Anon {
-    processEnvTask() ++ Map(
-      "PYTHONPATH" -> transitivePythonPath().map(_.path).mkString(java.io.File.pathSeparator),
-      "PYTHONPYCACHEPREFIX" -> (Task.dest / "cache").toString,
-      "VIRTUAL_ENV" -> venv().path.toString,
-      "PATH" -> (
-        venvBin().path.toString + java.io.File.pathSeparator +
-          PythonModule.pathEnvironmentValue(Task.env)
+  private def runnerEnvTask: Task[OptMap] = Task.Anon {
+    processEnvTask() ++ OptMap(
+      "PYTHONPATH" -> Opt.mkPlatformPath(transitivePythonPath().map(_.path)),
+      "PYTHONPYCACHEPREFIX" -> Task.dest / "cache",
+      "VIRTUAL_ENV" -> venv().path,
+      "PATH" -> Opt(
+        venvBin().path,
+        java.io.File.pathSeparator,
+        PythonModule.pathEnvironmentValue(Task.env)
       )
     )
   }
@@ -263,11 +265,11 @@ trait PythonModule extends UvModule with DefaultTaskModule with JavaHomeModule {
         mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
         classPath = mill.javalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
-        env = runnerEnvTask() ++ forkEnv(),
+        env = runnerEnvTask().toStringMap ++ forkEnv().toStringMap,
         mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
           pythonExe().path.toString
-        ) ++ pythonOptions() ++ Seq(mainScript().path.toString) ++ args.value,
+        ) ++ pythonOptions().toStringSeq ++ Seq(mainScript().path.toString) ++ args.value,
         cwd = BuildCtx.workspaceRoot,
         stdin = "",
         // Hack to forward the background subprocess output to the Mill server process
@@ -370,7 +372,7 @@ trait PythonModule extends UvModule with DefaultTaskModule with JavaHomeModule {
         "--scie-python-version", sciePythonVersion,
         "--scie-only",
         "-o", bundleFile,
-        bundleOptions()
+        bundleOptions().toStringSeq
         // format: on
       ),
       workingDir = Task.dest
@@ -405,10 +407,10 @@ object PythonModule {
     env.collectFirst { case (key, value) if key.equalsIgnoreCase("PATH") => value }.getOrElse("")
 
   private[pythonlib] def uvEnvironment(
-      defaults: Map[String, String],
-      forkEnv: Map[String, String],
+      defaults: OptMap,
+      forkEnv: OptMap,
       offline: Boolean
-  ): Map[String, String] = {
+  ): OptMap = {
     val environment = defaults ++ forkEnv
     if (offline) environment.updated("UV_OFFLINE", "1") else environment
   }

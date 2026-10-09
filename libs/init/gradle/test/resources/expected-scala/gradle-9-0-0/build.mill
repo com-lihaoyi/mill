@@ -6,5 +6,6 @@
 package build
 
 import mill.*
+import mill.api.opt.*
 
 object `package` extends Module {}

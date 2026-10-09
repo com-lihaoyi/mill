@@ -6,6 +6,7 @@ import mill.javalib.testrunner.TestResult
 import mill.scalanativelib.api.*
 import mill.testkit.UnitTester
 import utest.*
+import mill.api.opt.*
 
 object TestingTests extends TestSuite {
   import CompileRunTests.*
@@ -65,7 +66,7 @@ object TestingTests extends TestSuite {
         assert(testResult.value == expected)
       }
     test("test-scalacOptions") {
-      checkInheritedTasks(_.scalacOptions, Seq("-deprecation"))
+      checkInheritedTasks(_.scalacOptions, Opts("-deprecation"))
     }
   }
 

@@ -14,6 +14,7 @@ import mill.api.SelectMode
 import mill.javalib.api.CompilationResult
 import mill.util.Jvm
 import os.Path
+import mill.api.opt.*
 
 import java.util.Locale
 import mill.api.BuildCtx
@@ -99,15 +100,15 @@ trait KoverModule extends KotlinModule { outer =>
     /**
      * Add Kover specific javaagent options.
      */
-    override def forkArgs: T[Seq[String]] = Task {
+    override def forkArgs: T[Opts] = Task {
       val argsFile = koverDataDir().path / "kover-agent.args"
       val content = s"report.file=${koverBinaryReport().path}"
       BuildCtx.withFilesystemCheckerDisabled {
         os.write.over(argsFile, content)
       }
       super.forkArgs() ++
-        Seq(
-          s"-javaagent:${koverAgentJar().path}=file:$argsFile"
+        Opts(
+          opt"-javaagent:${koverAgentJar().path}=file:$argsFile"
         )
     }
   }

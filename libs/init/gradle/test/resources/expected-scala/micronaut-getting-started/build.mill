@@ -3,6 +3,7 @@
 package build
 
 import mill.*
+import mill.api.opt.*
 import mill.javalib.*
 import mill.javalib.micronaut.*
 
@@ -20,7 +21,7 @@ object `package` extends MicronautAotModule, MavenModule {
 
   def bomMvnDeps = Seq(mvn"io.micronaut.platform:micronaut-platform:5.0.2")
 
-  def javacOptions = Seq(
+  def javacOptions = Opts(
     "-source",
     "25",
     "-target",
@@ -72,7 +73,7 @@ object `package` extends MicronautAotModule, MavenModule {
       mvn"org.junit.jupiter:junit-jupiter-engine"
     )
 
-    def javacOptions = Seq(
+    def javacOptions = Opts(
       "-source",
       "25",
       "-target",
@@ -85,7 +86,7 @@ object `package` extends MicronautAotModule, MavenModule {
     )
 
     def forkArgs = super.forkArgs() ++
-      Seq("-Djunit.platform.listeners.uid.tracking.enabled=true")
+      Opts("-Djunit.platform.listeners.uid.tracking.enabled=true")
 
     def forkWorkingDir = moduleDir
 

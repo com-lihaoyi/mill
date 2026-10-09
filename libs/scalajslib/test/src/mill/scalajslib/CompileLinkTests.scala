@@ -7,6 +7,7 @@ import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
+import mill.api.opt.*
 
 import mill.javalib.api.JvmWorkerUtil
 
@@ -56,7 +57,7 @@ object CompileLinkTests extends TestSuite {
     }
     object inherited extends ScalaJSModule {
       val (scala, scalaJS) = matrix.head
-      def scalacOptions = Seq("-deprecation")
+      def scalacOptions = Opts("-deprecation")
       def scalaVersion = scala
       def scalaJSVersion = scalaJS
       object test extends ScalaJSTests with TestModule.Utest

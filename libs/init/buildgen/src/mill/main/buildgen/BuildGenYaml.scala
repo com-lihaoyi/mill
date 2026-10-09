@@ -80,7 +80,7 @@ object BuildGenYaml extends BuildGen {
 
     renderScalaStringValues("def repositories", repositories).foreach(lines += _)
     renderScalaModuleDepValues("def bomModuleDeps", bomModuleDeps).foreach(lines += _)
-    renderScalaOptValues("def forkArgs", forkArgs).foreach(lines += _)
+    renderScalaOptValues("def forkArgs", forkArgs, collection = "Opts").foreach(lines += _)
     forkWorkingDir.base.foreach(dir => lines += s"def forkWorkingDir = $dir")
     renderScalaMvnDepValues("def mandatoryMvnDeps", mandatoryMvnDeps).foreach(lines += _)
     renderScalaMvnDepValues("def mvnDeps", mvnDeps).foreach(lines += _)
@@ -88,13 +88,14 @@ object BuildGenYaml extends BuildGen {
     renderScalaMvnDepValues("def runMvnDeps", runMvnDeps).foreach(lines += _)
     renderScalaMvnDepValues("def bomMvnDeps", bomMvnDeps).foreach(lines += _)
     renderScalaMvnDepValues("def depManagement", depManagement).foreach(lines += _)
-    renderScalaOptValues("def javacOptions", javacOptions).foreach(lines += _)
+    renderScalaOptValues("def javacOptions", javacOptions, collection = "Opts").foreach(lines += _)
     renderScalaStringValues("def sources", sourcesFolders).foreach(lines += _)
     renderScalaMvnDepValues("def errorProneDeps", errorProneDeps).foreach(lines += _)
     renderScalaStringValues("def errorProneOptions", errorProneOptions).foreach(lines += _)
     renderScalaOptValues(
       "def errorProneJavacEnableOptions",
-      errorProneJavacEnableOptions
+      errorProneJavacEnableOptions,
+      collection = "Opts"
     ).foreach(lines += _)
     renderScalaMvnDepValues(
       "def annotationProcessorsMvnDeps",
@@ -109,12 +110,20 @@ object BuildGenYaml extends BuildGen {
     kotlinVersion.base.foreach(v =>
       lines += s"""def kotlinVersion = "$v""""
     )
-    renderScalaOptValues("def kotlincOptions", kotlincOptions).foreach(lines += _)
+    renderScalaOptValues(
+      "def kotlincOptions",
+      kotlincOptions,
+      collection = "Opts"
+    ).foreach(lines += _)
     renderScalaMvnDepValues("def kotlincPluginMvnDeps", kotlincPluginMvnDeps).foreach(lines += _)
 
     artifactName.base.foreach(v => lines += s"def artifactName = $v")
 
-    renderScalaOptValues("def scalacOptions", scalacOptions).foreach(lines += _)
+    renderScalaOptValues(
+      "def scalacOptions",
+      scalacOptions,
+      collection = "Opts"
+    ).foreach(lines += _)
     renderScalaMvnDepValues("def scalacPluginMvnDeps", scalacPluginMvnDeps).foreach(lines += _)
     testParallelism.base.foreach(v => lines += s"def testParallelism = $v")
     testSandboxWorkingDir.base.foreach(v => lines += s"def testSandboxWorkingDir = $v")
@@ -132,18 +141,20 @@ object BuildGenYaml extends BuildGen {
   private def renderScalaValues[T](
       prefix: String,
       values: Values[T],
-      encode: Seq[T] => String
+      encode: Seq[T] => String,
+      collection: String = "Seq"
   ): Option[String] = {
     import values.*
     val member = prefix.stripPrefix("def ")
     val basePart = base match {
       case Nil => None
-      case seq => Some(s"Seq(${encode(seq)})")
+      case seq => Some(s"${collection}(${encode(seq)})")
     }
     val crossPart = cross match {
       case Nil => None
       case seq =>
-        val cases = seq.map((k, v) => s"""case "$k" => Seq(${encode(v)})""").mkString(lineSep)
+        val cases =
+          seq.map((k, v) => s"""case "$k" => ${collection}(${encode(v)})""").mkString(lineSep)
         Some(s"crossValue match {$lineSep$cases$lineSep}")
     }
     (basePart, crossPart) match {
@@ -163,8 +174,17 @@ object BuildGenYaml extends BuildGen {
   private def renderScalaMvnDepValues(prefix: String, values: Values[MvnDep]): Option[String] =
     renderScalaValues(prefix, values, _.map(_.toString).mkString(", "))
 
-  private def renderScalaOptValues(prefix: String, values: Values[Opt]): Option[String] =
-    renderScalaValues(prefix, values, _.flatMap(_.group).map(s => s""""$s"""").mkString(", "))
+  private def renderScalaOptValues(
+      prefix: String,
+      values: Values[Opt],
+      collection: String = "Seq"
+  ): Option[String] =
+    renderScalaValues(
+      prefix,
+      values,
+      _.flatMap(_.group).map(s => s""""$s"""").mkString(", "),
+      collection
+    )
 
   private def renderScalaModuleDepValues(
       prefix: String,

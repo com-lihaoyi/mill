@@ -1,6 +1,7 @@
 package build.list
 
 import mill.*
+import mill.api.opt.*
 import mill.javalib.*
 import mill.javalib.errorprone.ErrorProneModule
 import millbuild.*
@@ -8,14 +9,14 @@ import millbuild.*
 object `package` extends ProjectBaseModule, ErrorProneModule {
 
   def javacOptions = super.javacOptions() ++
-    Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
+    Opts("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
   def errorProneDeps = Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
 
   object test extends ProjectBaseTests, ErrorProneModule {
 
     def javacOptions = super.javacOptions() ++
-      Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
+      Opts("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
     def errorProneDeps = Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
 
