@@ -90,10 +90,8 @@ object CodeSigJavaModuleTests extends UtestIntegrationTestSuite {
 
       modifyFile(
         workspacePath / "build.mill",
-        _.replace(
-          "\"-source\", \"11\", \"-target\", \"11\"",
-          "\"-source\", \"9\", \"-target\", \"9\""
-        )
+        _.replace(""""-source", "11"""", """"-source", "9"""")
+          .replace(""""-target", "11"""", """"-target", "9"""")
       )
       val mangledFoo5 = eval("foo.run")
 

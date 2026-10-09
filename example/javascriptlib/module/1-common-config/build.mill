@@ -2,6 +2,7 @@ package build
 
 import mill.*
 import mill.javascriptlib.*
+import mill.api.opt.*
 
 object foo extends TypeScriptModule {
 
@@ -25,7 +26,7 @@ object foo extends TypeScriptModule {
     Seq(PathRef(Task.dest))
   }
 
-  def forkEnv = super.forkEnv() + ("MY_CUSTOM_ENV" -> "my-env-value")
+  def forkEnv = super.forkEnv() ++ OptMap("MY_CUSTOM_ENV" -> "my-env-value")
 
   def mainFileName = s"foo2.ts"
 

@@ -1,5 +1,8 @@
 //| mill-jvm-version: zulu:21
+package build
+
 import mill.*, androidlib.*, kotlinlib.*
+import mill.api.opt.*
 
 object Versions {
   val kotlinVersion = "2.2.20"
@@ -36,7 +39,7 @@ object JetLagged extends mill.api.Module {
 
     override def androidApplicationId = "com.example.jetlagged"
 
-    override def kotlincOptions = super.kotlincOptions() ++ Seq(
+    override def kotlincOptions = super.kotlincOptions() ++ Opts(
       "-jvm-target",
       "17"
     )
@@ -143,7 +146,7 @@ object JetNews extends mill.api.Module {
 
     override def androidApplicationId = "com.example.jetnews"
 
-    override def kotlincOptions = super.kotlincOptions() ++ Seq(
+    override def kotlincOptions = super.kotlincOptions() ++ Opts(
       "-jvm-target",
       "17"
     )

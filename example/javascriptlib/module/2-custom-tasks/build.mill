@@ -1,6 +1,7 @@
 package build
 
 import mill.*, javascriptlib.*
+import mill.api.opt.*
 
 object foo extends TypeScriptModule {
 
@@ -25,7 +26,7 @@ object foo extends TypeScriptModule {
     Seq(PathRef(Task.dest))
   }
 
-  def forkEnv = super.forkEnv() + ("LINE_COUNT" -> lineCount().toString)
+  def forkEnv = super.forkEnv() ++ OptMap("LINE_COUNT" -> lineCount().toString)
 
   def printLineCount() = Task.Command { println(lineCount()) }
 

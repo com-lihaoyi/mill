@@ -39,7 +39,7 @@ object KotlinIncrementalCompilationTests extends UtestIntegrationTestSuite {
 
       modifyFile(
         workspacePath / "build.mill",
-        _.replace("Seq[String]()", "Seq(\"-Werror\")")
+        _.replace("/* opts-placeholder */", """"-Werror"""")
       )
       val werrorCompile = eval("options.compile")
       assert(!werrorCompile.isSuccess)
@@ -47,7 +47,7 @@ object KotlinIncrementalCompilationTests extends UtestIntegrationTestSuite {
 
       modifyFile(
         workspacePath / "build.mill",
-        _.replace("Seq(\"-Werror\")", "Seq[String]()")
+        _.replace("Opts(\"-Werror\")", "Opts()")
       )
       assert(eval("options.compile").isSuccess)
     }

@@ -86,7 +86,7 @@
 //
 // [source,scala]
 // ----
-// def scalaDocOptions = Seq(
-//   s"-source-links:${mill.api.BuildCtx.workspaceRoot}=github://owner/repo/main"
+// def scalaDocOptions = Opts(
+//   opt"-source-links:${mill.api.BuildCtx.workspaceRoot}=github://owner/repo/main"
 // )
 // ----

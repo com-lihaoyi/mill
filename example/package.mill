@@ -1,4 +1,5 @@
 package build.example
+
 // imports
 import scala.util.chaining.*
 import coursier.maven.MavenRepository
