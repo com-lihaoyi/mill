@@ -27,7 +27,11 @@ class AutoOverridePlugin extends StandardPlugin {
 class AutoOverridePhase extends PluginPhase {
   import tpd.*
 
-  val phaseName = "auto-override"
+  // Must differ from the "auto-override" phase of mill-moduledefs' compiler plugin, that's also
+  // enabled when compiling build files: Scala 3 schedules plugin phases using the constraints
+  // registered under their names, so phases sharing a name all end up with the constraints of
+  // one of them
+  val phaseName = "mill-auto-override"
 
   // Needs to run between typer and inlining, because we generate macro calls that
   // inlining will then expand. This helps minimize the complexity of this plugin
