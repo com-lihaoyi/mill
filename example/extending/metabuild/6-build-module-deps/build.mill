@@ -1,0 +1,25 @@
+package build
+
+import mybuild.ApplicationModule
+
+object app extends ApplicationModule
+
+/** See Also: core/package.mill */
+/** See Also: mill-build/src/mybuild/ApplicationModule.scala */
+
+// Scala sources in `mill-build/src/` are compiled as part of the meta-build. Unlike
+// `build.mill` and `package.mill`, ordinary Scala sources do not receive Mill's automatic
+// `build` alias. Mill generates the root build object as `build_.package_`, so
+// `ApplicationModule.scala` imports it with `import build_.package_ as build`.
+//
+// The `build` alias then provides access to modules defined by `build.mill` and any discovered
+// `package.mill` files. Nested build modules must be defined in `package.mill`; a `module.mill`
+// file is not discovered here. In this example, `ApplicationModule` uses `build.core` as a
+// module dependency.
+
+/** Usage
+
+> ./mill app.run
+Hello from core
+
+*/

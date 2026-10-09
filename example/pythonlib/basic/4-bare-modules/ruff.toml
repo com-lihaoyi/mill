@@ -1,0 +1,8 @@
+[lint]
+# The example harness may stage source files with executable bits on Unix.
+# That is unrelated to bare-module source discovery, so keep Ruff focused on source content.
+ignore = ["EXE002"]
+
+[lint.isort]
+known-first-party = ["app"]
+known-third-party = ["raw_uv_project"]

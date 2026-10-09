@@ -279,7 +279,8 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
       outputPatterns: workerApi.OutputPatterns,
       minify: Boolean,
       importMap: Seq[workerApi.ESModuleImportMapping],
-      experimentalUseWebAssembly: Boolean
+      experimentalUseWebAssembly: Boolean,
+      useWebAssemblyJSPI: Boolean
   ): Either[String, workerApi.Report] = {
     val config = ScalaJSConfig.config(
       sjsVersion = ScalaJSVersions.current,
@@ -289,7 +290,8 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
       scalaJSOptimizer = optimizer,
       scalaJSSourceMap = sourceMap,
       patterns = outputPatterns,
-      useWebAssembly = experimentalUseWebAssembly
+      useWebAssembly = experimentalUseWebAssembly,
+      useWebAssemblyJSPI = useWebAssemblyJSPI
     )
 
     rawLink(

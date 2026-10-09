@@ -45,7 +45,7 @@ object MillProcessLauncher {
     // runners) so output gets captured into the test's chunking buffers.
     // Otherwise, default to `os.Inherit` so output flows to the launcher's
     // own stdout/stderr.
-    val (stdoutDest, stderrDest, stdinDest): (
+    val streamDestinations: (
         os.ProcessOutput,
         os.ProcessOutput,
         os.ProcessInput
@@ -59,6 +59,7 @@ object MillProcessLauncher {
             os.Inherit
           )
       }
+    val (stdoutDest, stderrDest, stdinDest) = streamDestinations
     val proc = configureRunMillProcess(
       cmd,
       processDir,
@@ -141,10 +142,13 @@ object MillProcessLauncher {
 
   def loadMillConfig(key: String, workDir: os.Path): Seq[String] = {
     val configFile = workDir / s".$key"
+    val dotConfigFile = workDir / ".config" / key
     val env = mill.internal.Util.envForInterpolation(workDir)
 
     if (os.exists(configFile)) {
       ClientUtil.readOptsFileLines(configFile, env)
+    } else if (os.exists(dotConfigFile)) {
+      ClientUtil.readOptsFileLines(dotConfigFile, env)
     } else {
       CodeGenConstants.rootBuildFileNames.asScala.toSeq
         .map(name => workDir / name)

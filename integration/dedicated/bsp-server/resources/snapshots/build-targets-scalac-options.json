@@ -91,7 +91,9 @@
       "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
-      "options": [],
+      "options": [
+        "-Ymagic-offset-header:SOURCE_CODE_START"
+      ],
       "classpath": [
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala3-version>/scala-library-<scala3-version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/<version>/pprint_3-<version>.jar",
@@ -116,7 +118,9 @@
       "target": {
         "uri": "file:///workspace/scripts/foldershared/script.scala"
       },
-      "options": [],
+      "options": [
+        "-Ymagic-offset-header:SOURCE_CODE_START"
+      ],
       "classpath": [
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala3-version>/scala-library-<scala3-version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/<version>/pprint_3-<version>.jar",

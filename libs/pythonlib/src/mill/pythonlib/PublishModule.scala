@@ -1,6 +1,5 @@
 package mill.pythonlib
 
-import mill.api.Result
 import mill.javalib.publish.License
 import mill.{Command, PathRef, T, Task}
 
@@ -17,14 +16,6 @@ trait PublishModule extends PythonModule {
       )
   }
 
-  override def pythonToolDeps = Task {
-    super.pythonToolDeps() ++ Seq(
-      "setuptools>=75.6.0",
-      "build>=1.2.2",
-      "twine>=5.1.1"
-    )
-  }
-
   /**
    * Metadata about your project, required to build and publish.
    *
@@ -39,12 +30,30 @@ trait PublishModule extends PythonModule {
   def publishVersion: T[String]
 
   /**
+   * SPDX license expression written to the package metadata. Override this
+   * when [[publishMeta]].license does not use an SPDX identifier.
+   */
+  def publishLicenseExpression: T[String] = Task { publishMeta().license.id }
+
+  /**
+   * Import package built into the distribution. By default, uv_build derives
+   * this from the normalized distribution name. Override this when the name
+   * used in `import` statements differs from [[publishMeta]].name.
+   */
+  def publishModuleName: T[String] = Task {
+    PublishModule.normalizeModuleName(publishMeta().name)
+  }
+
+  /** Import packages built into the distribution. */
+  def publishModuleNames: T[Seq[String]] = Task { Seq(publishModuleName()) }
+
+  /**
    * The content of the PEP-518-compliant `pyproject.toml` file, which describes how to package this
    * module into a distribution (sdist and wheel).
    *
    * By default, Mill will generate this file for you from the information it knows (e.g.
    * dependencies declared in [[pythonDeps]] and metadata from [[publishMeta]]). It will use
-   * `setuptools` as the build backend, and `build` as the frontend.
+   * `uv_build` as the build backend, and `uv build` as the frontend.
    *
    * You can however override this task to read your own `pyproject.toml` file, if you need to. In
    * this case, please note the following:
@@ -58,7 +67,7 @@ trait PublishModule extends PythonModule {
    *   that you can't reference files by absolute path within it.
    *
    * - Mill creates a "staging" directory in the [[sdist]] task, which will be used to bundle
-   *   everything up into an sdist (via the `build` python command, although this is an
+   *   everything up into an sdist (via `uv build`, although this is an
    *   implementation detail). You can include additional files in this directory via the
    *   [[buildFiles]] task.
    */
@@ -66,28 +75,38 @@ trait PublishModule extends PythonModule {
     val moduleNames = Task.traverse(moduleDeps)(_.publishMeta)().map(_.name)
     val moduleVersions = Task.traverse(moduleDeps)(_.publishVersion)()
     val moduleRequires = moduleNames.zip(moduleVersions).map { case (n, v) => s"$n>=$v" }
-    val deps = (moduleRequires ++ pythonDeps()).map(s => s"\"$s\"").mkString(", ")
+    val deps = (moduleRequires ++ pythonDeps()).map(PublishModule.tomlString).mkString(", ")
+    val moduleNameConfig = publishModuleNames() match {
+      case Seq(name) => PublishModule.tomlString(name)
+      case names => names.map(PublishModule.tomlString).mkString("[", ", ", "]")
+    }
+    val meta = publishMeta()
 
     s"""|[project]
-        |name="${publishMeta().name}"
-        |version="${publishVersion()}"
-        |description="${publishMeta().description}"
-        |readme="${publishReadme().path.last}"
+        |name=${PublishModule.tomlString(meta.name)}
+        |version=${PublishModule.tomlString(publishVersion())}
+        |description=${PublishModule.tomlString(meta.description)}
+        |readme=${PublishModule.tomlString(publishReadme().path.last)}
         |dependencies=[${deps}]
-        |requires-python="${publishMeta().requiresPython}"
-        |license={text="${publishMeta().license.id}"}
-        |keywords=[${publishMeta().keywords.map(s => s"\"$s\"").mkString(",")}]
-        |classifiers=[${publishMeta().classifiers.map(s => s"\"$s\"").mkString(",")}]
-        |authors=[${publishMeta().authors.map(a =>
-         s"{name=\"${a.name}\", email=\"${a.email}\"}"
+        |requires-python=${PublishModule.tomlString(meta.requiresPython)}
+        |license=${PublishModule.tomlString(publishLicenseExpression())}
+        |keywords=[${meta.keywords.map(PublishModule.tomlString).mkString(",")}]
+        |classifiers=[${meta.classifiers.map(PublishModule.tomlString).mkString(",")}]
+        |authors=[${meta.authors.map(a =>
+         s"{name=${PublishModule.tomlString(a.name)}, email=${PublishModule.tomlString(a.email)}}"
        ).mkString(",")}]
         |
         |[project.urls]
-        |${publishMeta().urls.map(u => s"\"${u._1}\"=\"${u._2}\"").mkString("\n")}
+        |${meta.urls.toSeq.sortBy(_._1).map { case (name, url) =>
+         s"${PublishModule.tomlString(name)}=${PublishModule.tomlString(url)}"
+       }.mkString("\n")}
         |
         |[build-system]
-        |requires=["setuptools"]
-        |build-backend="setuptools.build_meta"
+        |requires=["uv_build>=0.12.12,<0.13"]
+        |build-backend="uv_build"
+        |
+        |[tool.uv.build-backend]
+        |module-name=$moduleNameConfig
         |""".stripMargin
   }
 
@@ -131,12 +150,18 @@ trait PublishModule extends PythonModule {
    */
   def sdist: T[PathRef] = Task {
 
-    // we use setup tools by default, which can only work with a single source directory, hence we
-    // flatten all source directories into a single hierarchy
+    // uv_build expects a single source root, so flatten all source directories
+    // into one hierarchy.
     val flattenedSrc = Task.dest / "src"
-    for (dir <- (sources() ++ resources()); if os.exists(dir.path)) {
-      for (path <- os.list(dir.path)) {
-        os.copy.into(path, flattenedSrc, mergeFolders = true, createFolders = true)
+    for (source <- (sources() ++ resources()); if os.exists(source.path)) {
+      if (os.isDir(source.path)) {
+        for (path <- os.list(source.path)) {
+          os.copy.into(path, flattenedSrc, mergeFolders = true, createFolders = true)
+        }
+      } else {
+        val sourcePath = source.path
+        val relativePath = sourcePath.relativeTo(mill.api.BuildCtx.workspaceRoot)
+        os.copy.over(sourcePath, flattenedSrc / relativePath, createFolders = true)
       }
     }
 
@@ -146,9 +171,26 @@ trait PublishModule extends PythonModule {
       os.copy(src.path, Task.dest / os.SubPath(dest), createFolders = true, replaceExisting = true)
     }
 
-    // we already do the isolation with mill
-    runner().run(("-m", "build", "--no-isolation", "--sdist"), workingDir = Task.dest)
-    PathRef(os.list(Task.dest / "dist").head)
+    uvRunner().run(
+      (
+        "build",
+        PublishModule.uvBuildPythonArgs(pythonVersion()),
+        uvIndexArgs(),
+        "--sdist",
+        "--clear",
+        "--no-create-gitignore",
+        "--out-dir",
+        Task.dest / "dist",
+        Task.dest
+      ),
+      workingDir = Task.dest
+    )
+    val artifacts = os.list(Task.dest / "dist").filter(_.last.endsWith(".tar.gz"))
+    artifacts match {
+      case Seq(artifact) => PathRef(artifact)
+      case _ =>
+        Task.fail(s"Expected exactly one source distribution, found: ${artifacts.mkString(", ")}")
+    }
   }
 
   /**
@@ -157,45 +199,60 @@ trait PublishModule extends PythonModule {
    * @see [[pyproject]]
    */
   def wheel: T[PathRef] = Task {
-    val buildDir = Task.dest / "extracted"
-
-    os.makeDir(buildDir)
-    os.call(
-      ("tar", "xf", sdist().path, "-C", buildDir),
-      cwd = Task.dest
-    )
-    runner().run(
+    uvRunner().run(
       (
         // format: off
-        "-m", "build",
-        "--no-isolation", // we already do the isolation with mill
+        "build",
+        PublishModule.uvBuildPythonArgs(pythonVersion()),
+        uvIndexArgs(),
         "--wheel",
-        "--outdir", Task.dest / "dist"
+        "--clear",
+        "--no-create-gitignore",
+        "--out-dir", Task.dest / "dist",
+        sdist().path
         // format: on
       ),
-      workingDir = os.list(buildDir).head // sdist archive contains a directory
+      workingDir = Task.dest
     )
-    PathRef(os.list(Task.dest / "dist").head)
+    val artifacts = os.list(Task.dest / "dist").filter(_.ext == "whl")
+    artifacts match {
+      case Seq(artifact) => PathRef(artifact)
+      case _ => Task.fail(s"Expected exactly one wheel, found: ${artifacts.mkString(", ")}")
+    }
   }
 
   /** The repository (index) URL to publish packages to. */
-  def publishRepositoryUrl: T[String] = Task { "https://upload.pypi.org/" }
+  def publishRepositoryUrl: T[String] = Task { "https://upload.pypi.org/legacy/" }
 
   /** All artifacts that should be published. */
   def publishArtifacts: T[Seq[PathRef]] = Task {
     Seq(sdist(), wheel())
   }
 
-  /** Run `twine check` to catch some common packaging errors. */
+  /** Environment shared by publish validation and the real upload. */
+  private def publishEnv: Task[Map[String, String]] = Task.Anon {
+    val uvVariables = Task.env.collect {
+      case (key, value) if key.startsWith("UV_PUBLISH_") => key -> value
+    }
+    val millVariables = Task.env.collect {
+      case (key, value) if key.startsWith("MILL_UV_PUBLISH_") =>
+        key.drop(5) -> value // MILL_UV_PUBLISH_* -> UV_PUBLISH_*
+    }
+    Map("UV_PUBLISH_URL" -> publishRepositoryUrl()) ++ uvVariables ++ millVariables
+  }
+
+  /** Validate artifacts with a dry-run `uv publish`. */
   def checkPublish(): Command[Unit] = Task.Command {
-    runner().run(
+    uvRunner().run(
       (
         // format: off
-        "-m", "twine",
-        "check",
+        "publish",
+        "--dry-run",
+        "--trusted-publishing", "never",
         publishArtifacts().map(_.path)
         // format: on
-      )
+      ),
+      env = publishEnv()
     )
   }
 
@@ -203,44 +260,51 @@ trait PublishModule extends PythonModule {
    * Publish the [[sdist]] and [[wheel]] to the package repository (index)
    * defined in this module.
    *
-   * You can configure this command by setting any environment variables
-   * understood by `twine`, prefixed with `MILL_`. For example, to change the
-   * repository URL:
+   * You can configure this command with uv's `UV_PUBLISH_*` environment
+   * variables or equivalent `MILL_UV_PUBLISH_*` variables. For example:
    *
    * ```
-   * MILL_TWINE_REPOSITORY_URL=https://test.pypi.org/legacy/
+   * MILL_UV_PUBLISH_URL=https://test.pypi.org/legacy/
    * ```
    *
    * @see [[publishRepositoryUrl]]
    */
   def publish(): Command[Unit] = Task.Command {
-    val env: Map[String, String] =
-      Map(
-        "TWINE_REPOSITORY_URL" -> publishRepositoryUrl()
-      ) ++
-        Task.env ++
-        Task.env.collect {
-          case (key, value) if key.startsWith("MILL_TWINE_") =>
-            key.drop(5) -> value // MILL_TWINE_* -> TWINE_*
-          case (key, value) => key -> value
-        }
-
-    runner().run(
+    uvRunner().run(
       (
         // format: off
-        "-m", "twine",
-        "upload",
-        "--non-interactive",
+        "publish",
         publishArtifacts().map(_.path)
         // format: on
       ),
-      env = env
+      env = publishEnv()
     )
   }
 
 }
 
 object PublishModule {
+  private[pythonlib] def uvBuildPythonArgs(pythonVersion: String): Seq[String] =
+    Seq("--python", pythonVersion)
+
+  private[pythonlib] def normalizeModuleName(name: String): String =
+    name.toLowerCase(java.util.Locale.ROOT).replaceAll("[._-]+", "_")
+
+  private[pythonlib] def tomlString(value: String): String = {
+    val escaped = value.flatMap {
+      case '\b' => "\\b"
+      case '\t' => "\\t"
+      case '\n' => "\\n"
+      case '\f' => "\\f"
+      case '\r' => "\\r"
+      case '"' => "\\\""
+      case '\\' => "\\\\"
+      case char if char.isControl => f"\\u${char.toInt}%04x"
+      case char => char.toString
+    }
+    s"\"$escaped\""
+  }
+
   private implicit lazy val licenseFormat: upickle.ReadWriter[License] =
     upickle.macroRW
 

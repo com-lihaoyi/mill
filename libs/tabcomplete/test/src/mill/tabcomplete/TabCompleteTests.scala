@@ -382,7 +382,8 @@ object TabCompleteTests extends TestSuite {
             "--no-daemon               Run without a long-lived background daemon.",
             "--no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands.",
             "--version                 Show mill version information and exit.",
-            "--task                    <str> The name or a query of the tasks(s) you want to build."
+            "--task                    <str> The name or a query of the tasks(s) you want to build.",
+            "--replay-logs             Replay logs for cached tasks."
           )
         )
       }

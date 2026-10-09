@@ -1,0 +1,15 @@
+package build
+
+import mill.*, javalib.*, scalalib.*
+
+object runner extends Module {
+  object launcher extends ScalaModule {
+    def scalaVersion = "3.7.1"
+  }
+}
+
+object dist extends Module {
+  object raw extends JavaModule {
+    def moduleDeps = Seq(build.runner.launcher)
+  }
+}

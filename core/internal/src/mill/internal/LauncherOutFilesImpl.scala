@@ -25,27 +25,11 @@ private[mill] class LauncherOutFilesImpl(
   private val closed = AtomicBoolean(false)
 
   private val publishedOutFiles = Seq(
-    PublishedOutFile(
-      out / DaemonFiles.millConsoleTail,
-      os.Path(consoleTail),
-      copyFallback = false
-    ),
-    PublishedOutFile(out / OutFiles.millProfile, os.Path(profile), copyFallback = true),
-    PublishedOutFile(
-      out / OutFiles.millChromeProfile,
-      os.Path(chromeProfile),
-      copyFallback = true
-    ),
-    PublishedOutFile(
-      out / OutFiles.millDependencyTree,
-      os.Path(dependencyTree),
-      copyFallback = true
-    ),
-    PublishedOutFile(
-      out / OutFiles.millInvalidationTree,
-      os.Path(invalidationTree),
-      copyFallback = true
-    )
+    PublishedOutFile(out / DaemonFiles.millConsoleTail, os.Path(consoleTail)),
+    PublishedOutFile(out / OutFiles.millProfile, os.Path(profile)),
+    PublishedOutFile(out / OutFiles.millChromeProfile, os.Path(chromeProfile)),
+    PublishedOutFile(out / OutFiles.millDependencyTree, os.Path(dependencyTree)),
+    PublishedOutFile(out / OutFiles.millInvalidationTree, os.Path(invalidationTree))
   )
 
   // Write the launcher record before creating the run directory. Both live
@@ -55,13 +39,11 @@ private[mill] class LauncherOutFilesImpl(
   // for deletion, so the record must be visible before the directory exists.
   writeLauncherRunFile()
   os.makeDir.all(runDir)
+  initializeRunArtifacts()
+  // Publish stable out/mill-* links once at run startup. Later runs may
+  // retarget those links, so this run must not publish them again on close.
+  publishArtifactsOnce()
   cleanup(out, outFilesState)
-
-  override def publishLiveArtifacts(): Unit =
-    if (!closed.get()) publishLatest(publishedOutFiles.head, outFilesState)
-
-  override def publishArtifacts(): Unit =
-    if (!closed.get()) publishedOutFiles.foreach(publishLatest(_, outFilesState))
 
   override def close(): Unit =
     if (closed.compareAndSet(false, true)) {
@@ -71,11 +53,22 @@ private[mill] class LauncherOutFilesImpl(
 
   private def writeLauncherRunFile(): Unit =
     LauncherOutFilesRecordStore.write(out, runId, launcherPid, activeCommandMessage)
+
+  private def initializeRunArtifacts(): Unit = {
+    os.write.over(os.Path(consoleTail), "", createFolders = true)
+    os.write.over(os.Path(profile), "[]\n", createFolders = true)
+    os.write.over(os.Path(chromeProfile), "[]\n", createFolders = true)
+    os.write.over(os.Path(dependencyTree), "{}\n", createFolders = true)
+    os.write.over(os.Path(invalidationTree), "{}\n", createFolders = true)
+  }
+
+  private def publishArtifactsOnce(): Unit =
+    publishedOutFiles.foreach(publishLatest(_, outFilesState))
 }
 
 private[mill] object LauncherOutFilesImpl {
   private val maxRetainedRuns = 10
-  private case class PublishedOutFile(link: os.Path, target: os.Path, copyFallback: Boolean)
+  private case class PublishedOutFile(link: os.Path, target: os.Path)
 
   private val wellKnownOutFileLinks = Seq(
     os.RelPath(DaemonFiles.millConsoleTail),
@@ -95,7 +88,7 @@ private[mill] object LauncherOutFilesImpl {
       if (os.exists(runRootDir)) {
         val runDirs = os.list(runRootDir).filter(os.isDir(_))
         val eligible = runDirs.filterNot(d => active.contains(d.last))
-          .sortBy(d => LauncherOutFilesRecordStore.runIdSortKey(d.last))
+          .sortBy(lastModifiedMillis)
         val toRemoveCount = math.max(0, eligible.size - maxRetainedRuns)
         eligible.take(toRemoveCount).foreach(d =>
           try os.remove.all(d)
@@ -114,6 +107,10 @@ private[mill] object LauncherOutFilesImpl {
       }
     } catch { case _: Throwable => () }
   }
+
+  private def lastModifiedMillis(path: os.Path): Long =
+    try os.mtime(path)
+    catch { case _: Throwable => 0L }
 
   private def withPublishedPathLock[T](
       link: os.Path,
@@ -157,17 +154,6 @@ private[mill] object LauncherOutFilesImpl {
     )(tmp => os.symlink(tmp, rel))
   }
 
-  private def replaceWithCopy(
-      link: os.Path,
-      target: os.Path,
-      outFilesState: LauncherOutFilesState
-  ): Unit = {
-    replaceAtomically(
-      link,
-      s".${link.last}.copy-${System.nanoTime()}-${outFilesState.nextTmpSuffix()}"
-    )(tmp => os.copy.over(target, tmp, createFolders = true))
-  }
-
   private def publishLatest(
       outFile: PublishedOutFile,
       outFilesState: LauncherOutFilesState
@@ -180,8 +166,6 @@ private[mill] object LauncherOutFilesImpl {
             mill.api.Debug(
               s"Failed to publish ${outFile.link.last} as a symlink: ${e.getClass.getSimpleName}: ${e.getMessage}"
             )
-            if (outFile.copyFallback)
-              replaceWithCopy(outFile.link, outFile.target, outFilesState)
         }
     }
   }

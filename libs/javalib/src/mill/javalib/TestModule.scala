@@ -53,6 +53,7 @@ trait TestModule
    * - [[TestModule.Utest]]
    * - [[TestModule.Weaver]]
    * - [[TestModule.ZioTest]]
+   * - [[TestModule.KyoTest]]
    * - [[TestModule.Spock]]
    *
    * Most of these provide additional `xxxVersion` tasks, to manage the test framework dependencies for you.
@@ -212,6 +213,22 @@ trait TestModule
   def testParallelism: T[Boolean] = Task { true }
 
   /**
+   * Whether Mill should pass each fork group's full selected `TaskDef` batch to
+   * `Runner.tasks` inside one forked test JVM.
+   *
+   * Some sbt-testing frameworks use `Runner.tasks` to wire relationships between related
+   * `TaskDef`s. For example, Weaver's `GlobalResource` setup is connected to suites from
+   * the full `TaskDef` batch. Set this to true for such frameworks.
+   *
+   * Setting this to true disables intra-group queue parallelism: all classes in a
+   * `testForkGrouping` group run in one subprocess. Separate fork groups can still run
+   * independently.
+   *
+   * See also: https://github.com/com-lihaoyi/mill/issues/7113
+   */
+  def testBatchFrameworkTasks: T[Boolean] = Task { false }
+
+  /**
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
    * Arguments before "--" will be used as wildcard selector to select
@@ -335,7 +352,8 @@ trait TestModule
         testLogLevel(),
         propagateEnv(),
         jvmWorker().internalWorker(),
-        discoveredClassesOpt = aheadOfTimeDiscoveredTestClassesIfNeeded()
+        discoveredClassesOpt = aheadOfTimeDiscoveredTestClassesIfNeeded(),
+        testBatchFrameworkTasks = testBatchFrameworkTasks()
       )
       testModuleUtil.runTests()
     }
@@ -678,6 +696,23 @@ object TestModule {
   }
 
   /**
+   * TestModule that uses Kyo Test Framework to run tests.
+   * You can override the [[kyoTestVersion]] task or provide the Kyo Test-dependency yourself.
+   */
+  trait KyoTest extends TestModule {
+
+    /** The Kyo Test version to use, or the empty string, if you want to provide the Kyo Test-dependency yourself. */
+    def kyoTestVersion: T[String] = Task { "" }
+    override def testFramework: T[String] = "kyo.test.runner.SbtFramework"
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(kyoTestVersion())
+          .filter(!_.isBlank())
+          .map(v => mvn"io.getkyo::kyo-test-runner:${v.trim()}")
+    }
+  }
+
+  /**
    * TestModule that uses ScalaCheck Test Framework to run tests.
    * You can override the [[scalaCheckVersion]] task or provide the dependency yourself.
    */
@@ -760,6 +795,7 @@ object TestModule {
     def mandatoryMvnDeps: T[Seq[Dep]] = Seq()
     def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
     def bomMvnDeps: T[Seq[Dep]] = Seq()
+    def mandatoryBomMvnDeps: T[Seq[Dep]] = Seq()
   }
 
   trait ScalaModuleBase extends mill.Module {

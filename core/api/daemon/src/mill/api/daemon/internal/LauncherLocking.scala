@@ -54,6 +54,16 @@ private[mill] trait LauncherLocking extends AutoCloseable {
   ): LauncherLocking.Lease
 
   /**
+   * Non-blocking, non-queued Read counterpart of [[taskLock]].
+   * This lets callers preserve normal optimistic parallelism while still
+   * avoiding ordered wait cycles when the lock is actually contended.
+   */
+  def tryTaskReadLock(
+      path: Path,
+      displayLabel: String
+  ): Either[LauncherLocking.Contention, LauncherLocking.Lease]
+
+  /**
    * Non-blocking, non-queued Write counterpart of [[taskLock]].
    * See [[tryMetaBuildWriteLock]] for semantics.
    */
@@ -67,6 +77,17 @@ private[mill] trait LauncherLocking extends AutoCloseable {
    * [[awaitMetaBuildStateChange]].
    */
   def awaitTaskStateChange(path: Path, displayLabel: String, timeoutMs: Long): Unit
+
+  /**
+   * Monotonic version for a task output lock. Incremented after a successful
+   * task publish under the corresponding Write lock, and used by evaluations
+   * that temporarily drop retained Reads to detect whether their in-memory
+   * result became stale.
+   */
+  def taskVersion(path: Path): Long
+
+  /** Mark the given task output as rewritten and return its new version. */
+  def markTaskWritten(path: Path): Long
 
   /**
    * Daemon-wide lock taken by each task batch. Normal batches take Read so
@@ -168,9 +189,13 @@ private[mill] object LauncherLocking {
         kind: LockKind,
         waitReporter: WaitReporter
     ): Lease = NoopLease
+    override def tryTaskReadLock(path: Path, displayLabel: String): Either[Contention, Lease] =
+      Right(NoopLease)
     override def tryTaskWriteLock(path: Path, displayLabel: String): Either[Contention, Lease] =
       Right(NoopLease)
     override def awaitTaskStateChange(path: Path, displayLabel: String, timeoutMs: Long): Unit = ()
+    override def taskVersion(path: Path): Long = 0L
+    override def markTaskWritten(path: Path): Long = 0L
     override def exclusiveLock(kind: LockKind, waitReporter: WaitReporter): Lease = NoopLease
     override def withReleasedExclusive[T](waitReporter: WaitReporter)(body: => T): T = body
     override def close(): Unit = ()

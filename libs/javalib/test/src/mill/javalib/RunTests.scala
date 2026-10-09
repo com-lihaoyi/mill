@@ -28,6 +28,12 @@ object RunTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  object HelloJavaPackageAccessMain extends TestRootModule {
+    object app extends JavaModule
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
   object HelloJavaWithoutMain extends TestRootModule {
     object core extends JavaModule
     object app extends JavaModule {
@@ -40,6 +46,10 @@ object RunTests extends TestSuite {
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"
   val noMainResourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java-no-main"
+  val packageAccessMainResourcePath =
+    os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java-package-access-main"
+
+  private def requiresJava25: Boolean = Runtime.version().feature() >= 25
 
   def tests: Tests = Tests {
 
@@ -124,6 +134,21 @@ object RunTests extends TestSuite {
 
           assert(result.evalCount > 0)
       }
+
+      test("packageAccessStaticMainDiscovery") -
+        UnitTester(HelloJavaPackageAccessMain, packageAccessMainResourcePath).scoped { eval =>
+          val Right(found) =
+            eval.apply(HelloJavaPackageAccessMain.app.allLocalMainClasses).runtimeChecked
+          if (requiresJava25) {
+            assert(found.value == Seq("Main"))
+            val Right(result) = eval.apply(
+              HelloJavaPackageAccessMain.app.run(Task.Anon(Args()))
+            ).runtimeChecked
+            assert(result.evalCount > 0)
+          } else {
+            assert(found.value.isEmpty)
+          }
+        }
     }
 
     test("run") {

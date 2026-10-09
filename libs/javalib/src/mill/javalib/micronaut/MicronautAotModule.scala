@@ -3,7 +3,7 @@ package mill.javalib.micronaut
 import mill.{T, Task}
 import mill.api.{PathRef, experimental}
 import mill.util.Jvm
-import mill.javalib.{Dep, DepSyntax, JavaModule}
+import mill.javalib.{DepSyntax, JavaModule}
 
 /**
  * A module that provides Micronaut AOT processing functionality

@@ -20,7 +20,8 @@ private[mill] object ScalaJSConfig {
       scalaJSOptimizer: Boolean,
       scalaJSSourceMap: Boolean,
       patterns: OutputPatterns,
-      useWebAssembly: Boolean
+      useWebAssembly: Boolean,
+      useWebAssemblyJSPI: Boolean
   ): sjs.StandardConfig = {
 
     val moduleSplitStyle0 = moduleSplitStyle match {
@@ -43,6 +44,9 @@ private[mill] object ScalaJSConfig {
           case ESVersion.ES2019 => sjs.ESVersion.ES2019
           case ESVersion.ES2020 => sjs.ESVersion.ES2020
           case ESVersion.ES2021 => sjs.ESVersion.ES2021
+          case ESVersion.ES2022 => sjs.ESVersion.ES2022
+          case ESVersion.ES2023 => sjs.ESVersion.ES2023
+          case ESVersion.ES2024 => sjs.ESVersion.ES2024
         }
       )
 
@@ -55,11 +59,20 @@ private[mill] object ScalaJSConfig {
       }
 
     if (!minorIsGreaterThanOrEqual(sjsVersion, 6))
-      esFeatures0.esVersion match {
-        case sjs.ESVersion.ES5_1 | sjs.ESVersion.ES2015 =>
+      esFeatures.esVersion match {
+        case ESVersion.ES5_1 | ESVersion.ES2015 =>
         case v => throw new Exception(
             s"ESVersion $v is not supported with Scala.js < 1.6. Either update Scala.js or use one of ESVersion.ES5_1 or ESVersion.ES2015"
           )
+      }
+
+    if (!minorIsGreaterThanOrEqual(sjsVersion, 22))
+      esFeatures.esVersion match {
+        case ESVersion.ES2022 | ESVersion.ES2023 | ESVersion.ES2024 =>
+          throw new Exception(
+            s"ESVersion ${esFeatures.esVersion} is not supported with Scala.js < 1.22. Either update Scala.js or use ESVersion.ES2021 or earlier"
+          )
+        case _ =>
       }
 
     val moduleKind0 = moduleKind match {
@@ -86,10 +99,26 @@ private[mill] object ScalaJSConfig {
           .withSourceMapURI(patterns.sourceMapURI)
       )
 
+    if (useWebAssemblyJSPI && !useWebAssembly)
+      throw Exception(
+        "scalaJSUseWebAssemblyJSPI requires the WebAssembly backend to be enabled (set scalaJSUseWebAssembly = true)"
+      )
+
     if (useWebAssembly)
-      if (minorIsGreaterThanOrEqual(sjsVersion, 17))
+      if (minorIsGreaterThanOrEqual(sjsVersion, 22)) {
+        // Scala.js 1.22.0 stabilized WebAssembly support:
+        // withExperimentalUseWebAssembly was replaced by ESFeatures.withUseWebAssembly
+        val wasmEsFeatures = esFeatures0.withUseWebAssembly(true)
+        config = config.withESFeatures(wasmEsFeatures)
+        if (useWebAssemblyJSPI)
+          config = config.withWasmFeatures(_.withUseJSPI(true))
+      } else if (minorIsGreaterThanOrEqual(sjsVersion, 17)) {
         config = config.withExperimentalUseWebAssembly(true)
-      else
+        if (useWebAssemblyJSPI)
+          throw Exception(
+            "JSPI (JavaScript Promise Integration) requires Scala.js >= 1.22.0"
+          )
+      } else
         throw Exception("Emitting wasm is not supported with Scala.js < 1.17")
 
     config

@@ -3,7 +3,6 @@ package mill.androidlib.hilt
 import mill.androidlib.AndroidKotlinModule
 import mill.api.{ModuleRef, PathRef}
 import mill.kotlinlib.ksp.KspModule
-import mill.javalib.Dep
 import mill.javalib.api.CompilationResult
 import mill.{T, Task}
 

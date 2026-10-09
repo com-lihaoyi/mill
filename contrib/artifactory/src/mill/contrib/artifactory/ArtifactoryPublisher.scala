@@ -17,7 +17,7 @@ class ArtifactoryPublisher(
   private def prepareCreds(credentials: String, repoUri: String): String = {
     if (credentials.isEmpty) {
       val hostname = URI(repoUri).getHost
-      val coursierCreds = CoursierConfig.default().credentials.map(_.get).flatten
+      val coursierCreds = CoursierConfig.default().credentials.map(_.get()).flatten
       coursierCreds.find(cred =>
         cred.host == hostname && cred.usernameOpt.isDefined && cred.passwordOpt.isDefined
       ) match {

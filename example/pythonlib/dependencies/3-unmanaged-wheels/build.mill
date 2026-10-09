@@ -22,4 +22,10 @@ object `package` extends PythonModule {
 > ./mill run
 Hello, world!
 
+> ./mill show bundle
+".../out/bundle.dest/bundle"
+
+> out/bundle.dest/bundle
+Hello, world!
+
 */

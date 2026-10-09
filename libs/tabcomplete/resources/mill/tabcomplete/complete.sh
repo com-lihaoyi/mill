@@ -16,15 +16,32 @@ _mill_bash() {
   # in bash, keep $COLUMNS up-to-date; in zsh it’s automatic
   shopt -s checkwinsize 2>/dev/null
 
-  # grab raw, newline-split completions
-  local raw=( $("${COMP_WORDS[0]}" --tab-complete "$COMP_CWORD" "${COMP_WORDS[@]}") )
-  local trimmed=()
+  local tmpfile status raw trimmed
+  tmpfile=$(mktemp -t mill-complete.XXXXXX) || return 0
+
+  # write raw, newline-split completions into tmpfile
+  # setsid is isolation it from the `mill` foreground process,
+  # so that interrupting with `CTRL+C` is not terminating the shell
+  setsid --wait -- "${COMP_WORDS[0]}" --tab-complete "$COMP_CWORD" "${COMP_WORDS[@]}" \
+    >"$tmpfile" 2>/dev/null
+  status=$?
+
+  # capture interruptions, cleanup and return early
+  if (( status == 130 )); then
+    rm -f "$tmpfile"
+    COMPREPLY=()
+    return 0
+  fi
+
+  # raw lines
+  mapfile -t raw < "$tmpfile"
+  rm -f "$tmpfile"
 
   # trim each one
+  trimmed=()
   for line in "${raw[@]}"; do
     trimmed+=( "$(_mill_trim_line "$line")" )
   done
-
   COMPREPLY=( "${trimmed[@]}" )
 }
 

@@ -157,7 +157,8 @@ object `package` extends mill.Module {
         Seq(
           build.libs.javalib,
           build.libs.scalajslib.worker("1"),
-          build.libs.kotlinlib.worker
+          build.libs.kotlinlib.worker("1"),
+          build.libs.kotlinlib.worker("2-4")
         )
 
     def compileModuleDeps =
@@ -192,6 +193,35 @@ object `package` extends mill.Module {
     def compileModuleDeps = Seq(build.libs.javalib)
     def mvnDeps = Seq(Deps.jibCore)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
+  }
+
+  object vaadin extends ContribModule, BuildInfo {
+    def moduleDeps = Seq(vaadin.api)
+    def compileModuleDeps = Seq(build.libs.javalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
+    def localTestExtraModules = super.localTestExtraModules ++ Seq(worker)
+    override def buildInfoPackageName: String = "mill.contrib.vaadin.internal"
+    override def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq(
+      BuildInfo.Value(
+        "flowPluginBaseVersion",
+        Deps.vaadinFlowPluginBase.version,
+        "Version of flow-plugin-base the worker is compiled against, the oldest supported Flow version"
+      ),
+      BuildInfo.Value("slf4jSimpleVersion", Deps.RuntimeDeps.slf4jSimple_runtime.version)
+    )
+
+    /** API shared between the plugin and the worker classloader. */
+    object api extends MillPublishScalaModule
+
+    /**
+     * Drives Vaadin's frontend build tooling. Compiled against `flow-plugin-base`;
+     * at runtime, `flow-plugin-base` is resolved in the Flow version of the user's
+     * application and loaded together with this worker in an isolated classloader.
+     */
+    object worker extends MillPublishScalaModule {
+      def compileModuleDeps = Seq(vaadin.api)
+      def compileMvnDeps = Seq(Deps.vaadinFlowPluginBase)
+    }
   }
 
   // object bloop extends ContribModule with BuildInfo {

@@ -66,7 +66,8 @@ object LockUpgrade {
       tryAcquireWrite: () => Either[LauncherLocking.Contention, LauncherLocking.Lease],
       awaitStateChange: Long => Unit,
       waitReporter: LauncherLocking.WaitReporter,
-      awaitTimeoutMs: Long = 1000L
+      awaitTimeoutMs: Long = 1000L,
+      afterAcquire: () => Unit = () => ()
   )(
       readBody: Scope => Decision[T]
   )(
@@ -113,6 +114,12 @@ object LockUpgrade {
           case Decision.Escalate =>
             tryAcquireWrite() match {
               case Right(writeLease) =>
+                try afterAcquire()
+                catch {
+                  case t: Throwable =>
+                    writeLease.close()
+                    throw t
+                }
                 val writeScope = Scope(writeLease)
                 try {
                   val value = writeBody(writeScope)

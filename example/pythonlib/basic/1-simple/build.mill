@@ -16,7 +16,8 @@ object foo extends PythonModule {
 //
 // You can download the example project using the **download** link above,
 // or browse the full sources via the **browse** link.
-// Ensure you have a JVM installed; the `./mill` script manages all other dependencies.
+// You only need a JVM installed. Mill downloads https://docs.astral.sh/uv/[uv], which manages the
+// Python runtime and package dependencies used by the build.
 // All examples, from simple hello-world projects on this page to advanced
 // xref:pythonlib/web-examples.adoc[web build examples]
 // are fully executable and tested in Mill’s CI workflows.
@@ -71,7 +72,7 @@ Inputs:
 ...
 
 > ./mill foo.typeCheck  # TypeCheck the Python Files and notify errors
-Success: no issues found in 1 source file
+All checks passed!
 
 > ./mill foo.run --text "Hello Mill"  # run the main method with arguments
 <h1>Hello Mill</h1>
@@ -85,15 +86,20 @@ OK
 ...
 
 > ./mill show foo.bundle # Creates Bundle for the python file
-".../out/foo/bundle.dest/bundle.pex"
+".../out/foo/bundle.dest/bundle"
 
-> out/foo/bundle.dest/bundle.pex --text "Hello Mill" # running the PEX binary outside of Mill
+> out/foo/bundle.dest/bundle --text "Hello Mill" # running the self-contained bundle outside of Mill
 <h1>Hello Mill</h1>
+
+> ./mill clean
+
+> ./mill --offline show foo.bundle # PEX SCIE may download portable runtime assets
+error: ...PEX SCIE bundles cannot be built with --offline...
 
 > sed -i.bak 's/print(main())/print(maaain())/g' foo/src/foo.py
 
-> ./mill foo.typeCheck # if we make a typo in a method name, mypy flags it
-error: ...Name "maaain" is not defined...
+> ./mill foo.typeCheck || true # if we make a typo in a method name, ty flags it
+error[unresolved-reference]: ...
 
 */
 

@@ -4,7 +4,7 @@ import mill.api.{Discover, ExternalModule, PathRef, Result, ScriptModule}
 import mill.javalib.{TestModule, DepSyntax, Dep}
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerUtil
-import mill.util.Jvm
+import mill.util.{Jvm, Version}
 
 class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig) {
   override lazy val millDiscover = Discover[this.type]
@@ -17,26 +17,36 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     mvn"com.lihaoyi::mainargs:${mill.script.BuildInfo.mainargsVersion}"
   )
 
+  override protected def mandatoryScalacOptions: T[Seq[String]] = Task {
+    super.mandatoryScalacOptions() ++ Seq("-Ymagic-offset-header:SOURCE_CODE_START")
+  }
+
   override def allSourceFiles = Task {
     val original = scriptSource().path
+    val originalSourcecodePath = original.toString
     val scalaVer = scalaVersion()
-    if (!JvmWorkerUtil.isDottyOrScala3(scalaVer)) {
+    if (!ScalaModule.isSupportedScalaVersion(scalaVer)) {
       Result.Failure(
-        s"Scala scripts require Scala 3+. Detected scalaVersion=$scalaVer.",
+        s"Scala scripts require Scala ${ScalaModule.MinScalaVersion}+. Detected scalaVersion=$scalaVer.",
         original.toNIO
       )
     } else {
       val modified = Task.dest / original.last
       val sanitizedName = original.last.map(c => if (Character.isJavaIdentifierPart(c)) c else '_')
       val selfReference = s"${sanitizedName}_millScriptMainSelf"
+      val originalContent = os.read(original)
+      // A shebang is only valid on the first line of a file, but the generated source starts
+      // with the SOURCE_CODE_START header, so replace `#!` with `//` to keep line numbers and
+      // character offsets intact
+      val sourceContent =
+        if (originalContent.startsWith("#!")) "//" + originalContent.drop(2) else originalContent
       os.write(
         modified,
-        s"//SOURCECODE_ORIGINAL_FILE_PATH=$original\n" +
-          "//SOURCECODE_ORIGINAL_CODE_START_MARKER\n" +
-          os.read(original) +
+        s"///SOURCE_CODE_START:$originalSourcecodePath\n" +
+          sourceContent +
           System.lineSeparator +
           // Squeeze this onto one line so as not to affect line counts too much
-          s"type main = mainargs.main; private def $selfReference = this; object MillScriptMain_${sanitizedName} { def main(args: Array[String]): Unit = this.getClass.getMethods.find(m => m.getName == \"main\" && m.getParameters.map(_.getType) == Seq(classOf[Array[String]]) && m.getReturnType == classOf[Unit]) match{ case Some(m) => m.invoke($selfReference, args); case None => mainargs.Parser($selfReference).runOrExit(args) }}"
+          s"type main = mainargs.main; private def $selfReference = this; object MillScriptMain_${sanitizedName} { def main(args: Array[String]): Unit = this.getClass.getMethods.find(m => m.getName == \"main\" && m.getParameters.map(_.getType) == Array(classOf[Array[String]]) && m.getReturnType == classOf[Unit]) match{ case Some(m) => m.invoke($selfReference, args); case None => mainargs.Parser($selfReference).runOrExit(args.toIndexedSeq) }}"
       )
 
       Result.Success(Seq(PathRef(modified)))
@@ -94,6 +104,12 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
 }
 
 object ScalaModule {
+  private[script] val MinScalaVersion = "3.7.3"
+
+  private[script] def isSupportedScalaVersion(scalaVersion: String): Boolean =
+    JvmWorkerUtil.isScala3(scalaVersion) &&
+      Version.isAtLeast(scalaVersion, MinScalaVersion)(using Version.MavenOrdering)
+
   class Raw(val scriptConfig: ScriptModule.Config) extends ScalaModule.Base {
     override lazy val millDiscover = Discover[this.type]
   }
@@ -131,6 +147,10 @@ object ScalaModule {
   }
   class ZioTest(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig)
       with TestModule.ZioTest with mill.scalalib.ScalaModule.ScalaTests0 {
+    override lazy val millDiscover = Discover[this.type]
+  }
+  class KyoTest(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig)
+      with TestModule.KyoTest with mill.scalalib.ScalaModule.ScalaTests0 {
     override lazy val millDiscover = Discover[this.type]
   }
   class ScalaCheck(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig)

@@ -279,6 +279,24 @@ object ResolveDepsTests extends TestSuite {
       }
     }
 
+    test("dependencyManagementDoesNotMakeDependencyOptional") {
+      val repository =
+        os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "dependency-management-optional"
+      val result = Lib.resolveDependenciesMetadataSafe(
+        Seq(MavenRepository(repository.toNIO.toUri.toASCIIString)),
+        Seq(Lib.depToBoundDep(
+          mvn"com.example:managed-child:1.0",
+          scala212Version
+        )),
+        config = CoursierConfig.default()
+      )
+      val modules = result.get.minDependencies.map(_.module.repr).toSet
+
+      assert(modules.contains("com.example:managed-leaf"))
+      assert(modules.contains("com.example:profile-managed-leaf"))
+      assert(!modules.contains("com.example:optional-leaf"))
+    }
+
     test("forceVersion") {
       UnitTester(TestCase, null).scoped { eval =>
         def expectedClassPathFileNames(coreVersion: String) = Seq(

@@ -1,0 +1,37 @@
+mill-version: SNAPSHOT
+mill-jvm-version: 25
+extends: [mill.javalib.micronaut.MicronautAotModule, MavenModule, PublishModule]
+micronautPackage: example.micronaut.aot.generated
+micronautAotConfigFile: aot-jar.properties
+mvnDeps:
+- io.micronaut:micronaut-http-server-netty:5.0.2
+- io.micronaut.serde:micronaut-serde-jackson:3.0.0
+runMvnDeps:
+- ch.qos.logback:logback-classic:1.5.32
+bomMvnDeps:
+- io.micronaut.platform:micronaut-platform:5.0.2
+javacOptions: [-Amicronaut.processing.group=example.micronaut, -Amicronaut.processing.module=default]
+annotationProcessorsMvnDeps:
+- io.micronaut:micronaut-inject-java:5.0.2
+- io.micronaut:micronaut-http-validation:5.0.2
+- io.micronaut.serde:micronaut-serde-processor:3.0.0;exclude=io.micronaut:micronaut-inject
+artifactName: default
+pomSettings:
+  organization: example.micronaut
+publishVersion: 0.1
+repositories: ["https://s01.oss.sonatype.org/content/repositories/snapshots/", "https://central.sonatype.com/repository/maven-snapshots/"]
+
+object test:
+  extends: [MavenTests, TestModule.Junit5]
+  mvnDeps:
+  - io.micronaut:micronaut-http-client:5.0.2
+  - io.micronaut.test:micronaut-test-junit5:5.0.0
+  - org.junit.jupiter:junit-jupiter-api:6.0.3
+  - org.junit.jupiter:junit-jupiter-engine:6.0.3
+  runMvnDeps:
+  - ch.qos.logback:logback-classic:1.5.32
+  - org.junit.platform:junit-platform-launcher
+  bomMvnDeps: !append
+  - org.junit:junit-bom:6.0.3
+  testParallelism: false
+  testSandboxWorkingDir: false

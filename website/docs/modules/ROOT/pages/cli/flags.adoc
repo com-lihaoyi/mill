@@ -30,7 +30,7 @@ To see a cheat sheet of all the command line flags that Mill supports, you can u
 .Output of `mill --help`
 [,console]
 ----
-Mill Build Tool, version 1.1.6-36-5da273-DIRTYab7bf63d
+Mill Build Tool, version 1.1.6-96-4e2a50-DIRTY8beaeb86
 Usage: mill [options] task [task-options] [+ task ...]
 
 Task cheat sheet:
@@ -83,6 +83,7 @@ Options:
                          `1` disables parallelism and `0` (the default) uses 1 thread per core.
   -k --keep-going        Continue build, even after build failures.
   --no-daemon            Run without a long-lived background daemon.
+  --replay-logs          Replay logs for cached tasks.
   --ticker <bool>        Enable or disable the ticker log, which provides information on running
                          tasks and where each log line came from
   -v --version           Show mill version information and exit.

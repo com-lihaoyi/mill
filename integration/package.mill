@@ -99,6 +99,9 @@ object `package` extends mill.Module {
   trait IntegrationTestModule extends Cross.Module[String] with DefaultTaskModule {
     def moduleDir = super.moduleDir / crossValue
 
+    /** JVM used by the forked integration-test process. */
+    def testJvmVersion: String = ""
+
     def moduleDeps =
       Seq(build.libs.util.test, build.testkit, build.testkit.internal, build.runner.daemon)
 
@@ -116,10 +119,23 @@ object `package` extends mill.Module {
 
     trait ModeModule extends MillBaseTestsModule {
       override def testClasspath: T[Seq[PathRef]] = IntegrationTestModule.this.testClasspath()
+      override def jvmVersion = IntegrationTestModule.this.testJvmVersion
       def useSharedOut: Boolean
       override def enableBsp = false
-      def testForked0(args: String*) = Task.Anon {
-        sharedOutFolder().withValue(()) { workerInfo =>
+
+      def testForked0(
+          args: Seq[String] = Seq(),
+          forkEnv: Task[Map[String, String]] = Task.Anon { allForkEnv() }
+      ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
+
+        val env = forkEnv()
+        val skip = env.getOrElse(
+          "MILL_TEST_FORKED0_SKIP",
+          "0"
+        ) == "1" && env.get("MILL_EXAMPLE_COMMAND_OVERRIDE") != null
+
+        if (skip) (msg = "Skipped, no example mill project", results = Seq())
+        else sharedOutFolder().withValue(()) { workerInfo =>
           val testModuleUtil = new mill.javalib.TestModuleUtil(
             testUseArgsFile(),
             forkArgs(),
@@ -132,7 +148,7 @@ object `package` extends mill.Module {
             args,
             testForkGrouping(),
             jvmWorker().testrunnerEntrypointClasspath(),
-            allForkEnv() ++ (
+            env ++ (
               if (useSharedOut)
                 Map("MILL_TEST_SHARED_OUTPUT_DIR" -> "1", "PORT" -> workerInfo.port.toString)
               else Map.empty
@@ -152,7 +168,23 @@ object `package` extends mill.Module {
       override def testForked(args: String*) = Task.Command(
         selectiveInputs = IntegrationTestModule.this.selectiveInputs
       ) {
-        testForked0(args*)()
+        testForked0(args = args)()
+      }
+
+      /** Compile the example Mill project, but don't execute any additional tests. */
+      def testCompileExampleBuild = Task {
+        testForked0(
+          forkEnv = Task.Anon {
+            val isExampleTest =
+              discoveredTestClasses().contains("mill.testkit.UtestExampleTestSuite")
+            allForkEnv() ++ Map(
+              "MILL_EXAMPLE_COMMAND_OVERRIDE" -> "> mill -L1 compile",
+              "MILL_TEST_USE_IN_MEMORY" -> "1",
+              "MILL_TEST_FORKED0_SKIP" -> (if (isExampleTest) "0" else "1")
+            )
+          },
+          args = Seq("mill.testkit.UtestExampleTestSuite.exampleTest")
+        )()
       }
 
       def mode: String = moduleSegments.parts.last
@@ -189,7 +221,7 @@ object `package` extends mill.Module {
     override def defaultTask(): String = "testForked"
     def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
       Task.Command(selectiveInputs = selectiveInputs) {
-        fast.daemon.testForked0(args*)()
+        fast.daemon.testForked0(args)()
       }
 
     object fast extends IntegrationLauncherModule {
@@ -242,19 +274,19 @@ object `package` extends mill.Module {
 
   trait DedicatedIntegrationCrossModule extends IntegrationCrossModule {
     override def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
-      Task.Command(selectiveInputs = selectiveInputs) { proguard.daemon.testForked0(args*)() }
+      Task.Command(selectiveInputs = selectiveInputs) { proguard.daemon.testForked0(args)() }
   }
   trait MultimodeIntegrationCrossModule extends IntegrationCrossModule {
     override def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
-      Task.Command(selectiveInputs = selectiveInputs) { packaged.daemon.testForked0(args*)() }
+      Task.Command(selectiveInputs = selectiveInputs) { packaged.daemon.testForked0(args)() }
   }
   trait BootstrapIntegrationCrossModule extends IntegrationCrossModule {
     override def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
-      Task.Command(selectiveInputs = selectiveInputs) { native.daemon.testForked0(args*)() }
+      Task.Command(selectiveInputs = selectiveInputs) { native.daemon.testForked0(args)() }
   }
   trait MigrationIntegrationCrossModule extends IntegrationCrossModule {
     override def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
-      Task.Command(selectiveInputs = selectiveInputs) { packaged.daemon.testForked0(args*)() }
+      Task.Command(selectiveInputs = selectiveInputs) { packaged.daemon.testForked0(args)() }
     def forkEnv = super.forkEnv() ++ initRepos.all().map { case (name, path) =>
       s"MILL_INIT_REPO_$name" -> path
     }
@@ -286,6 +318,7 @@ object `package` extends mill.Module {
     )
 
     def forkArgs: T[Seq[String]] = Seq(
+      s"-Dmill.integration.mill-version=${build.millVersion()}",
       s"-Dmill.integration.coursier-version=${Deps.coursier.dep.versionConstraint.asString}"
     )
     def forkEnv = Task {
@@ -321,7 +354,8 @@ object `package` extends mill.Module {
     def moduleDeps = Seq(build.libs.util.test, build.runner.bsp, build.libs.javalib.testrunner)
     def mvnDeps = super.mvnDeps() ++ Seq(
       Deps.bsp4j,
-      Deps.scalaCliBsp
+      Deps.scalaCliBsp,
+      Deps.coursierInterface
     )
   }
 }

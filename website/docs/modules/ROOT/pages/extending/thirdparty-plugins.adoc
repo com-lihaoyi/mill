@@ -1173,6 +1173,42 @@ object app extends ScalaModule with StrictDepsModule {
 `strictDepsCheck` fails when a module has unused direct module dependencies or
 uses transitive module dependencies without declaring them directly.
 
+== Stryker4s
+
+Mutation testing for Scala. 
+
+Mutation testing introduces changes to your code, then runs your unit tests against the changed code. It is expected that your unit tests will now fail. If they don't fail, it might indicate your tests do not sufficiently cover the code. It is similar to code coverage, but instead of just measuring which lines of code are executed, it measures what code is actually tested.
+
+Project home: https://stryker-mutator.io
+
+Source: https://github.com/stryker-mutator/stryker4s
+
+.`build.mill`
+[source,scala,subs="attributes,verbatim"]
+----
+//| mvnDeps: ["io.stryker-mutator::mill-stryker4s::1.0.2"]
+
+import mill.*
+import mill.scalalib.*
+import stryker4s.mill.Stryker4sModule
+
+object app extends ScalaModule with Stryker4sModule {
+  // All settings are configurable and prefixed with `stryker`
+  def strykerExcludedMutations = Some(Seq("BooleanLiteral", "StringLiteral"))
+  def strykerReporters = Some(Seq("html", "json", "console"))
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"org.scalameta::munit:1.3.4")
+    def testFramework = "munit.Framework"
+  }
+}
+----
+
+.Run Stryker
+[source,console]
+----
+> ./mill app.stryker
+----
 
 == Universal Packager
 

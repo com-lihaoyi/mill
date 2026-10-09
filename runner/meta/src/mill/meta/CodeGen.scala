@@ -3,7 +3,8 @@ package mill.meta
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.constants.CodeGenConstants as CGConst
 import mill.api.Result
-import mill.api.internal.ModuleDepsResolver.{ModuleDepsEntry, ModuleDepsConfig}
+import mill.api.internal.ModuleDepsResolver.{ModuleDepsEntry, ModuleDepsConfig, ModuleLoc}
+import mill.api.internal.PrecompiledModulesInfo
 import mill.internal.Util.backtickWrap
 import mill.api.internal.*
 import pprint.Util.literalize
@@ -31,9 +32,48 @@ object CodeGen {
     )
   }
 
+  /**
+   * Per-kind deps map for a precompiled YAML, derived from its parsed `HeaderData`.
+   * Keys are the nested-module path (`""` for the top-level object, `"test"` for an
+   * `object test:` block, etc.). Values are the literal moduleDeps strings paired
+   * with their byte offset in the YAML for error reporting. Empty inner sequences
+   * are dropped so the maps shrink to only what's actually declared.
+   *
+   * Shared between the per-directory inline-alias codegen (which inlines these into
+   * generated `PrecompiledModuleRef.apply` calls) and the orphan-resource emitter
+   * (which serializes them to `mill/precompiled-modules.json` for the runtime root
+   * module to read).
+   */
+  private case class PrecompiledDepsByKind(
+      moduleDeps: Map[String, Seq[(String, Int)]],
+      compileModuleDeps: Map[String, Seq[(String, Int)]],
+      runModuleDeps: Map[String, Seq[(String, Int)]],
+      bomModuleDeps: Map[String, Seq[(String, Int)]]
+  )
+
+  private def precompiledDepsByKind(
+      scriptFile: os.Path,
+      headerData: HeaderData
+  ): PrecompiledDepsByKind = {
+    val allNestedDeps = HeaderData.collectAllNestedDeps(scriptFile, headerData, "")
+    def perKind(get: HeaderData.NestedModuleDeps => Seq[Located[String]])
+        : Map[String, Seq[(String, Int)]] =
+      allNestedDeps
+        .map(e => e.key -> get(e).map(d => (d.value, d.index)))
+        .filter(_._2.nonEmpty)
+        .toMap
+    PrecompiledDepsByKind(
+      moduleDeps = perKind(_.moduleDeps),
+      compileModuleDeps = perKind(_.compileModuleDeps),
+      runModuleDeps = perKind(_.runModuleDeps),
+      bomModuleDeps = perKind(_.bomModuleDeps)
+    )
+  }
+
   def generateWrappedAndSupportSources(
       projectRoot: os.Path,
       allScriptCode: Map[os.Path, String],
+      allPackageStatements: Map[os.Path, String],
       wrappedDest: os.Path,
       supportDest: os.Path,
       resourceDest: os.Path,
@@ -183,35 +223,22 @@ object CodeGen {
                 val lhs = backtickWrap(c)
                 val extendsClass = extendsLocated.value
                 val relPath = scriptFile.relativeTo(projectRoot)
+                val deps = precompiledDepsByKind(scriptFile, headerData)
 
-                // Use the shared collectAllNestedDeps to gather deps from all nesting levels
-                val allNestedDeps =
-                  HeaderData.collectAllNestedDeps(scriptFile, headerData, "")
-
-                // Convert NestedModuleDeps entries into (kind, mapEntry) pairs for codegen
-                val depsEntries = allNestedDeps.flatMap { entry =>
-                  Seq(
-                    ("moduleDeps", entry.key, entry.moduleDeps),
-                    ("compileModuleDeps", entry.key, entry.compileModuleDeps),
-                    ("runModuleDeps", entry.key, entry.runModuleDeps),
-                    ("bomModuleDeps", entry.key, entry.bomModuleDeps)
-                  ).collect {
-                    case (kind, k, deps) if deps.nonEmpty =>
-                      val depsCode = deps.map(d =>
-                        s"""_root_.mill.api.internal.PrecompiledModuleRef.resolveModuleRef(this, ${literalize(
-                            d.value
-                          )}, ${literalize(relPath.toString)}, ${d.index})"""
-                      ).mkString(", ")
-                      (kind, s"""${literalize(k)} -> _root_.scala.Seq($depsCode)""")
-                  }
-                }
-
-                def mapCode(kind: String) = {
-                  val entries = depsEntries.filter(_._1 == kind).map(_._2)
-                  if (entries.isEmpty)
+                def mapCode(byKind: Map[String, Seq[(String, Int)]]): String = {
+                  if (byKind.isEmpty)
                     "_root_.scala.collection.immutable.Map.empty[String, Seq[_root_.mill.api.Module]]"
-                  else
+                  else {
+                    val entries = byKind.toSeq.map { case (k, refs) =>
+                      val depsCode = refs.map { case (ref, idx) =>
+                        s"""_root_.mill.api.internal.PrecompiledModuleRef.resolveModuleRef(this, ${literalize(
+                            ref
+                          )}, ${literalize(relPath.toString)}, $idx)"""
+                      }.mkString(", ")
+                      s"""${literalize(k)} -> _root_.scala.Seq($depsCode)"""
+                    }
                     s"_root_.scala.collection.immutable.Map[String, Seq[_root_.mill.api.Module]](${entries.mkString(", ")})"
+                  }
                 }
 
                 val abstractDef = s"def $lhs: $extendsClass // precompiled module reference"
@@ -219,11 +246,11 @@ object CodeGen {
                   s"""final lazy val $lhs: $extendsClass = _root_.mill.api.internal.PrecompiledModuleRef(this, ${literalize(
                       relPath.toString
                     )}, ${literalize(extendsClass)}, () => ${mapCode(
-                      "moduleDeps"
+                      deps.moduleDeps
                     )}, () => ${mapCode(
-                      "compileModuleDeps"
-                    )}, () => ${mapCode("runModuleDeps")}, () => ${mapCode(
-                      "bomModuleDeps"
+                      deps.compileModuleDeps
+                    )}, () => ${mapCode(deps.runModuleDeps)}, () => ${mapCode(
+                      deps.bomModuleDeps
                     )}).asInstanceOf[$extendsClass] // precompiled module reference"""
                 (abstractDef, valDef)
               }
@@ -260,7 +287,10 @@ object CodeGen {
           // Each Located[String] contains (path, index, value) - we extract (value, index)
           def extractEntry(deps: Located[Appendable[Seq[Located[String]]]]): ModuleDepsEntry = {
             val appendable = deps.value
-            ModuleDepsEntry(appendable.value.map(loc => (loc.value, loc.index)), appendable.append)
+            ModuleDepsEntry(
+              appendable.value.map(loc => ModuleLoc(loc.value, loc.index)),
+              appendable.append
+            )
           }
 
           // Collect moduleDeps config for this module path and store in the map
@@ -269,13 +299,16 @@ object CodeGen {
           val compileModuleDepsEntry = extractEntry(data.compileModuleDeps)
           val runModuleDepsEntry = extractEntry(data.runModuleDeps)
           val bomModuleDepsEntry = extractEntry(data.bomModuleDeps)
+          val androidSdkModuleEntry =
+            data.androidSdkModule.value.map(loc => ModuleLoc(loc.value, loc.index))
 
           val config = ModuleDepsConfig(
             yamlPath = scriptPath.toString,
             moduleDeps = moduleDepsEntry,
             compileModuleDeps = compileModuleDepsEntry,
             runModuleDeps = runModuleDepsEntry,
-            bomModuleDeps = bomModuleDepsEntry
+            bomModuleDeps = bomModuleDepsEntry,
+            androidSdkModule = androidSdkModuleEntry
           )
 
           moduleDepsConfig(modulePathKey) = config
@@ -283,7 +316,7 @@ object CodeGen {
           // Always generate defs without override - use macro to get super value if it exists
           val pathLiteral = literalize(modulePathKey)
           def moduleDepsSnippet(name: String) =
-            s"def $name = _root_.mill.api.internal.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, ${literalize(name)}, _root_.mill.api.internal.ModuleDepsResolver.superMethod(${literalize(name)}))"
+            s"def $name = _root_.mill.api.internal.ModuleDepsResolver.resolveModules(build, $pathLiteral, ${literalize(name)}, _root_.mill.api.internal.ModuleDepsResolver.superMethod(${literalize(name)}))"
 
           val moduleDepsSnippets = Seq(
             moduleDepsSnippet("moduleDeps"),
@@ -292,12 +325,18 @@ object CodeGen {
             moduleDepsSnippet("bomModuleDeps")
           )
 
+          // Only emitted when YAML actually sets it. If unset, the object will fail due to
+          // an abstract member instead.
+          val androidSdkModuleSnippet = Option.when(androidSdkModuleEntry.isDefined)(
+            s"""def androidSdkModule = _root_.mill.api.internal.ModuleDepsResolver.resolveModuleRef(build, $pathLiteral, "androidSdkModule")"""
+          )
+
           val extendsSnippet =
             if (extendsConfig.nonEmpty)
               s" extends ${extendsConfig.mkString(", ")}, AutoOverride[_root_.mill.T[?]]"
             else " extends AutoOverride[_root_.mill.T[?]]"
 
-          val allSnippets = moduleDepsSnippets ++ Seq(
+          val allSnippets = moduleDepsSnippets ++ androidSdkModuleSnippet.toSeq ++ Seq(
             "inline def autoOverrideImpl[T](): T = ${ mill.api.Task.notImplementedImpl[T] }"
           ) ++ definitions
 
@@ -317,7 +356,7 @@ object CodeGen {
              |$aliasImports
              |import build.*
              |$prelude
-             |//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
+             |///SOURCE_CODE_START:$scriptPath
              |object package_ extends $newParent, package_ {
              |  ${
               if (segments.isEmpty) millDiscover(segments.nonEmpty, allPackageObjectRefs) else ""
@@ -349,11 +388,27 @@ object CodeGen {
             && !allowNestedBuildMillFiles
           ) break()
 
-          val scriptCode = allScriptCode(scriptPath)
+          val scriptCode0 = allScriptCode(scriptPath)
+          // Comment out the package statement by replacing the first 2 chars with "//"
+          // to preserve byte offsets for -Ymagic-offset-header position mapping. The
+          // statement is matched at the start of a line (it may be preceded by a YAML
+          // header and/or comments), so we don't accidentally match the same text
+          // appearing earlier inside a comment.
+          val scriptCode = allPackageStatements.get(scriptPath) match {
+            case Some(pkg) if pkg.length >= 2 =>
+              val idx =
+                if (scriptCode0.startsWith(pkg)) 0
+                else scriptCode0.indexOf("\n" + pkg) match {
+                  case -1 => -1
+                  case n => n + 1
+                }
+              if (idx >= 0)
+                scriptCode0.substring(0, idx) + "//" + scriptCode0.substring(idx + 2)
+              else scriptCode0
+            case _ => scriptCode0
+          }
 
-          val markerComment =
-            s"""//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
-               |//SOURCECODE_ORIGINAL_CODE_START_MARKER""".stripMargin
+          val markerComment = s"///SOURCE_CODE_START:$scriptPath\n"
 
           val siblingScripts = scriptSources
             .filter(_ != scriptPath)
@@ -374,8 +429,7 @@ object CodeGen {
                   |$importSiblingScripts
                   |
                   |object $wrapperName {
-                  |$markerComment
-                  |$scriptCode
+                  |$markerComment$scriptCode
                   |}
                   |
                   |export $wrapperName._
@@ -410,6 +464,59 @@ object CodeGen {
     os.write.over(
       resourceFile,
       upickle.default.write(moduleDepsConfig.toMap, indent = 2),
+      createFolders = true
+    )
+
+    // "Orphan" precompiled YAMLs are those with no compiled ancestor whose
+    // generated `package_` would wire them up via `precompiledChildNames`.
+    // The runtime root module reads this resource and appends them as direct
+    // children so they show up under `resolve _` and `BuildCtx.rootModule`.
+    //
+    // The orphan rule: a precompiled YAML at `<dir>/<name>.mill.yaml` is orphan
+    // iff its parent directory is a depth-1 subdirectory of projectRoot and
+    // projectRoot itself contains no compiled build/package script.
+    //
+    // We deliberately limit orphans to depth-1 because `ResolveCore` (see
+    // `core/resolve/src/mill/resolve/ResolveCore.scala:519`) materializes
+    // `DynamicModule` children using only `child.moduleSegments.last.value` —
+    // so a depth-2+ child's `moduleSegments` prefix is dropped on the resolve
+    // side, making the module addressable by the wrong name. Supporting deeper
+    // orphans requires synthesizing intermediate `DynamicModule` wrappers
+    // per missing segment; that's a follow-up.
+    val compiledScriptDirs: Set[os.Path] = scriptSources
+      .filter(p => allBuildFileNames.contains(p.last) && !precompiledModulePaths.contains(p))
+      .map(_ / os.up)
+      .toSet
+    val orphanPrecompileds: Seq[os.Path] = precompiledModulePaths.toSeq
+      .filter { p =>
+        val parentDir = p / os.up
+        // depth-1 only: parent is a direct subdirectory of projectRoot, and
+        // projectRoot has no compiled build/package script of its own.
+        parentDir != projectRoot &&
+        parentDir / os.up == projectRoot &&
+        !compiledScriptDirs.contains(projectRoot)
+      }
+      .sorted
+
+    val precompiledModuleEntries: Seq[PrecompiledModulesInfo.Entry] =
+      orphanPrecompileds.flatMap { yamlPath =>
+        val headerData = parsedYamlHeaderData(yamlPath)
+        headerData.`extends`.value.value.headOption.map { extendsLocated =>
+          val deps = precompiledDepsByKind(yamlPath, headerData)
+          PrecompiledModulesInfo.Entry(
+            relPath = yamlPath.relativeTo(projectRoot).toString,
+            extendsClass = extendsLocated.value,
+            moduleDeps = deps.moduleDeps,
+            compileModuleDeps = deps.compileModuleDeps,
+            runModuleDeps = deps.runModuleDeps,
+            bomModuleDeps = deps.bomModuleDeps
+          )
+        }
+      }
+
+    os.write.over(
+      resourceDest / "mill" / "precompiled-modules.json",
+      upickle.default.write(precompiledModuleEntries, indent = 2),
       createFolders = true
     )
 
@@ -479,17 +586,7 @@ object CodeGen {
           case None =>
             ()
         }
-        objectData.finalStat match {
-          case Some((_, finalStat)) =>
-            val statLines = finalStat.text.linesWithSeparators.toSeq
-            val fenced = Seq(
-              "",
-              if statLines.sizeIs > 1 then statLines.tail.mkString else finalStat.text
-            ).mkString(System.lineSeparator())
-            newScriptCode = finalStat.applyTo(newScriptCode, fenced)
-          case None => ()
-        }
-
+        var generatedStub: String = ""
         newScriptCode = objectData.parent.applyTo(
           newScriptCode,
           if (objectData.parent.text == null) {
@@ -509,25 +606,39 @@ object CodeGen {
               else ", " // no separator found, just use `,` by default
             }
 
-            newParent + sep + objectData.parent.text
+            val stub = "_MillRootModuleParents"
+              .take(objectData.parent.text.length)
+              .padTo(objectData.parent.text.length, ' ')
+
+            // The stub takes sourcecode.Line/File as using-parameters so that
+            // they are resolved at the `class package_ extends _MillRootM` site
+            // (which is in the -Ymagic-offset-header mapped region at the correct
+            // byte offset), rather than at the stub definition (which is after the
+            // user code and maps to a wrong position).
+            generatedStub =
+              s"abstract class $stub(using _root_.sourcecode.Line, _root_.sourcecode.File) extends $newParent$sep${objectData.parent.text}"
+
+            stub
           }
         )
 
         newScriptCode = objectData.name.applyTo(newScriptCode, CGConst.wrapperObjectName)
-        newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
+        newScriptCode = objectData.obj.applyTo(newScriptCode, "class")
 
         s"""$headerCode
-           |$markerComment
-           |$newScriptCode
-           |""".stripMargin
+           |
+           |$markerComment$newScriptCode""".stripMargin +
+          // Not sure why we need to mix System.lineSeparator and \n here, but it seems to
+          // result in the correct error position reporting for the following code on both
+          // windows and mac
+          System.lineSeparator + "\n" + generatedStub
 
       case None =>
         s"""$headerCode
            |abstract class ${CGConst.wrapperObjectName}
            |    extends $newParent { this: ${CGConst.wrapperObjectName}.type =>
            |$childAliasesDefs
-           |$markerComment
-           |$scriptCode
+           |$markerComment$scriptCode
            |}""".stripMargin
 
     }

@@ -1,3 +1,4 @@
+//| mill-jvm-version: zulu:21
 // This is how endless-tunnel from android ndk-sample can be built with mill.
 // The original code is in https://github.com/android/ndk-samples/tree/main/endless-tunnel
 

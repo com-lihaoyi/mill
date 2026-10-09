@@ -22,7 +22,7 @@ trait BootstrapRootModule()(using
   def bspScriptIgnoreAll: T[Seq[String]] = bspScriptIgnoreDefault() ++ bspScriptIgnore()
 
   /**
-   * Default set of BSP ignores, meant to catch the common case of `.java`, `.scala`, or `.kt`
+   * Default set of BSP ignores, meant to catch the common case of `.java`, `.scala`, `.sc`, or `.kt`
    * files that definitely aren't scripts, but for some reason aren't recognized as being in
    * a module's `def sources` task (e.g. maybe module import failed or something)
    */

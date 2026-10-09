@@ -1,10 +1,25 @@
 package millbuild
 
 import mill.*
-import mill.api.{Discover, PrecompiledModule}
+import mill.api.{BuildCtx, Discover, Module, PrecompiledModule}
 
 class SimpleJavaModule(val scriptConfig: PrecompiledModule.Config)
     extends mill.javalib.JavaModule
     with PrecompiledModule {
   override lazy val millDiscover = Discover[this.type]
+
+  // Walks the root module tree from within a task body. Used by the integration
+  // test to verify `BuildCtx.rootModule` exposes every top-level precompiled
+  // YAML module — not just the one this task happens to live in.
+  def listModules = Task {
+    BuildCtx.rootModule.asInstanceOf[Module]
+      .moduleInternal.modules.map(_.moduleSegments.render).toSeq
+  }
+
+  // Uses the `PrecompiledModule.all` discovery API. Equivalent to the
+  // BuildCtx.rootModule walk in `listModules` but without the cast/filter
+  // boilerplate at the call site.
+  def listPrecompiledModules = Task {
+    PrecompiledModule.all.map(_.moduleSegments.render)
+  }
 }

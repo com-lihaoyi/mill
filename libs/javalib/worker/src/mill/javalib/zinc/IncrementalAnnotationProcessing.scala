@@ -4,7 +4,7 @@ import mill.api.daemon.Logger
 import sbt.internal.inc.Analysis
 import xsbti.{PathBasedFile, VirtualFile, VirtualFileRef}
 import java.io.File
-import java.nio.file.Path
+import java.nio.file.{Path, Paths}
 import java.util.Optional
 import java.util.jar.JarFile
 import javax.annotation.processing.Processor
@@ -200,7 +200,7 @@ private[mill] object IncrementalAnnotationProcessing {
       tracker: CompileTracker
   ): Unit = {
     val managedProducts = analysis.relations.allProducts.iterator.flatMap { product =>
-      val path = os.Path(product.id)
+      val path = analysisProductPath(product.id, classesDir)
       Iterator.single(path) ++ auxiliaryClassFileExtensions.iterator.map { ext =>
         path / os.up / s"${path.last.stripSuffix(".class")}.$ext"
       }
@@ -228,6 +228,35 @@ private[mill] object IncrementalAnnotationProcessing {
           .toMap
       )
     )
+  }
+
+  private def analysisProductPath(productId: String, classesDir: os.Path): os.Path = {
+    val productNio = Paths.get(productId).normalize()
+    if (productNio.isAbsolute) os.Path(productNio)
+    else {
+      val productSegments = productNio.iterator().asScala.map(_.toString).toVector
+      val classesSegments = classesDir.wrapped.toAbsolutePath.normalize().iterator().asScala
+        .map(_.toString)
+        .toVector
+
+      def relPath(segments: Seq[String]): os.RelPath =
+        segments.foldLeft(os.rel)(_ / _)
+
+      val fromClassesDir = productSegments.indices.iterator
+        .flatMap { start =>
+          (math.min(classesSegments.length, productSegments.length - start) to 1 by -1)
+            .iterator
+            .collectFirst {
+              case length
+                  if classesSegments.takeRight(length) ==
+                    productSegments.slice(start, start + length) =>
+                relPath(productSegments.drop(start + length))
+            }
+        }
+        .nextOption()
+
+      classesDir / fromClassesDir.getOrElse(relPath(productSegments))
+    }
   }
 
   def previousExtraProducts(workDir: os.Path): Set[os.Path] = {

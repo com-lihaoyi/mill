@@ -96,9 +96,24 @@ object BuildGenYaml extends BuildGen {
       "def errorProneJavacEnableOptions",
       errorProneJavacEnableOptions
     ).foreach(lines += _)
+    renderScalaMvnDepValues(
+      "def annotationProcessorsMvnDeps",
+      annotationProcessorsMvnDeps
+    ).foreach(lines += _)
     springBootPlatformVersion.base.foreach(v =>
       lines += s"""def springBootPlatformVersion = "$v""""
     )
+    quarkusPlatformVersion.base.foreach(v =>
+      lines += s"""def quarkusPlatformVersion = "$v""""
+    )
+    kotlinVersion.base.foreach(v =>
+      lines += s"""def kotlinVersion = "$v""""
+    )
+    renderScalaOptValues("def kotlincOptions", kotlincOptions).foreach(lines += _)
+    renderScalaMvnDepValues("def kotlincPluginMvnDeps", kotlincPluginMvnDeps).foreach(lines += _)
+
+    artifactName.base.foreach(v => lines += s"def artifactName = $v")
+
     renderScalaOptValues("def scalacOptions", scalacOptions).foreach(lines += _)
     renderScalaMvnDepValues("def scalacPluginMvnDeps", scalacPluginMvnDeps).foreach(lines += _)
     testParallelism.base.foreach(v => lines += s"def testParallelism = $v")
@@ -228,6 +243,24 @@ object BuildGenYaml extends BuildGen {
       "springBootPlatformVersion",
       springBootPlatformVersion
     ).foreach(lines += _)
+    renderYamlStringValue(
+      "quarkusPlatformVersion",
+      quarkusPlatformVersion
+    ).foreach(lines += _)
+    renderYamlStringValue(
+      "kotlinVersion",
+      kotlinVersion
+    ).foreach(lines += _)
+    renderYamlStringListValues("kotlincOptions", kotlincOptions).foreach(lines += _)
+    renderYamlMvnDepsList("kotlincPluginMvnDeps", kotlincPluginMvnDeps).foreach(lines += _)
+    renderYamlStringValue("micronautPackage", micronautPackage).foreach(lines += _)
+    renderYamlStringValue("micronautAotConfigFile", micronautAotConfigFile).foreach(lines += _)
+    lines ++= renderYamlStringMap("micronautAotConfigProperties", micronautAotConfigProperties)
+
+    renderYamlStringValue(
+      "artifactGroupId",
+      artifactGroupId
+    ).foreach(lines += _)
 
     // BomModule cannot have sources - set empty sources/resources when BomModule is used
     val isBomModule = effectiveSupertypes.contains("BomModule")
@@ -283,6 +316,12 @@ object BuildGenYaml extends BuildGen {
       errorProneJavacEnableOptions
     ).foreach(lines += _)
 
+    // Annotation Processors
+    renderYamlMvnDepsList(
+      "annotationProcessorsMvnDeps",
+      annotationProcessorsMvnDeps
+    ).foreach(lines += _)
+
     // Publishing
     renderYamlStringValue("artifactName", artifactName).foreach(lines += _)
     // Always render pomSettings if the module has it (YAML will override any inherited value)
@@ -322,6 +361,8 @@ object BuildGenYaml extends BuildGen {
     "ScalaNativeModule" -> "mill.scalanativelib.ScalaNativeModule",
     "ErrorProneModule" -> "mill.javalib.errorprone.ErrorProneModule",
     "SpringBootModule" -> "spring.boot.SpringBootModule",
+    "QuarkusModule" -> "quarkus.QuarkusModule",
+    "MicronautAotModule" -> "mill.javalib.micronaut.MicronautAotModule",
     "ProjectBaseModule" -> "millbuild.ProjectBaseModule"
   )
 
@@ -376,7 +417,18 @@ object BuildGenYaml extends BuildGen {
   }
 
   private def renderYamlStringValue(name: String, value: Value[String]): Option[String] = {
-    value.base.filter(_.nonEmpty).map(v => s"$name: $v")
+    value.base.map(v => s"$name: ${yamlEscapeString(v)}")
+  }
+
+  private def renderYamlStringMap(name: String, value: Value[Map[String, String]]): Seq[String] = {
+    value.base.filter(_.nonEmpty).fold(Seq.empty[String]) { map =>
+      val lines = Seq.newBuilder[String]
+      lines += s"$name:"
+      for ((k, v) <- map.toSeq.sortBy(_._1)) {
+        lines += s"  $k: ${yamlEscapeString(v)}"
+      }
+      lines.result()
+    }
   }
 
   private def renderYamlBooleanValue(name: String, value: Value[Boolean]): Option[String] = {
@@ -450,12 +502,20 @@ object BuildGenYaml extends BuildGen {
 
   private def containsPlaceholder(s: String): Boolean = s.contains("${") && s.contains("}")
 
+  private val yamlQuoteContains = ":#\"'\n,"
+  private val yamlQuoteStarts = " {[*&!|>?@`"
+
+  private def needsQuoting(s: String, inList: Boolean): Boolean = {
+    s.isEmpty ||
+    s.exists(yamlQuoteContains.contains) ||
+    yamlQuoteStarts.contains(s.head) ||
+    s.endsWith(" ") ||
+    containsPlaceholder(s) ||
+    (inList && (s.contains("[") || s.contains("]")))
+  }
+
   private def yamlEscapeString(s: String): String = {
-    // Simple escaping for YAML strings - quote if contains special chars
-    if (
-      s.contains(":") || s.contains("#") || s.contains("\"") || s.contains("'") ||
-      s.contains("\n") || s.startsWith(" ") || s.endsWith(" ") || s.contains(",")
-    ) {
+    if (needsQuoting(s, inList = false)) {
       "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\""
     } else {
       s
@@ -463,12 +523,7 @@ object BuildGenYaml extends BuildGen {
   }
 
   private def yamlEscapeStringInList(s: String): String = {
-    // For list items, we need to quote strings containing commas, brackets, or other special chars
-    if (
-      s.contains(",") || s.contains("[") || s.contains("]") || s.contains(":") ||
-      s.contains("#") || s.contains("\"") || s.contains("'") || s.contains("\n") ||
-      s.startsWith(" ") || s.endsWith(" ")
-    ) {
+    if (needsQuoting(s, inList = true)) {
       "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\""
     } else {
       s

@@ -95,7 +95,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
         scriptFile.ext match {
           case "java" => Result.Success("mill.script.JavaModule")
           case "kt" => Result.Success("mill.script.KotlinModule")
-          case "scala" => Result.Success("mill.script.ScalaModule")
+          case "scala" | "sc" => Result.Success("mill.script.ScalaModule")
           case "groovy" => Result.Success("mill.script.GroovyModule")
           case _ =>
             Result.Failure(
@@ -193,8 +193,10 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
   def resolveScriptModule(scriptFile0: String, eval: Evaluator): Option[Result[ExternalModule]] = {
     val scriptFile = os.Path(scriptFile0, mill.api.BuildCtx.workspaceRoot)
     // Add a synthetic watch on `scriptFile`, representing the special handling
-    // of `staticBuildOverrides` which is read from the script file build header
-    mill.api.BuildCtx.evalWatch(scriptFile)
+    // of `staticBuildOverrides` which is read from the script file build header.
+    // Directory probes are not script files, and watching them would recursively
+    // digest their entire contents.
+    if (!os.isDir(scriptFile)) mill.api.BuildCtx.evalWatch(scriptFile)
 
     Option.when(os.isFile(scriptFile)) {
       // Check for recursive moduleDeps cycle
@@ -244,7 +246,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       }
   }
 
-  private val scriptExtensions = Set("scala", "java", "kt", "yaml")
+  private val scriptExtensions = Set("scala", "sc", "java", "kt", "yaml")
 
   /**
    * Discovers all script files in the given workspace directory.

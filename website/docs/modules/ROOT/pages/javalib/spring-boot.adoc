@@ -11,6 +11,10 @@ common in spring boot projects - application code, test suites, integration test
 but the rest of the documentation for xref:javalib/intro.adoc[Building Java with Mill] all
 still applies.
 
+SpringBootModule aims for an out of the box experience for Spring Boot projects. It provides a lot of features and sensible defaults (such as setting `-parameters` for javac options (`mandatoryJavacOptions`) and managing dependencies with `org.springframework.boot:spring-boot-dependencies` in the `bomMvnDeps`). It also allows you to customise and configure it as needed.
+
+The examples below show some of the features and configuration options available for Spring Boot projects.
+
 == Spring Boot Hello World App
 
 include::partial$example/javalib/springboot/1-hello-spring-boot.adoc[]

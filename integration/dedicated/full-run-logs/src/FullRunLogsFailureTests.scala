@@ -128,7 +128,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         List(
           "mill jar",
           "build.mill-<digits>] compile compiling 1 Scala source to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] [error] build.mill:77:1",
+          "build.mill-<digits>] [error] build.mill:76:1",
           "build.mill-<digits>] ?",
           "build.mill-<digits>] ^",
           "build.mill-<digits>] Illegal start of toplevel definition",

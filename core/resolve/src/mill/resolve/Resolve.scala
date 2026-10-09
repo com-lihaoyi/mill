@@ -269,10 +269,15 @@ object Resolve {
         )
 
       // Use MethodHandle.findSpecial to invoke the parent class method directly,
-      // bypassing virtual dispatch
+      // bypassing virtual dispatch. We use `parentClass` itself as the special-caller
+      // (rather than `p.getClass`) so that interface (trait) methods are invoked
+      // correctly even when `parentClass` is only an indirect superinterface of `p`'s
+      // concrete class: `invokespecial` of an interface method requires that interface
+      // to be a *direct* superinterface of the special-caller, which is only guaranteed
+      // when the special-caller is the declaring interface itself.
       val lookup = MethodHandles.privateLookupIn(parentClass, MethodHandles.lookup())
       val methodType = MethodType.methodType(method.getReturnType)
-      val handle = lookup.findSpecial(parentClass, taskName, methodType, p.getClass)
+      val handle = lookup.findSpecial(parentClass, taskName, methodType, parentClass)
 
       handle.invoke(p).asInstanceOf[Task.Named[?]]
     }

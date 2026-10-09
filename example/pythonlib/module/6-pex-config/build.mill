@@ -1,4 +1,4 @@
-// This Example is used to create a Python bundle (`bundle.pex`) for a Python project.
+// This example creates a self-contained native PEX SCIE bundle for a Python project.
 // The script defines key components such as the mainScript, dependencies,
 // options for Python compilation, and bundle creation settings.
 
@@ -38,15 +38,15 @@ object foo extends PythonModule {
 // ----
 //
 // After generating your bundle with `mill foo.bundle` you'll find by running
-// your `out/foo/bundle.dest/bundle.pex` you'll get the programmed output
+// your `out/foo/bundle.dest/bundle` you'll get the programmed output
 // and usage is based on project logic like which args to include with command.
 
 /** Usage
 
 > ./mill show foo.bundle
-".../out/foo/bundle.dest/bundle.pex"
+".../out/foo/bundle.dest/bundle"
 
-> out/foo/bundle.dest/bundle.pex
+> out/foo/bundle.dest/bundle
 ...
  _   _      _ _        __        __         _     _ 
 | | | | ___| | | ___   \ \      / /__  _ __| | __| |
@@ -55,7 +55,7 @@ object foo extends PythonModule {
 |_| |_|\___|_|_|\___/     \_/\_/ \___/|_|  |_|\__,_|
 ...
 
-> out/foo/bundle.dest/bundle.pex --text 'Hello Mill'
+> out/foo/bundle.dest/bundle --text 'Hello Mill'
 ...
  _   _      _ _         __  __ _ _ _ 
 | | | | ___| | | ___   |  \/  (_) | |

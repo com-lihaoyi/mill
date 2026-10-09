@@ -64,7 +64,7 @@ final class PgpSignerWorker extends PgpWorkerApi {
 
   override def extractSigningKeyId(secretKeyBase64: String): String = {
     val secretKey = loadSecretKey(secretKeyBase64, None)
-    java.lang.Long.toHexString(secretKey.getKeyID).toUpperCase
+    keyIdHex(secretKey)
   }
 
   override def generateKeyPair(
@@ -110,7 +110,7 @@ final class PgpSignerWorker extends PgpWorkerApi {
     val secretArmored = armor(secretKeyRing.getEncoded)
 
     PgpKeyMaterial(
-      keyIdHex = java.lang.Long.toHexString(secretKey.getKeyID).toUpperCase,
+      keyIdHex = keyIdHex(secretKey),
       publicKeyArmored = publicArmored,
       secretKeyArmored = secretArmored
     )
@@ -125,16 +125,26 @@ final class PgpSignerWorker extends PgpWorkerApi {
     val secretKeyRingCollection =
       PGPSecretKeyRingCollection(in, BcKeyFingerprintCalculator())
     val keys = secretKeyRingCollection.getKeyRings
+    var signingKeyWithoutPrivateMaterial = Option.empty[String]
     while (keys.hasNext) {
       val ring = keys.next().asInstanceOf[PGPSecretKeyRing]
       val secretKeys = ring.getSecretKeys
       while (secretKeys.hasNext) {
         val key = secretKeys.next()
-        val keyIdHex = java.lang.Long.toHexString(key.getKeyID).toUpperCase
-        if (key.isSigningKey && keyIdHint.forall(_.equalsIgnoreCase(keyIdHex))) return key
+        if (key.isSigningKey && keyIdHint.forall(_.equalsIgnoreCase(keyIdHex(key)))) {
+          if (!key.isPrivateKeyEmpty) return key
+          signingKeyWithoutPrivateMaterial = Some(keyIdHex(key))
+        }
       }
     }
-    throw PGPException("No signing key found in secret key ring.")
+    signingKeyWithoutPrivateMaterial.foreach { keyId =>
+      throw PGPException(s"Signing key $keyId has no private key material.")
+    }
+    throw PGPException(
+      keyIdHint.fold("No signing key found in secret key ring.") { id =>
+        s"No signing key matching key ID $id found in secret key ring."
+      }
+    )
   }
 
   private def extractPrivateKey(
@@ -143,8 +153,13 @@ final class PgpSignerWorker extends PgpWorkerApi {
   ) = {
     val decryptor = BcPBESecretKeyDecryptorBuilder(BcPGPDigestCalculatorProvider())
       .build(passphrase.map(_.toCharArray).orNull)
-    secretKey.extractPrivateKey(decryptor)
+    Option(secretKey.extractPrivateKey(decryptor)).getOrElse {
+      throw PGPException(s"Signing key ${keyIdHex(secretKey)} has no private key material.")
+    }
   }
+
+  private def keyIdHex(secretKey: org.bouncycastle.openpgp.PGPSecretKey): String =
+    java.lang.Long.toHexString(secretKey.getKeyID).toUpperCase
 
   private def armor(bytes: Array[Byte]): String = {
     val out = ByteArrayOutputStream()

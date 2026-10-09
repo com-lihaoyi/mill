@@ -377,55 +377,50 @@ object MillMain0 {
                             // metadata for subsequent runs.
                             if (skipSelectiveExecution)
                               os.remove(out / OutFiles.millSelectiveExecution)
-                            runArtifacts.publishLiveArtifacts()
-                            try mill.api.SystemStreamsUtils.withStreams(logger.streams) {
-                                mill.api.FilesystemCheckerEnabled.withValue(
-                                  !config.noFilesystemChecker.value
+                            mill.api.SystemStreamsUtils.withStreams(logger.streams) {
+                              mill.api.FilesystemCheckerEnabled.withValue(
+                                !config.noFilesystemChecker.value
+                              ) {
+                                tailManager.withOutErr(
+                                  logger.streams.out,
+                                  logger.streams.err
                                 ) {
-                                  tailManager.withOutErr(
-                                    logger.streams.out,
-                                    logger.streams.err
-                                  ) {
-                                    MillBuildBootstrap(
-                                      topLevelProjectRoot = BuildCtx.workspaceRoot,
-                                      output = out,
-                                      // In BSP server mode, evaluate as many tasks as possible
-                                      // so BSP responses can expose as much information as available.
-                                      keepGoing = bspMode || config.keepGoing.value,
-                                      imports = config.imports,
-                                      env = env ++ extraEnv,
-                                      ec = ec,
-                                      tasksAndParams = tasksAndParams,
-                                      prevCommandState =
-                                        prevState.getOrElse(RunnerLauncherState.empty),
-                                      logger = logger,
-                                      requestedMetaLevel =
-                                        config.metaLevel.orElse(metaLevelOverride),
-                                      allowPositionalCommandArgs =
-                                        config.allowPositional.value,
-                                      systemExit = systemExit,
-                                      streams0 = streams,
-                                      selectiveExecution = config.watch.value,
-                                      offline = config.offline.value,
-                                      useFileLocks = config.useFileLocks.value,
-                                      runArtifacts = runArtifacts,
-                                      metaBuild = new MetaBuildAccess(
-                                        ref = sharedState,
-                                        workspaceLocking = workspaceLocking
-                                      ),
-                                      reporter = reporter,
-                                      metaBuildReporter = metaBuildReporter,
-                                      enableTicker = enableTicker
-                                    ).evaluate()
-                                  }
+                                  MillBuildBootstrap(
+                                    topLevelProjectRoot = BuildCtx.workspaceRoot,
+                                    output = out,
+                                    // In BSP server mode, evaluate as many tasks as possible
+                                    // so BSP responses can expose as much information as available.
+                                    keepGoing = bspMode || config.keepGoing.value,
+                                    imports = config.imports,
+                                    env = env ++ extraEnv,
+                                    ec = ec,
+                                    tasksAndParams = tasksAndParams,
+                                    prevCommandState =
+                                      prevState.getOrElse(RunnerLauncherState.empty),
+                                    logger = logger,
+                                    requestedMetaLevel =
+                                      config.metaLevel.orElse(metaLevelOverride),
+                                    allowPositionalCommandArgs =
+                                      config.allowPositional.value,
+                                    systemExit = systemExit,
+                                    streams0 = streams,
+                                    selectiveExecution = config.watch.value,
+                                    offline = config.offline.value,
+                                    useFileLocks = config.useFileLocks.value,
+                                    runArtifacts = runArtifacts,
+                                    metaBuild = new MetaBuildAccess(
+                                      ref = sharedState,
+                                      workspaceLocking = workspaceLocking
+                                    ),
+                                    reporter = reporter,
+                                    metaBuildReporter = metaBuildReporter,
+                                    enableTicker = enableTicker,
+                                    replayLogs = config.replayLogs.value
+                                  ).evaluate()
                                 }
                               }
-                            // Publish in-progress, then republish after
-                            // logger close so the Windows copy fallback
-                            // for JSON-array logs sees the trailing `]`.
-                            finally runArtifacts.publishArtifacts()
+                            }
                           }
-                          runArtifacts.publishArtifacts()
                           state.withResources(workspaceLocking, runArtifacts, fileLockLease)
                         } catch {
                           case e: Throwable =>
@@ -550,12 +545,12 @@ object MillMain0 {
                       ) {
                         Using.resource(
                           runMillBootstrap(
-                            false,
-                            None,
+                            skipSelectiveExecution = false,
+                            prevState = None,
                             // Bootstrap-only: GenIdea only consumes the evaluators.
-                            Seq.empty,
-                            streams,
-                            "BSP:initialize"
+                            tasksAndParams = Seq.empty,
+                            streams = streams,
+                            millActiveCommandMessage = "mill.idea/"
                           )
                         ) { runnerState =>
                           runnerState.errorOpt match {
@@ -576,12 +571,12 @@ object MillMain0 {
                       ) {
                         Using.resource(
                           runMillBootstrap(
-                            false,
-                            None,
+                            skipSelectiveExecution = false,
+                            prevState = None,
                             // Bootstrap-only: GenEclipse only consumes the evaluators.
-                            Seq.empty,
-                            streams,
-                            "BSP:initialize"
+                            tasksAndParams = Seq.empty,
+                            streams = streams,
+                            millActiveCommandMessage = "mill.eclipse/"
                           )
                         ) { runnerState =>
                           runnerState.errorOpt match {
@@ -818,6 +813,7 @@ object MillMain0 {
   def readUsingMillVersionFile(file: os.Path): Option[String] = file match {
     case f if os.exists(f) =>
       os.read.lines(f)
+        .dropWhile(_.startsWith("#!"))
         .takeWhile(_.startsWith("//|"))
         .collectFirst {
           case usingMillVersionPattern(version) => version

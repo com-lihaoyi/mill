@@ -40,4 +40,6 @@ jobs:
       setup-android: ${{ matrix.setup-android }}
       java-version: 21
       millargs: ${{ matrix.millargs }}
+      mill-test-scheduled: 'true'
+      mill-test-timeout-minutes: '30'
       shell: bash

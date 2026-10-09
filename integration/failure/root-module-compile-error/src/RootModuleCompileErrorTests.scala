@@ -12,19 +12,19 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
 
       assert(!res.isSuccess)
 
-      // For now these error messages still show generated/mangled code; not ideal, but it'll do
+      // Errors for the extends clause are remapped to lines beyond the original
+      // file (the generated stub class), so line content is empty
       res.assertContainsLines(
-        "[error] build.mill:7:67",
-        "abstract class package_  extends _root_.mill.util.MainRootModule, UnknownRootModule {",
-        "                                                                  ^^^^^^^^^^^^^^^^^",
+        "[error] build.mill:12:130",
+        "",
+        "^",
         "Not found: type UnknownRootModule"
       )
 
-      // For now these error messages still show generated/mangled code; not ideal, but it'll do
       res.assertContainsLines(
-        "[error] foo/package.mill:6:113",
-        "abstract class package_  extends _root_.mill.api.internal.SubfolderModule(_root_.build_.package_.millDiscover), UnknownFooModule {",
-        "                                                                                                                ^^^^^^^^^^^^^^^^",
+        "[error] foo/package.mill:11:175",
+        "",
+        "^",
         "Not found: type UnknownFooModule"
       )
 
@@ -43,7 +43,7 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
       )
 
       res.assertContainsLines(
-        "[error] build.mill:12:22",
+        "[error] build.mill:11:22",
         "object after extends UnknownAfterModule",
         "                     ^^^^^^^^^^^^^^^^^^",
         "Not found: type UnknownAfterModule"
@@ -64,7 +64,7 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
       )
 
       res.assertContainsLines(
-        "[error] foo/package.mill:11:22",
+        "[error] foo/package.mill:10:22",
         "object after extends UnknownAfterFooModule",
         "                     ^^^^^^^^^^^^^^^^^^^^^",
         "Not found: type UnknownAfterFooModule"

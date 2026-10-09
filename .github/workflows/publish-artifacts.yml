@@ -46,7 +46,7 @@ jobs:
           publishartifacts: dist.native.publishArtifacts
           uploadgithub: false
 
-        # No windows-arm support becaues Graal native image doesn't support it
+        # No windows-arm support because Graal native image doesn't support it
         # https://github.com/oracle/graal/issues/9215
     env:
       MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
@@ -58,7 +58,7 @@ jobs:
       LC_ALL: "en_US.UTF-8"
       REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
 
       - run: ./mill mill.scalalib.SonatypeCentralPublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}

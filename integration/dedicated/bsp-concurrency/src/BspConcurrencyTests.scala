@@ -43,6 +43,21 @@ object BspConcurrencyTests extends UtestIntegrationTestSuite {
   private def exclusiveEnteredFile(tester: IntegrationTester.Impl): os.Path =
     tester.workspacePath / "gated-exclusive-entered"
 
+  private def orderedEventsFile(tester: IntegrationTester.Impl): os.Path =
+    tester.workspacePath / "ordered-events.log"
+
+  private def targetByDisplayName(
+      targets: b.WorkspaceBuildTargetsResult,
+      name: String
+  ): b.BuildTargetIdentifier =
+    targets.getTargets.asScala
+      .find(_.getDisplayName == name).map(_.getId).getOrElse(
+        throw new java.lang.AssertionError(
+          s"BSP exposed no `$name` target. Targets: " +
+            targets.getTargets.asScala.map(_.getDisplayName)
+        )
+      )
+
   /** Read the launcher record store to find the active PID for a given command. */
   private def activeLauncherPid(
       tester: IntegrationTester.Impl,
@@ -202,5 +217,51 @@ object BspConcurrencyTests extends UtestIntegrationTestSuite {
         if (cliLauncher.process.isAlive()) cliLauncher.process.waitFor(30000L)
       }
     }
+
+    test("concurrent-bsp-requests-do-not-deadlock-on-opposite-uncached-task-order") -
+      integrationTest { tester =>
+        import tester.*
+        assert(tester.daemonMode)
+
+        eval(
+          ("--bsp-install", "--jobs", "1"),
+          stdout = os.Inherit,
+          stderr = os.Inherit,
+          check = true,
+          env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
+        )
+
+        val bspStderr = new ByteArrayOutputStream
+        withBspServer(
+          workspacePath,
+          millTestSuiteEnv,
+          bspLog = Some((bytes, len) => bspStderr.write(bytes, 0, len))
+        ) { (buildServer, _) =>
+          val targets = buildServer.workspaceBuildTargets().get(30, TimeUnit.SECONDS)
+          val abTarget = targetByDisplayName(targets, "orderedAb")
+          val baTarget = targetByDisplayName(targets, "orderedBa")
+
+          val abCompile =
+            buildServer.buildTargetCompile(new b.CompileParams(Seq(abTarget).asJava))
+          val baCompile =
+            buildServer.buildTargetCompile(new b.CompileParams(Seq(baTarget).asJava))
+
+          val abResult = abCompile.get(60, TimeUnit.SECONDS)
+          val baResult = baCompile.get(60, TimeUnit.SECONDS)
+
+          assert(abResult.getStatusCode == b.StatusCode.OK)
+          assert(baResult.getStatusCode == b.StatusCode.OK)
+
+          val events = os.read.lines(orderedEventsFile(tester))
+          assert(events.count(_ == "A") >= 2)
+          assert(events.count(_ == "B") >= 2)
+
+          val stderr = bspStderr.toString
+          assert(
+            stderr.contains("blocked on write lock 'orderedSharedA'") ||
+              stderr.contains("blocked on write lock 'orderedSharedB'")
+          )
+        }
+      }
   }
 }

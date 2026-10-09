@@ -5,6 +5,7 @@ import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles.OutFiles
 import mill.api.SelectiveExecution.ChangedTasks
 import mill.api.*
+import mill.api.internal.EnvSignature
 import mill.exec.PlanImpl
 import mill.internal.{CodeSigUtils, InvalidationForest, SpanningForest}
 import mill.internal.SpanningForest.breadthFirst
@@ -16,10 +17,25 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       transitiveNamed: Seq[Task.Named[?]],
       codeSignatures: Map[String, Int]
   ): Map[String, Int] = {
-
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
+    computeHashCodeSignatures0(
+      transitiveNamed,
+      classToTransitiveClasses,
+      allTransitiveClassMethods,
+      codeSignatures
+    )
+  }
 
+  // The method-name table (`classToTransitiveClasses`/`allTransitiveClassMethods`) is a
+  // reflective function of `transitiveNamed` alone, so callers that diff two `codeSignatures`
+  // maps over the same `transitiveNamed` precompute it once and reuse it across both calls.
+  private def computeHashCodeSignatures0(
+      transitiveNamed: Seq[Task.Named[?]],
+      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]],
+      codeSignatures: Map[String, Int]
+  ): Map[String, Int] = {
     lazy val constructorHashSignatures = CodeSigUtils
       .constructorHashSignatures(codeSignatures)
 
@@ -60,19 +76,13 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       newHashes: SelectiveExecution.Metadata
   ): DownstreamResult = {
     val allTasks = transitiveNamed.map(t => t: Task[?])
-    def globalInvalidate(name: String, key: SelectiveExecution.Metadata => Any) = {
-      Option.when(key(oldHashes) != key(newHashes)) {
-        DownstreamResult(
-          allTasks.toSet,
-          allTasks,
-          globalInvalidationReason = Some(s"$name:${key(oldHashes)}->${key(newHashes)}")
-        )
-      }
-    }
+    def envSignature(m: SelectiveExecution.Metadata): EnvSignature =
+      EnvSignature(m.millVersion, m.millJvmVersion, m.classLoaderSigHash)
 
-    globalInvalidate("mill-version-changed", _.millVersion)
-      .orElse(globalInvalidate("mill-jvm-version-changed", _.millJvmVersion))
-      .orElse(globalInvalidate("classpath-changed", _.classLoaderSigHash))
+    envSignature(oldHashes).diffReasonsTo(envSignature(newHashes)).headOption
+      .map(reason =>
+        DownstreamResult(allTasks.toSet, allTasks, globalInvalidationReason = Some(reason))
+      )
       .getOrElse {
         val namesToTasks = transitiveNamed.map(t => (t.ctx.segments.render -> t)).toMap
 
@@ -85,9 +95,23 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         }
 
         val changedInputNames = diffMap(oldHashes.inputHashes, newHashes.inputHashes)
+        // Precompute the reflection-heavy method-name table once: it depends only on
+        // `transitiveNamed`, so reuse it for both the old and new `codeSignatures` diff.
+        val (classToTransitiveClasses, allTransitiveClassMethods) =
+          CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
         val changedCodeNames = diffMap(
-          computeHashCodeSignatures(transitiveNamed, oldHashes.codeSignatures),
-          computeHashCodeSignatures(transitiveNamed, newHashes.codeSignatures)
+          computeHashCodeSignatures0(
+            transitiveNamed,
+            classToTransitiveClasses,
+            allTransitiveClassMethods,
+            oldHashes.codeSignatures
+          ),
+          computeHashCodeSignatures0(
+            transitiveNamed,
+            classToTransitiveClasses,
+            allTransitiveClassMethods,
+            newHashes.codeSignatures
+          )
         )
         val changedBuildOverrides = diffMap(
           oldHashes.buildOverrideSignatures,
@@ -98,7 +122,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
           (changedInputNames ++ changedCodeNames ++ changedBuildOverrides ++ oldHashes.forceRunTasks)
             .flatMap(namesToTasks.get(_): Option[Task[?]])
 
-        val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.selectiveInputs)
+        val allNodes = breadthFirst(allTasks)(_.selectiveInputs)
         val downstreamEdgeMap =
           SpanningForest.reverseEdges(allNodes.map(t => (t, t.selectiveInputs)))
 
@@ -276,29 +300,25 @@ object SelectiveExecutionImpl {
 
       val results: Map[Task.Named[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: Task.Input[_] =>
-          val ctx = new mill.api.TaskCtx.Impl(
-            args = Vector(),
-            dest0 = () => null,
-            log = evaluator.baseLogger,
-            _env = evaluator.env,
-            reporter = _ => None,
-            testReporter = TestReporter.DummyTestReporter,
-            workspace = evaluator.workspace,
-            _systemExitWithReason = (reason, exitCode) =>
-              throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
-            fork = null,
-            jobs = evaluator.effectiveThreadCount,
-            offline = evaluator.offline,
-            useFileLocks = evaluator.useFileLocks
+          val ctx = EvaluatorImpl.inputTaskCtx(
+            evaluator,
+            evaluator.baseLogger,
+            _ => None,
+            TestReporter.DummyTestReporter
           )
 
           task -> task.evaluate(ctx).map(Val(_))
         }
         .toMap
 
+      // Don't `.get` a failing `Task.Input`: that throws and aborts selective metadata
+      // computation, which runs unguarded from `--watch` / `selective.prepare`. Hash a
+      // stable representation of the failure and carry it as an `ExecResult.Failure`.
       val inputHashes = results.map {
-        case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.##)
+        case (task, Result.Success(v)) => (task.ctx.segments.render, v.value.##)
+        case (task, f: Result.Failure) => (task.ctx.segments.render, f.errorOpt.##)
       }
+      val env = EnvSignature.current(evaluator.classLoaderSigHash)
       SelectiveExecution.Metadata.Computed(
         new SelectiveExecution.Metadata(
           inputHashes,
@@ -306,11 +326,17 @@ object SelectiveExecutionImpl {
           // Hash the actual build override values from YAML files
           allBuildOverrides.map { case (k, located) => (k, located.value.value.hashCode) },
           forceRunTasks = Set(),
-          millVersion = mill.constants.BuildInfo.millVersion,
-          millJvmVersion = sys.props("java.version"),
-          classLoaderSigHash = evaluator.classLoaderSigHash
+          millVersion = env.millVersion,
+          millJvmVersion = env.millJvmVersion,
+          classLoaderSigHash = env.classLoaderSigHash
         ),
-        results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
+        results.map { case (k, v) =>
+          val execRes: ExecResult[Val] = v match {
+            case Result.Success(value) => ExecResult.Success(value)
+            case f: Result.Failure => ExecResult.Failure(f.error, Some(f))
+          }
+          (k, execRes)
+        }
       )
     }
   }

@@ -15,7 +15,7 @@ def androidIsDebug = Task { false }
 To sign your APK for release, you need to provide the keystore information.
 [source,scala]
 ----
-def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+def androidReleaseKeyName: T[Option[String]] = Some("releaseKey.jks")
 def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
 def androidReleaseKeyPass: T[Option[String]] = Task.Input { Task.env.get("KEY_PASS") }
 def androidReleaseKeyStorePass: T[Option[String]] = Task.Input { Task.env.get("KEYSTORE_PASS") }

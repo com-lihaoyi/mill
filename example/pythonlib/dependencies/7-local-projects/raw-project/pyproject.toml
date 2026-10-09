@@ -1,0 +1,10 @@
+[project]
+name = "raw-uv-project"
+version = "0.1.0"
+
+[build-system]
+requires = ["uv_build>=0.12.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "raw_uv_project"

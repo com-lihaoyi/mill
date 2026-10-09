@@ -96,8 +96,13 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    * Default is derived from [[kotlinCompilerMvnDeps]].
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
+    val Array(major, minor) = kotlinVersion().split("[.]").take(2).map(_.toIntOption).padTo(2, None)
+    val usesDeprecatedApi = major.exists(_ < 2) || (major.contains(2) && minor.exists(_ < 4))
+    val workerModule =
+      if (usesDeprecatedApi) "mill-libs-kotlinlib-worker-1"
+      else "mill-libs-kotlinlib-worker-2-4"
     val deps = kotlinCompilerMvnDeps() ++ Seq(
-      Dep.millProjectModule("mill-libs-kotlinlib-worker")
+      Dep.millProjectModule(workerModule)
     )
     defaultResolver().classpath(
       deps,
@@ -303,6 +308,13 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val ctx = Task.ctx()
       val dest = ctx.dest
       val classes = dest / "classes"
+
+      val useBtApi = kotlincUseBtApi() && kotlinUseEmbeddableCompiler()
+      if (!useBtApi) {
+        // Non BT-API compiler is not incremental and does not keep track of older files,
+        // so we always need to start fresh.
+        os.remove.all(classes)
+      }
       os.makeDir.all(classes)
 
       val javaSourceFiles = allJavaSourceFiles().map(_.path)
@@ -355,9 +367,6 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           extraKotlinArgs
         ).flatten
 
-        val useBtApi =
-          kotlincUseBtApi() && kotlinUseEmbeddableCompiler()
-
         if (kotlincUseBtApi() && !kotlinUseEmbeddableCompiler()) {
           ctx.log.warn(
             "Kotlin Build Tools API requires kotlinUseEmbeddableCompiler=true; " +
@@ -366,12 +375,14 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
         }
 
         val workerResult =
-          KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
+          val kotlinWorkerManager = KotlinWorkerManager.kotlinWorker()
+          kotlinWorkerManager.withValue(kotlinCompilerClasspath()) {
             _.compile(
               target = KotlinWorkerTarget.Jvm,
               useBtApi = useBtApi,
               args = compilerArgs,
-              sources = kotlinSourceFiles ++ javaSourceFiles
+              sources = kotlinSourceFiles ++ javaSourceFiles,
+              classpath = compileCp
             )
           }
 
@@ -411,9 +422,11 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    * Prefer using this over [[kotlinFriendModules]].
    */
   private[kotlinlib] lazy val kotlinFriendModulesChecked: Seq[KotlinModule] = {
+    val deps = recursiveModuleDeps.toSet ++ compileModuleDeps
+    val missing = kotlinFriendModules.toSet.diff(deps)
     require(
-      kotlinFriendModules.toSet.subsetOf(moduleDepsChecked.toSet),
-      "All kotlinFriendModules must also be declared in moduleDeps"
+      missing.isEmpty,
+      s"All kotlinFriendModules must also be declared in moduleDeps/compileModuleDeps. Module ${this} is missing a dependency to ${missing.toSeq.map(_.toString).sorted.mkString(", ")}"
     )
     kotlinFriendModules.distinct
   }
@@ -539,7 +552,9 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     override def kotlincPluginMvnDeps: T[Seq[Dep]] =
       Task { outer.kotlincPluginMvnDeps() }
     override def kotlinFriendModules: Seq[KotlinModule] =
-      super.kotlinFriendModules ++ Seq(outer)
+      super.kotlinFriendModules ++
+        // auto-add outer module, iff we depend on it
+        Seq(outer).filter(recursiveModuleDeps.toSet ++ compileModuleDeps)
     override def kotlincOptions: T[Seq[String]] = Task {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources"))
     }
@@ -561,7 +576,9 @@ object KotlinModule {
     override def kotlincPluginMvnDeps: T[Seq[Dep]] =
       Task { outer.kotlincPluginMvnDeps() }
     override def kotlinFriendModules: Seq[KotlinModule] =
-      super.kotlinFriendModules ++ Seq(outer)
+      super.kotlinFriendModules ++
+        // auto-add outer module, iff we depend on it
+        Seq(outer).filter(recursiveModuleDeps.toSet ++ compileModuleDeps)
     override def kotlincOptions: T[Seq[String]] = Task {
       outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources"))
     }

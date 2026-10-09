@@ -40,6 +40,22 @@ object ScriptMainForwarderClassesTests extends UtestIntegrationTestSuite {
       // `def main(args: Array[String]): Unit` method takes priority over synthetic MillScriptMain_ method
       val res6 = eval(("RawMainSignature.scala:run", "iweightwiceasmuchasyou"))
       assert(res6.out == "iweightwiceasmuchasyouOMG")
+
+      val res7 = eval(("SourcecodeFile.scala:run"))
+      assert(res7.isSuccess)
+      assert(res7.out == "SourcecodeFile.scala")
+
+      val res8 = eval(("OldScala.scala:allSourceFiles"))
+      assert(!res8.isSuccess)
+      assert(res8.err.contains("Scala scripts require Scala 3.7.3+. Detected scalaVersion=3.7.2."))
+
+      val res9 = eval(("ExtensionAlias.sc:runMain", "main1", "--text", "short-extension"))
+      assert(res9.out == "short-extensionSC")
+
+      // A leading shebang line must not break compilation of the generated source
+      val res10 = eval(("Shebang.scala:run", "--text", "shebang"))
+      assert(res10.isSuccess)
+      assert(res10.out == "shebangQRS")
     }
   }
 }
