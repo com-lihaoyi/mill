@@ -13,10 +13,10 @@ object `package` extends SpringBootModule, MavenModule, PublishModule {
 
   def mvnDeps = Seq(
     mvn"org.springframework.boot:spring-boot-starter",
-    mvn"commons-io:commons-io:2.11.0"
+    mvn"commons-io:commons-io:2.22.0"
   )
 
-  def depManagement = Seq(mvn"commons-io:commons-io:2.11.0")
+  def depManagement = Seq(mvn"commons-io:commons-io:2.22.0")
 
   def artifactName = "demo"
 
