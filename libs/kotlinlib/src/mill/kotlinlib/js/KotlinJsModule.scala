@@ -16,6 +16,7 @@ import mill.{Args, T}
 import sbt.testing.Status
 import mill.api.JsonFormatters.given
 import mill.javalib.testrunner.TestResult
+import mill.api.opt.*
 
 import java.io.{File, FileNotFoundException}
 import java.util.zip.ZipFile
@@ -67,14 +68,16 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Lib.findSourceFiles(allSources(), Seq("kt")).map(PathRef(_))
   }
 
-  override protected def mandatoryKotlincOptions: T[Seq[String]] = Task {
-    super.mandatoryKotlincOptions().flatMap {
+  override protected def mandatoryKotlincOptions: T[Opts] = Task {
+    super.mandatoryKotlincOptions().flatMap { optGroup =>
       // -no-stdlib is a JVM-only flag and is rejected by the Kotlin/JS compiler.
-      case "-no-stdlib" => None
+      if (optGroup.contains("-no-stdlib")) Seq()
       // -Xfriend-paths is called -Xfriend-modules in the Kotlin/JS compiler
-      case option if option.startsWith("-Xfriend-paths=") =>
-        Some(option.replace("-Xfriend-paths=", "-Xfriend-modules="))
-      case other => Some(other)
+      else Seq(
+        optGroup.mapStartString { ss =>
+          ss.replace("-Xfriend-paths=", "-Xfriend-modules=")
+        }
+      )
     }
   }
 
@@ -82,7 +85,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Seq(mvn"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}")
 
   // Kotlin/JS doesn't support -module-name (uses -Xir-module-name instead, set in compile task)
-  override protected def kotlinModuleNameOption: T[Seq[String]] = Task { Seq.empty }
+  override protected def kotlinModuleNameOption: T[Opts] = Task { Opts() }
 
   override def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps) {
@@ -209,7 +212,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           kotlinVersion = kotlinVersion(),
           destinationRoot = Task.dest,
           artifactId = artifactId(),
-          extraKotlinArgs = allKotlincOptions() ++ extraKotlinArgs,
+          extraKotlinArgs = allKotlincOptions().toStringSeq ++ extraKotlinArgs,
           worker = kotlinWorker,
           useBtApi = kotlincUseBtApi()
         )
@@ -239,7 +242,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           kotlinVersion = kotlinVersion(),
           destinationRoot = Task.dest,
           artifactId = artifactId(),
-          extraKotlinArgs = allKotlincOptions(),
+          extraKotlinArgs = allKotlincOptions().toStringSeq,
           worker = kotlinWorker,
           useBtApi = kotlincUseBtApi()
         )
@@ -520,15 +523,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     // endregion
 
-    override def kotlincOptions: T[Seq[String]] = Task {
-      super.kotlincOptions().map { item =>
-        if (item.startsWith("-Xfriend-paths=")) {
-          // JVM -> JS option name
-          item.replace("-Xfriend-paths=", "-Xfriend-modules=")
-        } else {
-          item
-        }
-      }
+    override def kotlincOptions: T[Opts] = Task {
+      // JVM -> JS option name
+      super.kotlincOptions().mapGroup(_.mapStartString(
+        _.replace("-Xfriend-paths=", "-Xfriend-modules=")
+      ))
     }
 
     override def testFramework = ""

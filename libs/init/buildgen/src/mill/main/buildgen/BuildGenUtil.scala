@@ -36,8 +36,12 @@ object BuildGenUtil {
   }
 
   def renderImports(module: ModuleSpec): String = {
+    val defaults = Seq(
+      "mill.*",
+      "mill.api.opt.*"
+    )
     val imports = module.tree.flatMap(_.imports)
-    ("mill.*" +: imports).distinct.sorted.map("import " + _).mkString(lineSep)
+    (defaults ++ imports).distinct.sorted.map("import " + _).mkString(lineSep)
   }
 
   def renderExtendsClause(supertypes: Seq[String]): String = {
