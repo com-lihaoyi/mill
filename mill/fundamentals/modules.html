@@ -481,6 +481,10 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/vaadin.html">Vaadin</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
   </li>
 </ul>
@@ -701,7 +705,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.3.0-M1</span>
+    <span class="version">1.3.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -711,7 +715,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.3.0-M1</a>
+          <a href="../index.html">1.3.0</a>
         </li>
         <li class="version">
           <a href="../1.1.x/index.html">1.1.10</a>
@@ -785,7 +789,7 @@ path you would use to run tasks within that module from the command line. e.g.
 for the following <code>build.mill</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-fundamentals-modules-6-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/fundamentals/modules/6-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-fundamentals-modules-6-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/fundamentals/modules/6-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -1421,7 +1425,7 @@ object bar extends Bar</code></pre>
 as the root module of the file:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-fundamentals-modules-7-root-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/fundamentals/modules/7-root-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-fundamentals-modules-7-root-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/fundamentals/modules/7-root-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1507,7 +1511,7 @@ so far into a worked example: implementing our own minimal version of
 <code>mill.scalalib.JavaModule</code> from first principles.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-fundamentals-modules-8-diy-java-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/fundamentals/modules/8-diy-java-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-fundamentals-modules-8-diy-java-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/fundamentals/modules/8-diy-java-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -1946,7 +1950,7 @@ developed, so you can define your own custom modules when the need arises.</p>
 allows them to be run directly without needing the task name provided explicitly:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-fundamentals-modules-12-default-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/fundamentals/modules/12-default-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-fundamentals-modules-12-default-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/fundamentals/modules/12-default-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1987,7 +1991,7 @@ task to run, e.g. Mill <code>TestModule`s have `test</code> as the default comma
 <h2 id="_backticked_names"><a class="anchor" href="#_backticked_names"></a>Backticked Names</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-fundamentals-modules-9-backticked-names.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/fundamentals/modules/9-backticked-names">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-fundamentals-modules-9-backticked-names.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/fundamentals/modules/9-backticked-names">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -2088,7 +2092,7 @@ shorthand aliases for external modules that have long names, such as
 <code>mill.javalib.palantirformat.PalantirFormatModule</code> below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-fundamentals-modules-10-external-module-aliases.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/fundamentals/modules/10-external-module-aliases">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-fundamentals-modules-10-external-module-aliases.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/fundamentals/modules/10-external-module-aliases">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -2129,7 +2133,7 @@ a <code>ModuleRef(&#8230;&#8203;)</code> to wrap the abstract module, such that 
 not participate in task query resolution:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-fundamentals-modules-11-abstract-module-ref.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/fundamentals/modules/11-abstract-module-ref">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-fundamentals-modules-11-abstract-module-ref.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/fundamentals/modules/11-abstract-module-ref">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*

@@ -481,6 +481,10 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/vaadin.html">Vaadin</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
   </li>
 </ul>
@@ -701,7 +705,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.3.0-M1</span>
+    <span class="version">1.3.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -711,7 +715,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.3.0-M1</a>
+          <a href="../index.html">1.3.0</a>
         </li>
         <li class="version">
           <a href="../1.1.x/index.html">1.1.10</a>
@@ -763,7 +767,7 @@
 <h2 id="_hello_spark"><a class="anchor" href="#_hello_spark"></a>Hello Spark</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-scalalib-spark-1-hello-spark.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/scalalib/spark/1-hello-spark">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-scalalib-spark-1-hello-spark.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/scalalib/spark/1-hello-spark">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -827,13 +831,18 @@ object foo extends ScalaModule {
 <h2 id="_hello_pyspark"><a class="anchor" href="#_hello_pyspark"></a>Hello Pyspark</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-scalalib-spark-2-hello-pyspark.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/scalalib/spark/2-hello-pyspark">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-scalalib-spark-2-hello-pyspark.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/scalalib/spark/2-hello-pyspark">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill.*, pythonlib.*
 
 object foo extends PythonModule {
+
+  // PySpark + bundled Hadoop call `Subject.getSubject(AccessControlContext)`,
+  // which throws `UnsupportedOperationException` on JDK 24+. Pin the JDK
+  // PySpark launches to JDK 21 (via `JAVA_HOME`) until Spark/Hadoop catch up.
+  def jvmVersion = "21"
 
   def mainScript = Task.Source("src/foo.py")
   def pythonDeps = Seq("pyspark==4.0.1")
@@ -870,7 +879,7 @@ OK
 <h2 id="_semi_realistic_spark_project_with_spark_submit"><a class="anchor" href="#_semi_realistic_spark_project_with_spark_submit"></a>Semi-Realistic Spark Project with Spark Submit</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-scalalib-spark-3-semi-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/scalalib/spark/3-semi-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-scalalib-spark-3-semi-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/scalalib/spark/3-semi-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 

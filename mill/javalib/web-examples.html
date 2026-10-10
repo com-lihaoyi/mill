@@ -481,6 +481,10 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/vaadin.html">Vaadin</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
   </li>
 </ul>
@@ -701,7 +705,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.3.0-M1</span>
+    <span class="version">1.3.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -711,7 +715,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.3.0-M1</a>
+          <a href="../index.html">1.3.0</a>
         </li>
         <li class="version">
           <a href="../1.1.x/index.html">1.1.10</a>
@@ -767,7 +771,7 @@ It covers setting up a basic backend server with a variety of server frameworks<
 <p>This example shows off running a simple webserver in a module configured via <code>build.mill.yaml</code></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/javalib/web/1-web-example/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/javalib/web/1-web-example/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
 mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.5.6]</code></pre>
@@ -778,7 +782,7 @@ mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.5.6]</code></pre>
 to run the web server</p>
 </div>
 <div class="listingblock">
-<div class="title">src/WebServer.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/javalib/web/1-web-example/src/WebServer.java">browse</a>)</div>
+<div class="title">src/WebServer.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/javalib/web/1-web-example/src/WebServer.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
@@ -819,7 +823,7 @@ configured by <code>test/package.mill.yaml</code>. This test suite spins up the 
 makes a single HTTP request against and checks it behaves as expected.</p>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/javalib/web/1-web-example/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/javalib/web/1-web-example/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.JavaTests, TestModule.Junit5]
 mvnDeps:
@@ -849,7 +853,7 @@ Test example.WebServerTests#testReverseString() finished...</code></pre>
 <h2 id="_jetty_hello_world_app"><a class="anchor" href="#_jetty_hello_world_app"></a>Jetty Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-javalib-web-2-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/javalib/web/2-hello-jetty/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-javalib-web-2-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/javalib/web/2-hello-jetty/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
 mvnDeps:
@@ -883,7 +887,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <h2 id="_micronaut_hello_world_app"><a class="anchor" href="#_micronaut_hello_world_app"></a>Micronaut Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-javalib-web-3-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/javalib/web/3-hello-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-javalib-web-3-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/javalib/web/3-hello-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -979,7 +983,7 @@ extended with more features as necessary.</p>
 <h2 id="_micronaut_todomvc_app"><a class="anchor" href="#_micronaut_todomvc_app"></a>Micronaut TodoMvc App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-javalib-web-4-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/javalib/web/4-todo-micronaut/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-javalib-web-4-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/javalib/web/4-todo-micronaut/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: MavenModule
 bomMvnDeps:
@@ -1019,7 +1023,7 @@ mvnDeps:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-javalib-web-4-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/javalib/web/4-todo-micronaut/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-javalib-web-4-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/javalib/web/4-todo-micronaut/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [MavenTests, TestModule.Junit5]
 bomMvnDeps:
@@ -1093,7 +1097,7 @@ and can be extended to cover additional functionality in future</p>
 It uses Micronaut AOT to optimize the application for the native image generation.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-javalib-web-5-micronaut-native.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/javalib/web/5-micronaut-native/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-javalib-web-5-micronaut-native.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/javalib/web/5-micronaut-native/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [MavenModule, mill.javalib.micronaut.MicronautNativeAotModule]
 micronautPackage: hello.world
@@ -1144,7 +1148,7 @@ runMvnDeps:
 <h2 id="_quarkus_example"><a class="anchor" href="#_quarkus_example"></a>Quarkus Example</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-javalib-web-6-quarkus-getting-started.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/javalib/web/6-quarkus-getting-started/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-javalib-web-6-quarkus-getting-started.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/javalib/web/6-quarkus-getting-started/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.quarkus.QuarkusModule, MavenModule]
 jvmVersion: graalvm-community:23.0.1
@@ -1221,7 +1225,7 @@ It uses H2 for the database, Hibernate ORM with Panache for the data access laye
 and Qute for HTML templating.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-javalib-web-7-quarkus-todo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/javalib/web/7-quarkus-todo">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-javalib-web-7-quarkus-todo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/javalib/web/7-quarkus-todo">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1301,6 +1305,169 @@ object `package` extends QuarkusModule, MavenModule {
     }
   ]
 }</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_vaadin_flow_example"><a class="anchor" href="#_vaadin_flow_example"></a>Vaadin Flow Example</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This example builds a <a href="https://vaadin.com/flow">Vaadin Flow</a> web application
+running on Spring Boot, using the <code>mill-contrib-vaadin</code> plugin:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The module mixes in <code>mill.contrib.vaadin.VaadinModule</code>: <code>./mill run</code> starts
+the application in Vaadin&#8217;s development mode</p>
+</li>
+<li>
+<p>The <code>prod</code> sub-module extends <code>VaadinProdModule</code>: it is the production build
+of the same application. <code>prod.vaadinBuildFrontend</code> runs Vaadin&#8217;s production
+frontend build, the equivalent of the <code>prepare-frontend</code> and <code>build-frontend</code>
+goals of the Maven plugin: <code>npm install</code> and a Vite bundle in <code>META-INF/VAADIN</code>.
+<code>prod.run</code> runs the application with this bundle, and as <code>prod</code> also mixes in
+<code>RepackageModule</code>, <code>prod.repackagedJar</code> packages it as an executable jar</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Development-only dependencies such as <code>com.vaadin:vaadin-dev</code> go into the
+<code>runMvnDeps</code> of the Vaadin module: <code>./mill run</code> uses them, while <code>prod</code> leaves
+them out. Runtime dependencies of the production build go into <code>prod&#8217;s own
+`runMvnDeps</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-javalib-web-8-vaadin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/javalib/web/8-vaadin/build.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-build:
+  mvnDeps:
+  - com.lihaoyi::mill-contrib-vaadin:$MILL_VERSION
+
+mill-jvm-version: 21
+extends: mill.contrib.vaadin.VaadinModule
+mainClass: com.example.Application
+
+bomMvnDeps:
+- org.springframework.boot:spring-boot-dependencies:4.1.1
+- com.vaadin:vaadin-bom:25.3.0
+
+mvnDeps:
+- com.vaadin:vaadin-spring-boot-starter
+
+# Development mode only: used by `./mill run`, left out of the production build
+runMvnDeps:
+- com.vaadin:vaadin-dev
+
+# Production build, packaged as an executable Spring Boot jar
+object prod:
+  extends: [VaadinProdModule, mill.javalib.repackage.RepackageModule]</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/com/example/Application.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-javalib-web-8-vaadin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/javalib/web/8-vaadin/src/com/example/Application.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.example;
+
+import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.theme.Theme;
+import com.vaadin.flow.theme.lumo.Lumo;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+@Theme(themeClass = Lumo.class)
+public class Application implements AppShellConfigurator {
+
+  public static void main(String[] args) {
+    SpringApplication.run(Application.class, args);
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/com/example/MainView.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-javalib-web-8-vaadin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/javalib/web/8-vaadin/src/com/example/MainView.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.example;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.Route;
+
+@Route("")
+public class MainView extends VerticalLayout {
+
+  public MainView() {
+    TextField name = new TextField("Your name");
+    Button greet =
+        new Button("Say hello", event -&gt; Notification.show("Hello, " + name.getValue() + "!"));
+    add(new H1("Hello Vaadin"), name, greet);
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The frontend build uses the Flow version of the application&#8217;s classpath, here
+managed by <code>vaadin-bom</code>. Vaadin&#8217;s build tooling requires Java 21, hence the
+<code>mill-jvm-version</code> above.</p>
+</div>
+<div class="paragraph">
+<p>Frontend sources such as themes, stylesheets or TypeScript views go into
+<code>frontend/</code>, next to <code>src/</code> and <code>resources/</code>; Vaadin also generates files into
+<code>frontend/generated/</code>. A <code>MavenModule</code> uses Vaadin&#8217;s default <code>src/main/frontend</code>
+instead, and <code>vaadinFrontendDir</code> can point anywhere else.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show vaadinFlowVersion
+"25.3.0"
+
+&gt; ./mill runBackground
+
+&gt; for i in $(seq 1 300); do curl -sf localhost:${PORT:-8080} -o page.html &amp;&amp; ! grep -q devServerIsNotLoaded page.html &amp;&amp; break; sleep 1; done # mac/linux
+
+&gt; curl http://localhost:${PORT:-8080} # mac/linux
+...window.Vaadin.developmentMode = true;...
+
+&gt; ls frontend/generated # mac/linux
+...jar-resources...
+
+&gt; ./mill clean runBackground
+
+&gt; ./mill prod.vaadinBuildFrontend
+...
+
+&gt; ls out/prod/vaadinFrontendBuild.dest/servlet-resources/META-INF/VAADIN/config
+...flow-build-info.json...
+
+&gt; ./mill prod.runBackground
+
+&gt; curl http://localhost:${PORT:-8080} # mac/linux
+...&lt;script type="module" crossorigin src="VAADIN/build/indexhtml-...
+
+&gt; ./mill clean prod.runBackground
+
+&gt; ./mill show prod.repackagedJar
+...out/prod/repackagedJar.dest/out.jar...
+
+&gt; java -jar out/prod/repackagedJar.dest/out.jar &gt; prod.log 2&gt;&amp;1 &amp; echo $! &gt; prod.pid # mac/linux
+
+&gt; curl http://localhost:${PORT:-8080} # mac/linux
+...&lt;script type="module" crossorigin src="VAADIN/build/indexhtml-...
+
+&gt; kill $(cat prod.pid) # mac/linux</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The executable jar runs the application in Vaadin&#8217;s production mode:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; java -jar out/prod/repackagedJar.dest/out.jar</code></pre>
 </div>
 </div>
 </div>

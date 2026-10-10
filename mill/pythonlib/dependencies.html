@@ -481,6 +481,10 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/vaadin.html">Vaadin</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
   </li>
 </ul>
@@ -701,7 +705,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.3.0-M1</span>
+    <span class="version">1.3.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -711,7 +715,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.3.0-M1</a>
+          <a href="../index.html">1.3.0</a>
         </li>
         <li class="version">
           <a href="../1.1.x/index.html">1.1.10</a>
@@ -755,8 +759,8 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>This page goes into more detail about configuring third party dependencies
-for <code>PythonModule</code>s.</p>
+<p>This page goes into more detail about configuring package-index, wheel, and
+local-project dependencies for `PythonModule`s.</p>
 </div>
 </div>
 </div>
@@ -764,7 +768,7 @@ for <code>PythonModule</code>s.</p>
 <h2 id="_adding_dependencies"><a class="anchor" href="#_adding_dependencies"></a>Adding Dependencies</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-pythonlib-dependencies-1-pip-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/pythonlib/dependencies/1-pip-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-pythonlib-dependencies-1-python-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/pythonlib/dependencies/1-python-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -781,8 +785,8 @@ object `package` extends PythonModule {
 </div>
 <div class="paragraph">
 <p>You can define the <code>pythonDeps</code> field to add dependencies to your module, which will be installed
-via <a href="https://pip.pypa.io/en/stable/">pip</a>. Dependencies can include
-<a href="https://peps.python.org/pep-0440/">anything that pip understands</a>, such as <code>&lt;package&gt;==&lt;version&gt;</code>
+via <a href="https://docs.astral.sh/uv/pip/">uv</a>. Dependencies can include
+<a href="https://peps.python.org/pep-0440/">standard dependency specifications</a>, such as <code>&lt;package&gt;==&lt;version&gt;</code>
 constraints, or even direct references to wheels.</p>
 </div>
 <div class="listingblock">
@@ -798,7 +802,7 @@ constraints, or even direct references to wheels.</p>
 useful if you&#8217;re migrating an existing project to mill.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-pythonlib-dependencies-2-pip-requirements.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/pythonlib/dependencies/2-pip-requirements">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-pythonlib-dependencies-2-requirements.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/pythonlib/dependencies/2-requirements">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -811,6 +815,12 @@ object `package` extends PythonModule {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
+[10 20 30 40 50]
+
+&gt; ./mill show bundle
+".../out/bundle.dest/bundle"
+
+&gt; out/bundle.dest/bundle
 [10 20 30 40 50]</code></pre>
 </div>
 </div>
@@ -827,7 +837,7 @@ you receive a wheel or folder-full-of-wheels from somewhere and need to
 include it in your project, <code>unmanagedWheels</code> is the way to do it.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-pythonlib-dependencies-3-unmanaged-wheels.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/pythonlib/dependencies/3-unmanaged-wheels">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-pythonlib-dependencies-3-unmanaged-wheels.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/pythonlib/dependencies/3-unmanaged-wheels">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -848,6 +858,12 @@ filesystem, e.g. in the above snippet any files that happen to live in the
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
+Hello, world!
+
+&gt; ./mill show bundle
+".../out/bundle.dest/bundle"
+
+&gt; out/bundle.dest/bundle
 Hello, world!</code></pre>
 </div>
 </div>
@@ -863,7 +879,7 @@ download from arbitrary URLs.
 library, one of Mill&#8217;s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-pythonlib-dependencies-4-downloading-unmanaged-wheels.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/pythonlib/dependencies/4-downloading-unmanaged-wheels">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-pythonlib-dependencies-4-downloading-unmanaged-wheels.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/pythonlib/dependencies/4-downloading-unmanaged-wheels">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -912,8 +928,8 @@ dependencies or de-duplicate different versions on the classpath. All the same c
 to worry about when dealing with <a href="#_unmanaged_wheels">unmanaged wheels</a> apply here as well. In
 case you <strong>do</strong> want mill to take care of managing dependencies of a package which is not
 available on PyPI, you shouldn&#8217;t get that package in <code>unmanagedWheels</code> (like we did in the
-example above). Instead, you can declare the dependency as a regular <code>pythonDep</code>
-<a href="https://peps.python.org/pep-0440/#direct-references">as a direct URL that pip understands</a>.
+example above). Instead, you can declare the dependency as an entry in <code>pythonDeps</code>
+<a href="https://peps.python.org/pep-0440/#direct-references">using the standard direct-URL syntax</a>.
 </td>
 </tr>
 </table>
@@ -930,7 +946,7 @@ can also add your own package indexes by overriding the <code>indexes</code> tas
 the module:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-pythonlib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/pythonlib/dependencies/5-repository-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-pythonlib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/pythonlib/dependencies/5-repository-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -947,31 +963,37 @@ object foo extends PythonModule {
 </div>
 </div>
 <div class="paragraph">
-<p>Mill uses <a href="https://pip.pypa.io/en/stable/">pip</a> to find and install dependencies.</p>
+<p>Mill uses <a href="https://docs.astral.sh/uv/">uv</a> to find and install dependencies.</p>
 </div>
 <div class="paragraph">
-<p>You can configure pip through its
-<a href="https://pip.pypa.io/en/stable/topics/configuration/#location">normal configuration files.</a></p>
+<p>You can configure uv through
+<a href="https://docs.astral.sh/uv/configuration/files/">uv.toml files</a> and
+<a href="https://docs.astral.sh/uv/configuration/environment/">environment variables</a>.</p>
 </div>
 <div class="sect2">
 <h3 id="_private_indexes"><a class="anchor" href="#_private_indexes"></a>Private indexes</h3>
 <div class="paragraph">
-<p>You can read up in more detail on <a href="https://pip.pypa.io/en/stable/topics/authentication/">how to
-configure pip to authenticate to private indexes</a>. Here is an example which reads a package from
-an environment variable:</p>
+<p>You can read up in more detail on <a href="https://docs.astral.sh/uv/configuration/indexes/#authentication">
+how to configure uv to authenticate to private indexes</a>. Name the index in
+the URL and provide credentials through uv&#8217;s environment variables so that
+secrets never become Mill task values or cached task output:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends PythonModule {
-  def indexPassword = Task.Input { Task.env.apply("COMPANY_PASSWORD") }
-  def indexes = Task {
-    Seq(s"https://username:${indexPassword()}@pypi.company.com/simple")
-  }
+  def indexes = Seq(
+    "company=https://pypi.company.com/simple",
+    "https://pypi.org/simple"
+  )
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>More advanced authentication techniques are available by configuring pip directly.</p>
+<p>export UV_INDEX_COMPANY_USERNAME=username
+export UV_INDEX_COMPANY_PASSWORD="$COMPANY_PASSWORD"</p>
+</div>
+<div class="paragraph">
+<p>More advanced authentication techniques are available through uv&#8217;s named-index credentials.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -983,15 +1005,106 @@ an environment variable:</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_depending_on_local_python_projects"><a class="anchor" href="#_depending_on_local_python_projects"></a>Depending on Local Python Projects</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-pythonlib-dependencies-7-local-projects.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/pythonlib/dependencies/7-local-projects">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, pythonlib.*
+import mill.api.BuildCtx
+
+object `package` extends PythonModule {
+  def pythonProjectDeps = Task.Sources(BuildCtx.workspaceRoot / "raw-project")
+  object test extends PythonTests, TestModule.Unittest
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>pythonProjectDeps</code> adds cache-tracked Python projects that are not Mill
+modules. uv reads the standard project metadata in each directory, installs
+the project into this module&#8217;s virtual environment, and rebuilds the
+environment when that project changes. The dependency is inherited by
+downstream modules and included in standalone bundles. Because this setting
+is part of the shared uv environment configuration, it works for regular and
+bare modules as well as their test, lint, coverage, and publishing mixins.
+Local filesystem paths are not portable package metadata, so a
+<code>PublishModule</code> should separately declare any published dependency in
+<code>pythonDeps</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">raw-project/pyproject.toml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-pythonlib-dependencies-7-local-projects.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/pythonlib/dependencies/7-local-projects/raw-project/pyproject.toml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-toml hljs" data-lang="toml">[project]
+name = "raw-uv-project"
+version = "0.1.0"
+
+[build-system]
+requires = ["uv_build&gt;=0.12.12,&lt;0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "raw_uv_project"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">raw-project/src/raw_uv_project/<em>init</em>.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-pythonlib-dependencies-7-local-projects.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/pythonlib/dependencies/7-local-projects/raw-project/src/raw_uv_project/<em>init</em>.py">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">def raw_message() -&gt; str:
+    return "Hello from a raw uv project!"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/main.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-pythonlib-dependencies-7-local-projects.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/pythonlib/dependencies/7-local-projects/src/main.py">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">from raw_uv_project import raw_message
+
+print(raw_message())</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">test/src/test_raw_project.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-pythonlib-dependencies-7-local-projects.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/pythonlib/dependencies/7-local-projects/test/src/test_raw_project.py">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">import unittest
+
+from raw_uv_project import raw_message
+
+
+class RawProjectTests(unittest.TestCase):
+    def test_dependency_is_inherited(self) -&gt; None:
+        self.assertEqual(raw_message(), "Hello from a raw uv project!")</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
+Hello from a raw uv project!
+
+&gt; ./mill test
+...test_dependency_is_inherited...ok...
+...Ran 1 test...
+...OK...
+
+&gt; ./mill show bundle
+".../out/bundle.dest/bundle"
+
+&gt; out/bundle.dest/bundle
+Hello from a raw uv project!</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_debugging"><a class="anchor" href="#_debugging"></a>Debugging</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>In case anything goes wrong, or if you&#8217;re just curious, you can see what
-arguments mill passes to <code>pip install</code> by looking at the output of the
-<code>pipInstallArgs</code> task.</p>
+arguments Mill passes to <code>uv pip install</code> by looking at the output of the
+<code>uvInstallArgs</code> task.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0-M1/mill-dist-1.3.0-M1-example-pythonlib-dependencies-6-debugging.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0-M1/example/pythonlib/dependencies/6-debugging">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.3.0/mill-dist-1.3.0-example-pythonlib-dependencies-6-debugging.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.3.0/example/pythonlib/dependencies/6-debugging">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -1009,13 +1122,11 @@ object `package` extends PythonModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show pipInstallArgs
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show uvInstallArgs
 {
   "args": [
-    "--index-url",
+    "--default-index",
     "invalid_index",
-    "mypy==1.13.0",
-    "pex==2.24.1",
     "numpy==2.1.2",
     "pandas~=2.2.3",
     "jinja2 @ https://github.com/pallets/jinja/releases/download/3.1.4/jinja2-3.1.4-py3-none-any.whl"
