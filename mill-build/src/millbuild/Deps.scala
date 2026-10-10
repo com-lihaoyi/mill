@@ -97,7 +97,7 @@ object Deps {
 
   val acyclic = mvn"com.lihaoyi:::acyclic:0.3.21"
   val ammoniteVersion = "3.0.4"
-  val asmVersion = "9.10.1"
+  val asmVersion = "9.11"
   val asmAnalysis = mvn"org.ow2.asm:asm-analysis:${asmVersion}"
   val asmTree = mvn"org.ow2.asm:asm-tree:${asmVersion}"
 
