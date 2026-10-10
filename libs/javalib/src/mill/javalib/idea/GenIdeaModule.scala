@@ -9,7 +9,10 @@ import mill.api.daemon.internal.internal
 import mill.api.{ModuleCtx, PathRef}
 import mill.javalib.{BoundDep, Dep, JavaModule}
 import mill.api.JsonFormatters.given
+import mill.api.opt.*
+
 trait GenIdeaModule extends mill.api.Module with GenIdeaInternalApi {
+
   private[mill] val jarCollector: PartialFunction[PathRef, Path] = {
     case p if p.path.ext == "jar" => p.path.toNIO
   }
@@ -48,7 +51,7 @@ trait GenIdeaModule extends mill.api.Module with GenIdeaInternalApi {
 
   private[mill] def scalacPluginsMvnDeps = Task.Anon(Seq.empty[Dep])
 
-  private[mill] def allScalacOptions = Task.Anon(Seq.empty[String])
+  private[mill] def allScalacOptions: Task[Opts] = Task.Anon(Opts())
 
   private[mill] def scalaVersion = Task.Anon(Option.empty[String])
 
@@ -77,7 +80,7 @@ trait GenIdeaModule extends mill.api.Module with GenIdeaInternalApi {
 
     val scopedCpEntries = scopedClasspathEntries()
     val pluginClasspath = scalacPluginDependencies().collect(jarCollector)
-    val scalacOpts = allScalacOptions()
+    val scalacOpts = allScalacOptions().toStringSeq
     val resolvedCompilerCp = scalaCompilerClasspath().map(_.path.toNIO)
     val resolvedLibraryCp = externalLibraryDependencies().map(_.path.toNIO)
     val facets = javaModule.ideaJavaModuleFacets(ideaConfigVersion)()

@@ -120,7 +120,7 @@ object TestModule {
               .map(_.toString)
               .mkString(java.io.File.pathSeparator)
           runner().run(
-            (if (index == 0) Nil else repeatedPythonOptions()) ++
+            (if (index == 0) Nil else repeatedPythonOptions().toStringSeq) ++
               Seq("-m", "unittest") ++ testArgs ++ Seq("-v"),
             env = Map("PYTHONPATH" -> pythonPath),
             workingDir = BuildCtx.workspaceRoot

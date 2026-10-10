@@ -97,12 +97,13 @@ object VaadinModuleTests extends TestSuite {
       val Right(buildTools) = eval(build.app.vaadinDevBuildToolsDir).runtimeChecked
       val projectDir = build.app.moduleDir
       val frontendDir = build.app.moduleDir / "frontend"
-      assert(result.value.contains(s"-Dvaadin.project.basedir=$projectDir"))
-      assert(result.value.contains(s"-D${VaadinModule.FrontendFolderProperty}=$frontendDir"))
+      val forkArgs = result.value.toStringSeq
+      assert(forkArgs.contains(s"-Dvaadin.project.basedir=$projectDir"))
+      assert(forkArgs.contains(s"-D${VaadinModule.FrontendFolderProperty}=$frontendDir"))
       // module specific, and relative to the project dir, as Vaadin resolves it against that
       assert(buildTools.value.segments.contains("app"))
       val buildFolder = buildTools.value
-      assert(result.value.contains(s"-Dvaadin.build.folder=${buildFolder.relativeTo(projectDir)}"))
+      assert(forkArgs.contains(s"-Dvaadin.build.folder=${buildFolder.relativeTo(projectDir)}"))
     }
   }
 }

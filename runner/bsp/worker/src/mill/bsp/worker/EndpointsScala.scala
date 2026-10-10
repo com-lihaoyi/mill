@@ -47,7 +47,7 @@ private trait EndpointsScala extends ScalaBuildServer with ScalaScriptBuildServe
       val (allScalacOptions, compileClasspath, classesPathTask) = ctx.value
       new ScalacOptionsItem(
         ctx.id,
-        allScalacOptions.asJava,
+        allScalacOptions.toStringSeq.asJava,
         compileClasspath(ctx.evaluator).asJava,
         sanitizeUri(classesPathTask(ctx.evaluator))
       )
@@ -68,7 +68,7 @@ private trait EndpointsScala extends ScalaBuildServer with ScalaScriptBuildServe
       val mainClasses = ctx.value.classes
       // val mainMain = m.mainClass().orElse(if(mainClasses.size == 1) mainClasses.headOption else None)
       val items = mainClasses.map { mc =>
-        val scalaMc = ScalaMainClass(mc, Seq().asJava, ctx.value.forkArgs.asJava)
+        val scalaMc = ScalaMainClass(mc, Seq().asJava, ctx.value.forkArgs.toStringSeq.asJava)
         scalaMc.setEnvironmentVariables(ctx.value.forkEnv.map(e => s"${e._1}=${e._2}").toSeq.asJava)
         scalaMc
       }

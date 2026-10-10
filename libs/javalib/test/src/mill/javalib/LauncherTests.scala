@@ -1,9 +1,11 @@
 package mill.javalib
 
+import mill.api.daemon.internal.{OptsApi, TaskApi}
 import mill.api.{Discover, PathRef}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.util.TokenReaders.*
+import mill.api.opt.*
 
 object LauncherTests extends TestSuite {
 
@@ -11,7 +13,10 @@ object LauncherTests extends TestSuite {
   object HelloJava extends TestRootModule with JavaModule {
     def jvmVersion = s"temurin:$customJavaVersion"
 
-    def javacOptions = Seq("-target", "1.8", "-source", "1.8")
+    def javacOptions = Opts(
+      OptGroup("-target", "1.8"),
+      OptGroup("-source", "1.8")
+    )
 
     lazy val millDiscover = Discover[this.type]
   }

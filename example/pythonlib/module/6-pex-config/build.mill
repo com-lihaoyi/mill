@@ -4,6 +4,7 @@
 
 package build
 import mill.*, pythonlib.*
+import mill.api.opt.*
 
 object foo extends PythonModule {
   // This Script will be the entry point for the bundle
@@ -13,12 +14,12 @@ object foo extends PythonModule {
   def pythonDeps = Seq("pyfiglet==1.0.2", "termcolor==2.5.0")
 
   // Python Options to use while creating bundle
-  def pythonOptions: T[Seq[String]] =
-    Seq("-Wall", "-Wignore::ImportWarning", "-Wignore::ResourceWarning")
+  def pythonOptions: T[Opts]] =
+    Opts("-Wall", "-Wignore::ImportWarning", "-Wignore::ResourceWarning")
 
   // These configs wil be used while creating the bundle
   // use -h to see all available options
-  def bundleOptions = super.bundleOptions() ++ Seq(
+  def bundleOptions = super.bundleOptions() ++ Opts(
     "--compress", // Compress the output file
     "--compile", // compile will help in fast loading of pex output file
     "-v", // verbose

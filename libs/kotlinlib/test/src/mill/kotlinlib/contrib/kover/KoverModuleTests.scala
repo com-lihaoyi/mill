@@ -7,6 +7,7 @@ import mill.kotlinlib.TestModule
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.{T, Task, api}
 import utest.{TestSuite, Tests, assert, test}
+import mill.api.opt.*
 
 import scala.xml.{Node, XML}
 
@@ -19,8 +20,8 @@ object KoverModuleTests extends TestSuite {
   object module extends TestRootModule {
 
     trait KotestTestModule extends TestModule.Junit5 {
-      override def forkArgs: T[Seq[String]] = Task {
-        super.forkArgs() ++ Seq("-Dkotest.framework.classpath.scanning.autoscan.disable=true")
+      override def forkArgs: T[Opts] = Task {
+        super.forkArgs() ++ Opts("-Dkotest.framework.classpath.scanning.autoscan.disable=true")
 
       }
       override def mvnDeps = super.mvnDeps() ++ Seq(

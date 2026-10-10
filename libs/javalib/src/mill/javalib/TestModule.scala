@@ -15,6 +15,7 @@ import mill.constants.EnvVars
 import mill.javalib.api.internal.ZincOp
 import mill.javalib.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
 import mill.util.Version
+import mill.api.opt.*
 
 import java.nio.file.Path
 
@@ -317,9 +318,9 @@ trait TestModule
    */
   def testSandboxWorkingDir: T[Boolean] = true
 
-  override def allForkEnv: T[Map[String, String]] = Task {
-    super.allForkEnv() ++ Map(
-      EnvVars.MILL_TEST_RESOURCE_DIR -> resources().iterator.map(_.path).mkString(";")
+  override def allForkEnv: T[OptMap] = Task {
+    super.allForkEnv() ++ OptMap(
+      EnvVars.MILL_TEST_RESOURCE_DIR -> Opt.mkPath(resources().map(_.path),sep = ";")
     )
   }
 
@@ -333,7 +334,7 @@ trait TestModule
     Task.Anon {
       val testModuleUtil = TestModuleUtil(
         testUseArgsFile(),
-        forkArgs(),
+        forkArgs().toStringSeq,
         globSelectors(),
         jvmWorker().scalalibClasspath(),
         resources(),
@@ -343,7 +344,7 @@ trait TestModule
         args(),
         testForkGrouping(),
         jvmWorker().testrunnerEntrypointClasspath(),
-        allForkEnv(),
+        allForkEnv().toStringMap,
         testSandboxWorkingDir(),
         forkWorkingDir(),
         testReportXml(),
@@ -604,7 +605,7 @@ object TestModule {
     def specs2Version: T[String] = Task { "" }
     override def testFramework: T[String] = "org.specs2.runner.Specs2Framework"
     override def scalacOptions = Task {
-      super.scalacOptions() ++ Seq("-Yrangepos")
+      super.scalacOptions() ++ Opts("-Yrangepos")
     }
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
       super.mandatoryMvnDeps() ++
@@ -799,7 +800,7 @@ object TestModule {
   }
 
   trait ScalaModuleBase extends mill.Module {
-    def scalacOptions: T[Seq[String]] = Seq()
+    def scalacOptions: T[Opts] = Opts()
   }
 
 }

@@ -7,6 +7,7 @@ import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
 import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 import mill.util.BuildInfo
+import mill.api.opt.*
 
 /**
  * Adds tasks to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
@@ -187,18 +188,18 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       outer.scalacPluginMvnDeps() ++ outer.scoveragePluginDeps()
 
     /** Add the scoverage specific plugin settings (`dataDir`). */
-    override def scalacOptions: T[Seq[String]] =
+    override def scalacOptions: T[Opts] =
       Task {
         val extras =
           if (isScala3()) {
-            Seq(
-              s"-coverage-out:${data().path.toIO.getPath()}",
-              s"-sourceroot:${BuildCtx.workspaceRoot}"
+            Opts(
+              opt"-coverage-out:${data().path}",
+              opt"-sourceroot:${BuildCtx.workspaceRoot}"
             )
           } else {
-            Seq(
-              s"-P:scoverage:dataDir:${data().path.toIO.getPath()}",
-              s"-P:scoverage:sourceRoot:${BuildCtx.workspaceRoot}"
+            Opts(
+              opt"-P:scoverage:dataDir:${data().path}",
+              opt"-P:scoverage:sourceRoot:${BuildCtx.workspaceRoot}"
             )
           }
 

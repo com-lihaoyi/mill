@@ -10,6 +10,7 @@ import mill.scalanativelib.api.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
+import mill.api.opt.*
 
 import java.util.jar.JarFile
 import scala.jdk.CollectionConverters.*
@@ -65,7 +66,7 @@ object CompileRunTests extends TestSuite {
 
     object inherited extends ScalaNativeModule {
       val (scala, scalaNative, _) = matrix.head
-      def scalacOptions = Seq("-deprecation")
+      def scalacOptions = Opts("-deprecation")
       def scalaVersion = scala
       def scalaNativeVersion = scalaNative
       object test extends ScalaNativeTests with TestModule.Utest

@@ -9,7 +9,9 @@
 //    env variable defined in `forkEnv` and print it when the program runs
 //
 package build
+
 import mill.*, pythonlib.*
+import mill.api.opt.*
 
 object foo extends PythonModule {
 
@@ -45,7 +47,7 @@ object foo extends PythonModule {
       .sum
   }
 
-  def forkEnv: T[Map[String, String]] = Map("MY_LINE_COUNT" -> s"${lineCount()}")
+  def forkEnv: T[OptMap] = OptMap("MY_LINE_COUNT" -> s"${lineCount()}")
 
   def printLineCount() = Task.Command { println(lineCount()) }
 

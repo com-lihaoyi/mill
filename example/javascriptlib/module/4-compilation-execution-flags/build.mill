@@ -2,10 +2,11 @@ package build
 
 import mill.*
 import mill.javascriptlib.*
+import mill.api.opt.*
 
 object foo extends TypeScriptModule {
   def compilerOptions =
-    super.compilerOptions() + (
+    super.compilerOptions() ++ OptMap(
       "skipLibCheck" -> ujson.True,
       "module" -> ujson.Str("commonjs"),
       "target" -> ujson.Str("es6")

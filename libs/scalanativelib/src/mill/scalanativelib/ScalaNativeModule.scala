@@ -18,6 +18,7 @@ import mill.scalanativelib.worker.{
 }
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 import os.{Path, Shellable}
+import mill.api.opt.*
 
 import java.lang
 
@@ -394,8 +395,8 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     NativeRunner(
       mainClassDefault = finalMainClassOpt(),
       nativeExe = nativeLink(),
-      forkArgsDefault = forkArgs(),
-      forkEnvDefault = allForkEnv(),
+      forkArgsDefault = forkArgs().toStringSeq,
+      forkEnvDefault = allForkEnv().toStringMap,
       propagateEnvDefault = propagateEnv()
     )
   }
@@ -404,8 +405,8 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     NativeRunner(
       mainClassDefault = Right(mainClass),
       nativeExe = nativeLinkOtherMain(mainClass)(),
-      forkArgsDefault = forkArgs(),
-      forkEnvDefault = allForkEnv(),
+      forkArgsDefault = forkArgs().toStringSeq,
+      forkEnvDefault = allForkEnv().toStringMap,
       propagateEnvDefault = propagateEnv()
     )
   }
@@ -496,7 +497,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
 
     val (close, framework) = withScalaNativeBridge.apply().apply(_.getFramework(
       nativeLink().path.toIO,
-      allForkEnv(),
+      allForkEnv().toStringMap,
       toWorkerApi(logLevel()),
       testFramework()
     ))

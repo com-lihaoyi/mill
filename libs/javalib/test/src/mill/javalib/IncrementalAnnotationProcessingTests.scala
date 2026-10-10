@@ -1,10 +1,12 @@
 package mill.javalib
 
 import mill.api.Discover
+import mill.api.daemon.internal.{OptsApi, TaskApi}
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.*
 import mill.{T, Task}
 import utest.*
+import mill.api.opt.{*, given}
 
 object IncrementalAnnotationProcessingTests extends TestSuite {
 
@@ -58,12 +60,16 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
     object localMetadataConfig extends JavaModule {
       def moduleDeps = Seq(localMetadataConfigProcessor)
 
-      override def javacOptions: T[Seq[String]] = Task {
-        super.javacOptions() ++ Seq(
-          "-processorpath",
-          localMetadataConfigProcessor.compile().classes.path.toString,
-          "-processor",
-          "example.ResourceProcessor"
+      override def javacOptions: Task.Simple[Opts] = Task {
+        super.javacOptions() ++ Opts(
+          OptGroup(
+            "-processorpath",
+            localMetadataConfigProcessor.compile().classes.path
+          ),
+          OptGroup(
+            "-processor",
+            "example.ResourceProcessor"
+          )
         )
       }
     }
@@ -73,12 +79,16 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
     object dynamicmeta extends JavaModule {
       def moduleDeps = Seq(dynamicProcessor)
 
-      override def javacOptions: T[Seq[String]] = Task {
-        super.javacOptions() ++ Seq(
-          "-processorpath",
-          dynamicProcessor.compile().classes.path.toString,
-          "-processor",
-          "example.DynamicProcessor"
+      override def javacOptions: Task.Simple[Opts] = Task {
+        super.javacOptions() ++ Opts(
+          OptGroup(
+            "-processorpath",
+            dynamicProcessor.compile().classes.path
+          ),
+          OptGroup(
+            "-processor",
+            "example.DynamicProcessor"
+          )
         )
       }
     }
@@ -88,12 +98,16 @@ object IncrementalAnnotationProcessingTests extends TestSuite {
     object classloaderIsolation extends JavaModule {
       def moduleDeps = Seq(classloaderIsolationProcessor)
 
-      override def javacOptions: T[Seq[String]] = Task {
-        super.javacOptions() ++ Seq(
-          "-processorpath",
-          classloaderIsolationProcessor.compile().classes.path.toString,
-          "-processor",
-          "example.ClassloaderProbeProcessor"
+      override def javacOptions: Task.Simple[Opts] = Task {
+        super.javacOptions() ++ Opts(
+          OptGroup(
+            "-processorpath",
+            classloaderIsolationProcessor.compile().classes.path
+          ),
+          OptGroup(
+            "-processor",
+            "example.ClassloaderProbeProcessor"
+          )
         )
       }
     }

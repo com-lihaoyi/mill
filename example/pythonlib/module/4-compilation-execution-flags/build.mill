@@ -1,10 +1,12 @@
 package build
+
 import mill.*, pythonlib.*
+import mill.api.opt.*
 
 object `package` extends PythonModule {
   def mainScript = Task.Source("src/foo.py")
   def pythonOptions = Seq("-Wall", "-Xdev")
-  def forkEnv = Map("MY_ENV_VAR" -> "HELLO MILL!")
+  def forkEnv = OptMap("MY_ENV_VAR" -> "HELLO MILL!")
 }
 
 // You can pass flags to the Python Interpreter via `pythonOptions`.

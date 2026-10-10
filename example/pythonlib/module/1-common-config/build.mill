@@ -5,7 +5,9 @@
 // add variables for environment and options for python respectively.
 
 package build
+
 import mill.*, pythonlib.*
+import mill.api.opt.*
 
 object foo extends PythonModule {
   // Mill downloads these toolchain versions automatically when needed
@@ -41,12 +43,12 @@ object foo extends PythonModule {
     Seq(PathRef(destPath))
   }
   // Pass additional environmental variables when `.run` is called.
-  def forkEnv: T[Map[String, String]] = Map("MY_CUSTOM_ENV" -> "my-env-value")
+  def forkEnv: T[Map[String, String]] = OptMap("MY_CUSTOM_ENV" -> "my-env-value")
 
   // Additional Python options e.g. to Turn On Warnings and ignore import and resource warnings
   // we can use -Werror to treat warnings as errors
-  def pythonOptions: T[Seq[String]] =
-    Seq("-Wall", "-Wignore::ImportWarning", "-Wignore::ResourceWarning")
+  def pythonOptions: T[Opts] =
+    Opts("-Wall", "-Wignore::ImportWarning", "-Wignore::ResourceWarning")
 
 }
 

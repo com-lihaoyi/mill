@@ -16,6 +16,7 @@ import ch.epfl.scala.bsp4j.{
 import mill.api.daemon.internal.{JavaModuleApi, RunModuleApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
 import java.util.concurrent.CompletableFuture
+import mill.api.opt.*
 
 import scala.jdk.CollectionConverters.*
 
@@ -60,9 +61,9 @@ private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
           val item = new JvmEnvironmentItem(
             ctx.id,
             testEnvVars.classpath.map(sanitizeUri).asJava,
-            forkArgs.asJava,
+            forkArgs.toStringSeq.asJava,
             forkWorkingDir.toString(),
-            forkEnv.asJava
+            forkEnv.toStringMap.asJava
           )
           item.setMainClasses(List(testEnvVars.mainClass).map(new JvmMainClass(
             _,
@@ -74,9 +75,9 @@ private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
           new JvmEnvironmentItem(
             ctx.id,
             classpath.map(sanitizeUri).asJava,
-            forkArgs.asJava,
+            forkArgs.toStringSeq.asJava,
             forkWorkingDir.toString(),
-            forkEnv.asJava
+            forkEnv.toStringMap.asJava
           )
       }
     } { (values, _, _) =>
@@ -99,9 +100,9 @@ private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
       val item = new JvmEnvironmentItem(
         ctx.id,
         classpath.asJava,
-        ctx.value.forkArgs.asJava,
+        ctx.value.forkArgs.toStringSeq.asJava,
         ctx.value.forkWorkingDir.toString(),
-        ctx.value.forkEnv.asJava
+        ctx.value.forkEnv.toStringMap.asJava
       )
 
       val classes = ctx.value.mainClass.toList ++ ctx.value.localMainClasses

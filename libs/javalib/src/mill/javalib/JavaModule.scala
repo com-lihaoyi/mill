@@ -35,8 +35,8 @@ import mill.javalib.bsp.{BspJavaModule, BspModule}
 import mill.javalib.internal.ModuleUtils
 import mill.javalib.publish.Artifact
 import mill.util.{JarManifest, JdkCommandsModule, Jvm}
+import mill.api.opt.*
 
-import java.io.File
 import scala.util.chaining.scalaUtilChainingOps
 
 /**
@@ -103,9 +103,9 @@ trait JavaModule
     override def resolutionParams: Task[ResolutionParams] =
       Task.Anon { outer.resolutionParams() }
 
-    override def annotationProcessorsJavacOptions: T[Seq[String]] =
+    override def annotationProcessorsJavacOptions: Task.Simple[Opts] =
       outer.annotationProcessorsJavacOptions()
-    override def javacOptions: T[Seq[String]] = outer.javacOptions()
+    override def javacOptions: Task.Simple[Opts] = outer.javacOptions()
     override def jvmWorker = outer.jvmWorker
 
     def jvmId = outer.jvmId()
@@ -320,15 +320,16 @@ trait JavaModule
   /**
    * Constructs the -processorpath compiler flag using [[annotationProcessorsResolvedMvnDeps]]
    */
-  def annotationProcessorsJavacOptions: T[Seq[String]] = Task {
+  def annotationProcessorsJavacOptions: Task.Simple[Opts] = Task {
     if (annotationProcessorsMvnDeps().nonEmpty)
-      Seq(
-        "-processorpath",
-        annotationProcessorsResolvedMvnDeps()
-          .map(_.path).mkString(File.pathSeparator)
+      Opts(
+        OptGroup(
+          "-processorpath",
+          Opt.mkPlatformPath(annotationProcessorsResolvedMvnDeps().map(_.path))
+        )
       )
     else
-      Seq.empty
+      Opts()
 
   }
 
@@ -338,7 +339,7 @@ trait JavaModule
    * When a custom `jvmVersion` is set, this can also be used to pass runtime flags
    * to the JVM daemon running the compiler, e.g. `-J-Xss8m` to set its stack size
    */
-  override def javacOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  override def javacOptions: Task.Simple[Opts] = Task { Opts() }
 
   /**
    * JVM options passed to the Java compiler worker process.
@@ -346,14 +347,14 @@ trait JavaModule
    * Prefer this over `javacOptions` for JVM flags such as `-D`, `--add-opens`, and
    * `-X` options.
    */
-  def jvmOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  def jvmOptions: T[Opts] = Task { Opts() }
 
-  private[mill] def javaCompilerRuntimeOptions: T[Seq[String]] = Task { jvmOptions() }
+  private[mill] def javaCompilerRuntimeOptions: T[Opts] = Task { jvmOptions() }
 
   /**
    * Additional options for the java compiler derived from other module settings.
    */
-  override def mandatoryJavacOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  override def mandatoryJavacOptions: Task.Simple[Opts] = Task { Opts() }
 
   /**
    *  The direct dependencies of this module.
@@ -996,10 +997,17 @@ trait JavaModule
       os.makeDir.all(compileGenSources)
     }
 
-    val (javacCompilerOptions, legacyRuntimeOptions) = JavaModule.splitJavacAndRuntimeOptions(Seq(
-      "-s",
-      compileGenSources.toString
-    ) ++ javacOptions() ++ mandatoryJavacOptions() ++ annotationProcessorsJavacOptions())
+    val (javacCompilerOptions, legacyRuntimeOptions) =
+      JavaModule.splitJavacAndRuntimeOptions(Seq(
+        "-s",
+        compileGenSources.toString
+      ) ++
+        (
+          javacOptions() ++
+            mandatoryJavacOptions() ++
+            annotationProcessorsJavacOptions()
+        ).toStringSeq)
+
     if (legacyRuntimeOptions.nonEmpty) {
       Task.log.warn(
         "`-J` options in `javacOptions` are deprecated; use `jvmOptions` instead" +
@@ -1019,7 +1027,7 @@ trait JavaModule
         workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
-      javaRuntimeOptions = javaCompilerRuntimeOptions() ++ legacyRuntimeOptions,
+      javaRuntimeOptions = javaCompilerRuntimeOptions().toStringSeq ++ legacyRuntimeOptions,
       reporter = Task.reporter.apply(hashCode),
       reportCachedProblems = zincReportCachedProblems()
     )
@@ -1313,7 +1321,7 @@ trait JavaModule
    * You should not set the `-d` setting for specifying the target directory,
    * as that is done in the [[docJar]] task.
    */
-  def javadocOptions: T[Seq[String]] = Task { Seq[String]() }
+  def javadocOptions: T[Opts] = Task { Opts() }
 
   /**
    * Directories to be processed by the API documentation tool.
@@ -1358,7 +1366,7 @@ trait JavaModule
           classPath.mkString(java.io.File.pathSeparator)
         )
 
-      val options = javadocOptions() ++
+      val options = javadocOptions().toStringSeq ++
         Seq("-d", javadocDir.toString) ++
         cpOptions ++
         files.map(_.toString)
@@ -1433,7 +1441,7 @@ trait JavaModule
 
     Jvm.runInteractiveCommand(
       cmd = cmd,
-      env = allForkEnv(),
+      env = allForkEnv().toStringMap,
       cwd = forkWorkingDir()
     )
     ()
@@ -1783,9 +1791,9 @@ object JavaModule {
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
 
-    override def annotationProcessorsJavacOptions: T[Seq[String]] =
+    override def annotationProcessorsJavacOptions: T[Opts] =
       outer.annotationProcessorsJavacOptions()
-    override def javacOptions: T[Seq[String]] = outer.javacOptions()
+    override def javacOptions: T[Opts] = outer.javacOptions()
     override def jvmWorker: ModuleRef[JvmWorkerModule] = outer.jvmWorker
 
     def jvmId: T[String] = outer.jvmId()

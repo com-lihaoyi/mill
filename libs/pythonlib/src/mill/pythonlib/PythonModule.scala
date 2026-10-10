@@ -7,6 +7,7 @@ import mill.util.Jvm
 import mill.api.TaskCtx
 import mill.javalib.JavaHomeModule
 import mill.api.BuildCtx
+import mill.api.opt.*
 
 trait PythonModule extends UvModule with DefaultTaskModule with JavaHomeModule { outer =>
 
@@ -159,22 +160,22 @@ trait PythonModule extends UvModule with DefaultTaskModule with JavaHomeModule {
   /**
    * Command-line options to pass to the Python Interpreter defined by the user.
    */
-  def pythonOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  def pythonOptions: T[Opts] = Task { Opts() }
 
   /** Additional interpreter options for a second and later related invocation. */
-  protected def repeatedPythonOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  protected def repeatedPythonOptions: T[Opts] = Task { Opts() }
 
   /**
    * Command-line options to pass as bundle configuration defined by the user.
    */
-  def bundleOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  def bundleOptions: T[Opts] = Task { Opts() }
 
   // TODO: right now, any task that calls this helper will have its own python
   // cache. This is slow. Look into sharing the cache between tasks.
   def runner: Task[PythonModule.Runner] = Task.Anon {
     new PythonModule.RunnerImpl(
       command0 = pythonExe().path.toString,
-      options = pythonOptions(),
+      options = pythonOptions().toStringSeq,
       env0 = runnerEnvTask() ++ forkEnv(),
       workingDir0 = Task.dest
     )
@@ -267,7 +268,7 @@ trait PythonModule extends UvModule with DefaultTaskModule with JavaHomeModule {
         mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
           pythonExe().path.toString
-        ) ++ pythonOptions() ++ Seq(mainScript().path.toString) ++ args.value,
+        ) ++ pythonOptions().toStringSeq ++ Seq(mainScript().path.toString) ++ args.value,
         cwd = BuildCtx.workspaceRoot,
         stdin = "",
         // Hack to forward the background subprocess output to the Mill server process
@@ -370,7 +371,7 @@ trait PythonModule extends UvModule with DefaultTaskModule with JavaHomeModule {
         "--scie-python-version", sciePythonVersion,
         "--scie-only",
         "-o", bundleFile,
-        bundleOptions()
+        bundleOptions().toStringSeq
         // format: on
       ),
       workingDir = Task.dest
