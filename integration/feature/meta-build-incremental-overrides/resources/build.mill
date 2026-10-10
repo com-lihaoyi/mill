@@ -1,0 +1,5 @@
+package build
+import mill.*, javalib.*
+import millbuild.*
+
+object foo extends JavaModule with LintDeprecation with LintUnchecked

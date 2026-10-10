@@ -111,7 +111,7 @@ object Deps {
   val bouncyCastleProv = mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}"
   val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
 
-  val classgraph = mvn"io.github.classgraph:classgraph:4.8.196"
+  val classgraph = mvn"io.github.classgraph:classgraph:4.8.197"
   val coursierVersion = "2.1.26"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
@@ -124,12 +124,12 @@ object Deps {
     mvn"io.get-coursier:coursier-paths:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierUtil =
     mvn"io.get-coursier::coursier-util:$coursierVersion".withDottyCompat(scalaVersion)
-  val coursierVersions = mvn"io.get-coursier::versions:0.5.1".withDottyCompat(scalaVersion)
-  val coursierInterface = mvn"io.get-coursier:interface:1.0.29"
+  val coursierVersions = mvn"io.get-coursier::versions:0.5.3".withDottyCompat(scalaVersion)
+  val coursierInterface = mvn"io.get-coursier:interface:1.0.30"
   val coursierJvm =
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
 
-  val cask = mvn"com.lihaoyi::cask:0.9.4"
+  val cask = mvn"com.lihaoyi::cask:0.9.7"
   val castor = mvn"com.lihaoyi::castor:0.3.0"
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = mvn"org.flywaydb:flyway-core:11.8.2"
@@ -169,7 +169,7 @@ object Deps {
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:${osLib.version}"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.8"
-  val millModuledefsVersion = "0.13.4"
+  val millModuledefsVersion = "0.14.0"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
@@ -193,7 +193,7 @@ object Deps {
     .exclude("org.scala-sbt" -> "compiler-interface")
 
   def scalaCompilerInterface = mvn"org.scala-sbt:compiler-interface:${zinc.version}"
-  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.11.1".withDottyCompat(scalaVersion)
+  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.11.5".withDottyCompat(scalaVersion)
   def scalaReflect(scalaVersion: String) =
     if (JvmWorkerUtil.isScala3(scalaVersion))
       mvn"org.scala-lang:scala-reflect:${Deps.scala2Version}"
@@ -206,10 +206,10 @@ object Deps {
     mvn"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = mvn"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
-  val scalaCliBsp = mvn"org.virtuslab.scala-cli:scala-cli-bsp:1.8.5"
-  val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
+  val scalaCliBsp = mvn"org.virtuslab.scala-cli:scala-cli-bsp:1.18.0"
+  val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.5.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.17.0"
+  val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.17.4"
   val semanticDbJava_runtime = mvn"com.sourcegraph:semanticdb-java:0.12.3"
   val semanticDbShared =
     mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala_runtime.version}"
@@ -217,9 +217,9 @@ object Deps {
 
   val springBootTools_api = mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0"
   val springBootTools_runtime = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.13"
-  val quarkusAppModel_api = mvn"io.quarkus:quarkus-bootstrap-app-model:3.31.1"
-  val quarkusBootstrapCore_api = mvn"io.quarkus:quarkus-bootstrap-core:3.31.1"
-  val quarkusCoreDeployment_api = mvn"io.quarkus:quarkus-core-deployment:3.31.1"
+  val quarkusAppModel_api = mvn"io.quarkus:quarkus-bootstrap-app-model:3.31.4"
+  val quarkusBootstrapCore_api = mvn"io.quarkus:quarkus-bootstrap-core:3.31.4"
+  val quarkusCoreDeployment_api = mvn"io.quarkus:quarkus-core-deployment:3.31.4"
   val upickle = mvn"com.lihaoyi::upickle:4.4.3"
   val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:${upickle.version}"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
@@ -232,9 +232,9 @@ object Deps {
   val gson = mvn"com.google.code.gson:gson:2.14.0"
   val fansi = mvn"com.lihaoyi::fansi:0.5.1"
   val javaparser = mvn"com.github.javaparser:javaparser-core:3.28.2"
-  val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.18.0"
+  val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.18.1"
   val requests = mvn"com.lihaoyi::requests:0.9.3"
-  val logback = mvn"ch.qos.logback:logback-classic:1.6.4"
+  val logback = mvn"ch.qos.logback:logback-classic:1.6.5"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
@@ -312,7 +312,7 @@ object Deps {
     val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:13.0.0"
     val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.102.0"
     val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.28.0"
-    val proguard_runtime = mvn"com.guardsquare:proguard-base:7.9.1"
+    val proguard_runtime = mvn"com.guardsquare:proguard-base:7.10.0"
     val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.1"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
     val slf4jSimple_runtime = mvn"org.slf4j:slf4j-simple:2.0.20"
@@ -349,7 +349,7 @@ object Deps {
     Deps.commonsIo,
     Deps.gson,
     mvn"com.google.protobuf:protobuf-java:4.33.5",
-    mvn"com.google.guava:guava:33.7.1-jre",
+    mvn"com.google.guava:guava:33.7.2-jre",
     mvn"org.yaml:snakeyaml:2.7",
     mvn"org.apache.commons:commons-compress:1.28.0"
   )
@@ -370,8 +370,8 @@ object Deps {
   }
 
   object AndroidDeps {
-    val manifestMerger = mvn"com.android.tools.build:manifest-merger:31.10.0"
-    val bundleTool = mvn"com.android.tools.build:bundletool:1.17.2"
+    val manifestMerger = mvn"com.android.tools.build:manifest-merger:31.10.1"
+    val bundleTool = mvn"com.android.tools.build:bundletool:1.18.3"
     val ndkVersion = "27.0.12077973"
     val cmakeVersion = "3.22.1"
     val layoutLibVersion = "15.1.2"
