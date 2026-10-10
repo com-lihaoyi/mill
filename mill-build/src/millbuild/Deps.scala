@@ -257,7 +257,7 @@ object Deps {
 
   /** Used for the `mill init` from a Maven project. */
   object MavenInit {
-    val mavenVersion = "3.9.16"
+    val mavenVersion = "3.10.0"
     val mavenEmbedder = mvn"org.apache.maven:maven-embedder:$mavenVersion"
     val mavenResolverVersion = "1.9.27"
     val mavenResolverConnectorBasic =
