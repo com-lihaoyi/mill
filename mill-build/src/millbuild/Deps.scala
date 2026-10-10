@@ -348,7 +348,7 @@ object Deps {
     mvn"org.apache.ant:ant:1.10.17",
     Deps.commonsIo,
     Deps.gson,
-    mvn"com.google.protobuf:protobuf-java:4.33.6",
+    mvn"com.google.protobuf:protobuf-java:4.36.2",
     mvn"com.google.guava:guava:33.7.2-jre",
     mvn"org.yaml:snakeyaml:2.7",
     mvn"org.apache.commons:commons-compress:1.28.0"
