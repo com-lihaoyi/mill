@@ -35,11 +35,12 @@ case class OptGroup private (value: Seq[Opt]) extends OptGroupApi {
 @experimental
 object OptGroup {
   @targetName("applyVarAar")
-  def apply(opts: (String | os.Path | Opt | Seq[(String | os.Path | Opt)])*): OptGroup = {
+  def apply(opts: (String | os.Path | Opt | OptGroup | Seq[(String | os.Path | Opt)])*): OptGroup = {
     val opts0 = opts.flatMap {
       case s: String => Seq(Opt(s))
       case p: os.Path => Seq(Opt(p))
       case o: Opt => Seq(o)
+      case o: OptGroup => o.value
       case o: Seq[(String | os.Path | Opt)] =>
         o.map {
           case s: String => Opt(s)

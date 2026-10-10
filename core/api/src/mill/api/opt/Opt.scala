@@ -35,12 +35,26 @@ object Opt {
   type OptTypes = (String | os.Path)
 
   @targetName("applyVarArg")
-  def apply(value: OptTypes*): Opt = {
+  def apply(value: (OptTypes | Opt)*): Opt = {
     // TODO: merge sequential strings
-    new Opt(value.filter {
-      case s: String if s.isEmpty => false
-      case _ => true
-    })
+    val parts = value.flatMap {
+      case o: Opt => o.value
+      case o: OptTypes => Seq(o)
+    }.foldLeft(Vector[OptTypes]()) { (l, r) =>
+      // we merge all strings
+      r match {
+        case s: String if s.isEmpty => l // filter empty parts
+        case s: String =>
+          l.lastOption match {
+            case Some(prefix: String) => // merge string parts
+              l.dropRight(1).appended(prefix + s)
+            case _ => l.appended(s)
+          }
+        case x => l.appended(x)
+      }
+    }
+
+    new Opt(parts)
   }
 
   /**

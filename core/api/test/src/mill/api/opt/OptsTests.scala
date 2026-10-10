@@ -96,6 +96,12 @@ class OptsTests extends TestSuite {
     test("structure") {
       assert(Opts("arg1").toStringSeq == Seq("arg1"))
       assert(opts1 == expectedOpts1)
+      // empty string get ignored
+      assert(Opt("", "", "", "") == Opt())
+      // multiple string parts get merged
+      assert(Opt("a", "", "b", "", "c") == Opt("abc"))
+      // merging preserves files
+      assert(Opt("a", "", "b", workDir, "", outDir, "c") == Opt("ab", workDir, outDir, "c"))
     }
     test("toString") {
       val a = Opts(Opt("-arg", "1")).toString()

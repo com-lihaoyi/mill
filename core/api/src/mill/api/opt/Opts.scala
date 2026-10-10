@@ -30,14 +30,14 @@ case class Opts private (override val value: Seq[OptGroup]) extends OptsApi {
 object Opts {
   @targetName("applyVarArgUnion")
   def apply(
-      opts: (String | os.Path | Opt | IterableOnce[(String | os.Path | Opt)] | OptGroup | Opts)*
+      opts: (String | os.Path | Opt | IterableOnce[(String | os.Path | Opt | OptGroup)] | OptGroup | Opts)*
   ): Opts = {
     val groups = opts.flatMap {
       // Seq of OptGroup
       case s: String => Seq(OptGroup(s))
       case p: os.Path => Seq(OptGroup(p))
       case o: Opt => Seq(OptGroup(o))
-      case o: IterableOnce[(String | os.Path | Opt)] => Seq.from(o).map(OptGroup(_))
+      case o: IterableOnce[(String | os.Path | Opt | OptGroup)] => Seq.from(o).map(OptGroup(_))
       case o: OptGroup => Seq(o)
       case o: Opts => o.value
     }

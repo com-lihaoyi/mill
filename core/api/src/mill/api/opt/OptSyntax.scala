@@ -10,7 +10,8 @@ implicit class OptSyntax(ctx: StringContext) extends AnyVal {
     val vals = ctx.parts.take(opts.length).zip(opts).flatMap { case (p, a) => Seq(p, a) } ++
       ctx.parts.drop(opts.length)
 
-    val elems: Seq[(String | os.Path)] = vals.flatMap {
+    val elems: Seq[Opt.OptTypes] = vals.flatMap {
+      case opt: Opt => opt.value
       case path: os.Path => Seq(path)
       case s => Seq(s.toString).filter(_.nonEmpty)
     }
