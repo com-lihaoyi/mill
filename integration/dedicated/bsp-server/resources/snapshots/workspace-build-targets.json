@@ -27,7 +27,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "25.0.2"
+        "javaVersion": "25.0.3"
       }
     },
     {
@@ -59,7 +59,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "25.0.2"
+        "javaVersion": "25.0.3"
       }
     },
     {
@@ -98,7 +98,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "25.0.2"
+          "javaVersion": "25.0.3"
         }
       }
     },
@@ -138,7 +138,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "25.0.2"
+          "javaVersion": "25.0.3"
         }
       }
     },
@@ -178,7 +178,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "25.0.2"
+          "javaVersion": "25.0.3"
         }
       }
     },
@@ -218,7 +218,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "25.0.2"
+          "javaVersion": "25.0.3"
         }
       }
     },
@@ -258,7 +258,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "25.0.2"
+          "javaVersion": "25.0.3"
         }
       }
     },
@@ -285,7 +285,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "25.0.2"
+        "javaVersion": "25.0.3"
       }
     },
     {
@@ -314,7 +314,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "25.0.2"
+        "javaVersion": "25.0.3"
       }
     },
     {
@@ -341,7 +341,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "25.0.2"
+        "javaVersion": "25.0.3"
       }
     },
     {
@@ -380,7 +380,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "25.0.2"
+          "javaVersion": "25.0.3"
         }
       }
     },
@@ -423,7 +423,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "25.0.2"
+          "javaVersion": "25.0.3"
         }
       }
     },
@@ -450,7 +450,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "25.0.2"
+        "javaVersion": "25.0.3"
       }
     },
     {
@@ -492,7 +492,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "25.0.2"
+          "javaVersion": "25.0.3"
         }
       }
     },
@@ -535,7 +535,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "25.0.2"
+          "javaVersion": "25.0.3"
         }
       }
     },
@@ -580,7 +580,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "25.0.2"
+        "javaVersion": "25.0.3"
       }
     },
     {
@@ -622,7 +622,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "25.0.2"
+          "javaVersion": "25.0.3"
         }
       }
     },
@@ -649,7 +649,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "25.0.2"
+        "javaVersion": "25.0.3"
       }
     },
     {
@@ -678,7 +678,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "25.0.2"
+        "javaVersion": "25.0.3"
       }
     },
     {
@@ -704,7 +704,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "25.0.2"
+        "javaVersion": "25.0.3"
       }
     },
     {
@@ -746,7 +746,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "25.0.2"
+          "javaVersion": "25.0.3"
         }
       }
     },
@@ -773,7 +773,7 @@
       "dataKind": "jvm",
       "data": {
         "javaHome": "java-home",
-        "javaVersion": "25.0.2"
+        "javaVersion": "25.0.3"
       }
     },
     {
@@ -812,7 +812,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "25.0.2"
+          "javaVersion": "25.0.3"
         }
       }
     }
