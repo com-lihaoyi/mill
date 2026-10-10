@@ -3,7 +3,7 @@ package mill.javalib
 import upickle.{macroRW, ReadWriter as RW}
 import mill.api.CrossVersion.*
 import mill.api.CrossVersion
-import coursier.core.{Configuration, Dependency, MinimizedExclusions}
+import coursier.core.{Configuration, Dependency, MinimizedExclusions, VariantSelector}
 import coursier.version.VersionConstraint
 import mill.javalib.api.{JvmWorkerUtil, Versions}
 
@@ -30,7 +30,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   def forceVersion(): Dep = copy(force = true)
   def forceVersion(force: Boolean): Dep = copy(force = force)
   def exclude(exclusions: (String, String)*): Dep = copy(
-    dep = dep.withMinimizedExclusions(
+    dep = dep.copy(minimizedExclusions =
       dep.minimizedExclusions.join(
         MinimizedExclusions(
           exclusions.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }.toSet
@@ -41,15 +41,15 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   def excludeOrg(organizations: String*): Dep = exclude(organizations.map(_ -> "*")*)
   def excludeName(names: String*): Dep = exclude(names.map("*" -> _)*)
   def toDependency(binaryVersion: String, fullVersion: String, platformSuffix: String): Dependency =
-    dep.withModule(
-      dep.module.withName(
+    dep.copy(module =
+      dep.module.copy(name =
         coursier.ModuleName(artifactName(binaryVersion, fullVersion, platformSuffix))
       )
     )
   def bindDep(binaryVersion: String, fullVersion: String, platformSuffix: String): BoundDep =
     BoundDep(
-      dep.withModule(
-        dep.module.withName(
+      dep.copy(module =
+        dep.module.copy(name =
           coursier.ModuleName(artifactName(binaryVersion, fullVersion, platformSuffix))
         )
       ),
@@ -57,10 +57,13 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
     )
 
   def withConfiguration(configuration: String): Dep = copy(
-    dep = dep.withConfiguration(coursier.core.Configuration(configuration))
+    dep = dep.copy(
+      variantSelector =
+        VariantSelector.ConfigurationBased(coursier.core.Configuration(configuration))
+    )
   )
   def optional(optional: Boolean = true): Dep = copy(
-    dep = dep.withOptional(optional)
+    dep = dep.copy(optional0 = Some(optional))
   )
 
   def organization = dep.module.organization.value
@@ -123,8 +126,8 @@ object Dep {
     var force = false
     val attributes = parts.tail.foldLeft(coursier.Attributes()) { (as, s) =>
       s.split('=') match {
-        case Array("classifier", v) => as.withClassifier(coursier.Classifier(v))
-        case Array("type", v) => as.withType(coursier.Type(v))
+        case Array("classifier", v) => as.copy(classifier = coursier.Classifier(v))
+        case Array("type", v) => as.copy(`type` = coursier.Type(v))
         case Array("exclude", s"${org}:${name}") => exclusions ++= Seq((org, name)); as
         case Array("force") | Array("force", "true" | "yes") => force = true; as
         case Array("force", "false" | "no") => force = false; as
@@ -275,12 +278,12 @@ case class BoundDep(
 ) {
   def organization = dep.module.organization.value
   def name = dep.module.name.value
-  def version = dep.version
+  def version = dep.versionConstraint.asString
 
   def toDep: Dep = Dep(dep = dep, cross = CrossVersion.empty(false), force = force)
 
   def exclude(exclusions: (String, String)*): BoundDep = copy(
-    dep = dep.withMinimizedExclusions(
+    dep = dep.copy(minimizedExclusions =
       dep.minimizedExclusions.join(MinimizedExclusions(
         exclusions.toSet.map { case (k, v) => (coursier.Organization(k), coursier.ModuleName(v)) }
       ))
