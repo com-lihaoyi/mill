@@ -1,7 +1,7 @@
 package build
 import mill.*, scalalib.*
 
-val scalaVersions = Seq("2.12.20", "2.13.16")
+val scalaVersions = Seq("2.12.21", "2.13.16")
 
 object foo extends Cross[FooModule](scalaVersions)
 trait FooModule extends CrossScalaModule {
