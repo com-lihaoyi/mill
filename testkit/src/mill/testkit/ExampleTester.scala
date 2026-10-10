@@ -330,7 +330,14 @@ $expectedLine"""
     val usageComment = parsed.collect { case Chunk.Usage(lines) =>
       lines.mkString("\n")
     }.mkString("\n\n")
-    val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
+
+    val commandOverride = sys.env.get("MILL_EXAMPLE_COMMAND_OVERRIDE")
+
+    val finalUsageComment = commandOverride.filter(_.nonEmpty).getOrElse(usageComment)
+
+    val commandBlocks = {
+      ("\n" + finalUsageComment.trim).split("\n> ").filter(_.nonEmpty)
+    }
 
     try {
       initWorkspace()
