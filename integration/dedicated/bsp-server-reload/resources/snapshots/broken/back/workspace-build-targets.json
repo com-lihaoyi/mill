@@ -39,7 +39,7 @@
         ],
         "jvmBuildTarget": {
           "javaHome": "java-home",
-          "javaVersion": "25.0.2"
+          "javaVersion": "25.0.3"
         }
       }
     },
