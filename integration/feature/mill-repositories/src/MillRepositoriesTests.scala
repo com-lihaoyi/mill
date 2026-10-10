@@ -28,6 +28,7 @@ object MillRepositoriesTests extends UtestIntegrationTestSuite {
       )
       def findConstants(vs: Seq[String]) = vs
         .filter(_.contains("mill-core-constants"))
+        .map(_.replace("$WORKSPACE", workspacePath.toString))
         .map(_.split(os.pwd.toString).last)
 
       // Make sure the various Mill jars all get resolved from `custom-local-repo` rather

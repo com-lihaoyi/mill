@@ -222,7 +222,10 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       // runModuleDeps should appear in runClasspath
       val runWithRunModuleDeps = eval(("show", "sub.runClasspath"))
       assert(runWithRunModuleDeps.isSuccess)
-      assert(runWithRunModuleDeps.out.replace("\\\\", "/").contains("out/compile.dest/classes\""))
+      assert(runWithRunModuleDeps.out.replace(
+        "\\\\",
+        "/"
+      ).contains("$MILL_OUT/compile.dest/classes\""))
 
       // Test circular dependency detection: create a cycle between root and sub
       // First, clear sub's runModuleDeps

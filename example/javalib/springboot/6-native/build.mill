@@ -47,7 +47,7 @@ object `package` extends SpringBootModule, MavenModule {
 /** Usage
 
 > ./mill show native.nativeImage
-...out/native/nativeImage.dest/native-executable...
+...$MILL_OUT/native/nativeImage.dest/native-executable...
 
 > ./mill native.nativeRunBackground
 
