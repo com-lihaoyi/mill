@@ -56,7 +56,7 @@ object Jvm {
               profile.copy(
                 dependencyManagement = profile.dependencyManagement.map {
                   case (configuration, dependency) =>
-                    configuration -> dependency.copy(optional0 = Some(true))
+                    configuration -> dependency.copy(optional0 = Some(false))
                 }
               )
             }
