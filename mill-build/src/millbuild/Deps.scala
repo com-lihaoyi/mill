@@ -36,7 +36,7 @@ object Deps {
       mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvExoegoJsdomNodejs =
       mvn"net.exoego::scalajs-env-jsdom-nodejs:2.1.0".withDottyCompat(scalaVersion)
-    val scalajsEnvNodejs = mvn"org.scala-js::scalajs-env-nodejs:1.5.0".withDottyCompat(scalaVersion)
+    val scalajsEnvNodejs = mvn"org.scala-js::scalajs-env-nodejs:1.6.0".withDottyCompat(scalaVersion)
     val scalajsEnvPhantomjs =
       mvn"org.scala-js::scalajs-env-phantomjs:1.0.0".withDottyCompat(scalaVersion)
     val scalajsEnvSelenium =
