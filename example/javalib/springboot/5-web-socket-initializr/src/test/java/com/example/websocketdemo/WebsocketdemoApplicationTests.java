@@ -38,15 +38,17 @@ class WebsocketdemoApplicationTests {
 
     URI url = new URI("ws://localhost:" + port + "/echo-websocket");
 
-    Mono<Void> interaction = client.execute(url, session -> session
-        .send(Mono.just(session.textMessage(messageToSend)))
-        .thenMany(session
-            .receive()
-            .map(WebSocketMessage::getPayloadAsText)
-            .take(1)
-            .doOnNext(actual ->
-                assertEquals(expectedMessage, actual, "WebSocket should echo the sent message")))
-        .then());
+    Mono<Void> interaction = client.execute(
+        url,
+        session -> session
+            .send(Mono.just(session.textMessage(messageToSend)))
+            .thenMany(session
+                .receive()
+                .map(WebSocketMessage::getPayloadAsText)
+                .take(1)
+                .doOnNext(actual -> assertEquals(
+                    expectedMessage, actual, "WebSocket should echo the sent message")))
+            .then());
 
     StepVerifier.create(interaction).expectSubscription().verifyComplete();
   }
