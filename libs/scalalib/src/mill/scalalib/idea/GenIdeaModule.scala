@@ -11,13 +11,15 @@ trait GenIdeaModule extends mill.javalib.idea.GenIdeaModule {
 
   def javaModuleRef: mill.api.ModuleRef[ScalaModule]
 
-  override def scalaCompilerClasspath: Task[Seq[PathRef]] = Task.Anon(javaModuleRef().scalaCompilerClasspath())
+  override def scalaCompilerClasspath: Task[Seq[PathRef]] =
+    Task.Anon(javaModuleRef().scalaCompilerClasspath())
 
   override def scalacPluginsMvnDeps: Task[Seq[Dep]] = javaModuleRef().scalacPluginMvnDeps
 
   override def allScalacOptions: Task[Opts] = javaModuleRef().allScalacOptions
 
-  override def scalaVersion: Task[Option[String]] = Task.Anon { Some(javaModuleRef().scalaVersion()) }
+  override def scalaVersion: Task[Option[String]] =
+    Task.Anon { Some(javaModuleRef().scalaVersion()) }
 
 }
 

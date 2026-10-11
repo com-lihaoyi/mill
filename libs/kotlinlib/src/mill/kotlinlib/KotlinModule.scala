@@ -467,7 +467,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     val kotlinkotlinApiVersion = kotlinApiVersion()
     val plugins = kotlincPluginJars().map(_.path)
 
-    val friendPathsOption = Opts.when(kotlinFriendModulesChecked.nonEmpty){
+    val friendPathsOption = Opts.when(kotlinFriendModulesChecked.nonEmpty) {
       val compilations = Task.traverse(kotlinFriendModulesChecked) { friend => friend.compile }()
       Opt.mkPath(compilations.map(_.classes.path), sep = ",", prefix = "-Xfriend-paths=")
     }
@@ -475,7 +475,10 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     Opts("-no-stdlib") ++
       kotlinModuleNameOption() ++
       Opts.when(!languageVersion.isBlank)(OptGroup("-language-version", languageVersion)) ++
-      Opts.when(!kotlinkotlinApiVersion.isBlank)(OptGroup("-api-version", kotlinkotlinApiVersion)) ++
+      Opts.when(!kotlinkotlinApiVersion.isBlank)(OptGroup(
+        "-api-version",
+        kotlinkotlinApiVersion
+      )) ++
       Opts(plugins.map(p => opt"-Xplugin=$p")) ++
       friendPathsOption ++
       Opts.when(kotlinExplicitApi())("-Xexplicit-api=strict")

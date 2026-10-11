@@ -320,7 +320,7 @@ trait TestModule
 
   override def allForkEnv: T[OptMap] = Task {
     super.allForkEnv() ++ OptMap(
-      EnvVars.MILL_TEST_RESOURCE_DIR -> Opt.mkPath(resources().map(_.path),sep = ";")
+      EnvVars.MILL_TEST_RESOURCE_DIR -> Opt.mkPath(resources().map(_.path), sep = ";")
     )
   }
 

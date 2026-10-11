@@ -13,7 +13,8 @@ object ScalaScaladocTests extends TestSuite {
   object HelloWorldWithDocVersion extends TestRootModule {
     object core extends HelloWorldModule {
       override def scalacOptions = Task { Opts("-Ywarn-unused", "-Xfatal-warnings") }
-      override def scalaDocOptions = super.scalaDocOptions() ++ Opts(OptGroup("-doc-version", "1.2.3"))
+      override def scalaDocOptions =
+        super.scalaDocOptions() ++ Opts(OptGroup("-doc-version", "1.2.3"))
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -58,7 +59,12 @@ object ScalaScaladocTests extends TestSuite {
       test("extend") - UnitTester(HelloWorldWithDocVersion, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldWithDocVersion.core.scalaDocOptions).runtimeChecked
         assert(
-          result.value.toStringSeq == Seq("-Ywarn-unused", "-Xfatal-warnings", "-doc-version", "1.2.3"),
+          result.value.toStringSeq == Seq(
+            "-Ywarn-unused",
+            "-Xfatal-warnings",
+            "-doc-version",
+            "1.2.3"
+          ),
           result.evalCount > 0
         )
       }
