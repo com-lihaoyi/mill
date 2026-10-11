@@ -257,7 +257,7 @@ object Deps {
 
   /** Used for the `mill init` from a Maven project. */
   object MavenInit {
-    val mavenVersion = "3.9.16"
+    val mavenVersion = "3.9.9"
     val mavenEmbedder = mvn"org.apache.maven:maven-embedder:$mavenVersion"
     val mavenResolverVersion = "1.9.27"
     val mavenResolverConnectorBasic =
@@ -272,7 +272,9 @@ object Deps {
       mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   }
 
-  val coursierJvmIndexVersion = "0.0.4-162-4be9be"
+  // check with
+  //   cs complete-dep io.get-coursier.jvm.indices:index-linux-amd64: | sort -V
+  val coursierJvmIndexVersion = "0.0.4-201-39a6a6"
   val gradleApi_api = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
