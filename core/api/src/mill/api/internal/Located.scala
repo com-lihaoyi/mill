@@ -3,10 +3,6 @@ package mill.api.internal
 /** Tracks the source location (file path and character index) of a parsed value */
 case class Located[T](path: os.Path, index: Int, value: T)
 
-
-
-
-
 object Located {
 
   /** Upickle reader for Located[T] that wraps values with their source location */
