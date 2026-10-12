@@ -14,6 +14,7 @@ import mill.util.{BuildInfo, MainRootModule}
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.JsonFormatters.given
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
+import mill.api.opt.*
 
 /**
  * Mill module for pre-processing a Mill `build.mill` and related files and then
@@ -255,11 +256,11 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       .exclude("com.lihaoyi" -> "sourcecode_3")
   )
 
-  override def mandatoryScalacOptions: T[Seq[String]] = Task {
+  override def mandatoryScalacOptions: T[Opts] = Task {
     super.mandatoryScalacOptions() ++
       // This warning comes up for package names with dashes in them like "package build.`foo-bar`",
       // but Mill generally handles these fine, so no need to warn the user
-      Seq(
+      Opts(
         "-deprecation",
         "-Wconf:msg=will be encoded on the classpath:silent",
         "-Ymagic-offset-header:SOURCE_CODE_START"
@@ -267,7 +268,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       // `-sourceroot` so scalac stores TASTY source paths relative to it. The value uses
       // the workspace's relativizer alias (`mill-workspace`) so two reproducible-mode runs
       // in different workspace dirs emit byte-identical `package_.class`/`.tasty`.
-      Seq("-sourceroot", rootModuleInfo.topLevelProjectRoot.toString)
+      Opts("-sourceroot", rootModuleInfo.topLevelProjectRoot.toString)
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */
@@ -315,7 +316,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
           javacOptions = jOpts.compiler,
           scalaVersion = scalaVersion(),
           scalaOrganization = JvmWorkerUtil.scalaOrganization(scalaVersion()),
-          scalacOptions = allScalacOptions(),
+          scalacOptions = allScalacOptions().toStringSeq,
           compilerClasspath = scalaCompilerClasspath(),
           scalacPluginClasspath = scalacPluginClasspath(),
           compilerBridgeOpt = scalaCompilerBridge(),

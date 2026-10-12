@@ -44,7 +44,7 @@ trait JmhModule extends JavaModule {
         classPath = (runClasspath() ++ generatorDeps()).map(_.path) ++
           Seq(jmhGeneratedSources().path, resources.path),
         mainArgs = args,
-        jvmArgs = forkArgs(),
+        jvmArgs = forkArgs().toStringSeq,
         cwd = Task.ctx().dest,
         javaHome = javaHome().map(_.path),
         stdin = os.Inherit,
@@ -78,7 +78,7 @@ trait JmhModule extends JavaModule {
   def generateBenchmarkSources =
     Task {
       val dest = Task.ctx().dest
-      val forkedArgs = forkArgs().toSeq
+      val forkedArgs = forkArgs().toStringSeq
       val sourcesDir = dest / "jmh_sources"
       val resourcesDir = dest / "jmh_resources"
 

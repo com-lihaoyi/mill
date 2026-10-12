@@ -7,6 +7,7 @@ import mill.util.BuildInfo
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil}
 import mill.util.Version
 import mill.{T, Task}
+import mill.api.opt.*
 
 import scala.jdk.CollectionConverters.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
@@ -26,10 +27,10 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   def zincIncrementalCompilation: T[Boolean]
   def allSourceFiles: T[Seq[PathRef]]
   def compile: T[mill.javalib.api.CompilationResult]
-  def jvmOptions: T[Seq[String]]
-  private[mill] def javaCompilerRuntimeOptions: T[Seq[String]]
-  def javacOptions: T[Seq[String]]
-  def mandatoryJavacOptions: T[Seq[String]]
+  def jvmOptions: T[Opts]
+  private[mill] def javaCompilerRuntimeOptions: T[Opts]
+  def javacOptions: T[Opts]
+  def mandatoryJavacOptions: T[Opts]
 
   private[mill] def compileFor(compileFor: CompileFor): Task[mill.javalib.api.CompilationResult] =
     compileFor match {
@@ -106,11 +107,11 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   /**
    * Scalac options to activate the compiler plugins.
    */
-  protected def semanticDbEnablePluginScalacOptions: T[Seq[String]] = Task {
+  protected def semanticDbEnablePluginScalacOptions: T[Opts] = Task {
     val resolvedJars = defaultResolver().classpath(
       semanticDbPluginMvnDeps().map(_.exclude("*" -> "*"))
     )
-    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
+    Opts(resolvedJars.map(jar => opt"-Xplugin:${jar.path}"))
   }
 
   protected def semanticDbPluginClasspath: T[Seq[PathRef]] = Task {
@@ -123,7 +124,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 
   def semanticDbDataDetailed: T[SemanticDbJavaModule.SemanticDbData] = Task(persistent = true) {
     val javacOpts = SemanticDbJavaModule.javacOptionsTask(
-      javacOptions() ++ mandatoryJavacOptions(),
+      (javacOptions() ++ mandatoryJavacOptions()).toStringSeq,
       semanticDbJavaVersion()
     )
 
@@ -151,7 +152,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
         workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
-      javaRuntimeOptions = javaCompilerRuntimeOptions() ++ legacyRuntimeOptions,
+      javaRuntimeOptions = javaCompilerRuntimeOptions().toStringSeq ++ legacyRuntimeOptions,
       reporter = Task.reporter.apply(hashCode),
       reportCachedProblems = zincReportCachedProblems()
     )

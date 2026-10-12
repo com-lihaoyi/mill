@@ -9,6 +9,7 @@ import mill.contrib.vaadin.api.{FrontendBuildConfig, VaadinLogger, VaadinWorker}
 import mill.javalib.*
 import mill.util.{Jvm, Version}
 import mill.contrib.vaadin.internal.BuildInfo
+import mill.api.opt.*
 
 /**
  * Builds [[https://vaadin.com Vaadin Flow]] applications.
@@ -222,13 +223,13 @@ trait VaadinModule extends JavaModule { outer =>
    * project, so point it at the module directly, at its frontend directory and
    * at [[vaadinDevBuildToolsDir]].
    */
-  override def forkArgs: T[Seq[String]] = Task {
+  override def forkArgs: T[Opts] = Task {
     val projectDir = moduleDir
     val buildTools = vaadinDevBuildToolsDir()
-    super.forkArgs() ++ Seq(
-      s"-Dvaadin.project.basedir=$projectDir",
-      s"-D${VaadinModule.FrontendFolderProperty}=${vaadinFrontendDir().path}",
-      s"-Dvaadin.build.folder=${buildTools.relativeTo(projectDir)}"
+    super.forkArgs() ++ Opts(
+      opt"-Dvaadin.project.basedir=$projectDir",
+      opt"-D${VaadinModule.FrontendFolderProperty}=${vaadinFrontendDir().path}",
+      opt"-Dvaadin.build.folder=${buildTools.relativeTo(projectDir)}"
     )
   }
 }

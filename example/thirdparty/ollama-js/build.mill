@@ -60,7 +60,7 @@ trait OllamaModule extends TypeScriptModule {
   )
 
   def options =
-    super.options() + (
+    super.options() ++ Map(
       "ts-node" -> ujson.Obj(
         "swc" -> ujson.True,
         "esm" -> ujson.True
@@ -68,7 +68,7 @@ trait OllamaModule extends TypeScriptModule {
     )
 
   def compilerOptions =
-    super.compilerOptions() + (
+    super.compilerOptions() ++ Map(
       "noImplicitAny" -> ujson.True,
       "noImplicitThis" -> ujson.True,
       "strictNullChecks" -> ujson.True,
@@ -132,7 +132,7 @@ trait Examples extends TypeScriptModule {
 
   trait Es6Module extends ExampleModule {
     def compilerOptions =
-      super.compilerOptions() + (
+      super.compilerOptions() ++ Map(
         "module" -> ujson.Str("nodenext"),
         "moduleResolution" -> ujson.Str("nodenext"),
         "target" -> ujson.Str("es6")

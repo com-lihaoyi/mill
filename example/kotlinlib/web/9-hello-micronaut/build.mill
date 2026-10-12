@@ -5,6 +5,7 @@ import coursier.{MavenRepository, Repository}
 import mill.*
 import kotlinlib.*
 import kotlinlib.ksp.KspModule
+import mill.api.opt.*
 
 object micronaut extends MicronautModule {
 
@@ -42,8 +43,8 @@ trait MicronautModule extends KspModule { outer =>
     mvn"io.micronaut:micronaut-inject-kotlin"
   )
 
-  override def kspProcessorOptions: T[Map[String, String]] = Task {
-    super.kspProcessorOptions() ++ Map(
+  override def kspProcessorOptions: T[OptMap] = Task {
+    super.kspProcessorOptions() ++ OptMap(
       "micronaut.processing.module" -> moduleSegments.render,
       "micronaut.processing.incremental" -> "true"
     )
