@@ -2,13 +2,14 @@ package mill.api.opt
 
 import mill.api.daemon.experimental
 import mill.api.daemon.internal.OptsApi
+import mill.api.internal.AppendableFromYaml
 import os.Path
 
 import scala.annotation.targetName
 import scala.language.implicitConversions
 
 @experimental
-case class Opts private (override val value: Seq[OptGroup]) extends OptsApi {
+case class Opts private (override val value: Seq[OptGroup]) extends OptsApi, AppendableFromYaml[Opts] {
   require(value.forall(!_.isEmpty))
 
   def toStringSeq: Seq[String] = value.flatMap(_.toStringSeq)
@@ -24,6 +25,10 @@ case class Opts private (override val value: Seq[OptGroup]) extends OptsApi {
   def filterGroup(pred: OptGroup => Boolean): Opts = Opts.apply(value.filter(pred)*)
   def mapGroup(f: OptGroup => OptGroup): Opts = Opts.apply(value.map(f)*)
   def flatMap(f: OptGroup => Seq[OptGroup]): Opts = Opts.apply(value.flatMap(f)*)
+
+  override def appendFromYaml(value: Any): Opts = value match {
+    case o: Opts => concat(o)
+  }
 }
 
 @experimental
