@@ -3,10 +3,12 @@ extends: millbuild.MyModule
 object foo:
   extends: millbuild.MyModule
   configSeq: [ "B" ]
-  configClass: { value: [ "B" ] }
+  configClass: { value: [ "N" ] }
+  configMap: { "new": { value: [ "Y" ] } }
 
 object bar:
   extends: millbuild.MyModule
   configSeq: !append [ "B" ]
-  configClass: !append { value: [ "B" ] }
+  configClass: !append { value: [ "N" ] }
+  configMap: !append { "new": { value: [ "Y" ] } }
 

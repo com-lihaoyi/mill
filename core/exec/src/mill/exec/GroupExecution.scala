@@ -4,7 +4,7 @@ import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
 import mill.api.daemon.internal.LauncherLocking
 import mill.api.daemon.internal.NonFatal
-import mill.api.internal.{Appendable, Located}
+import mill.api.internal.{Appendable, AppendableFromYaml, Located}
 import mill.internal.{CodeSigUtils, FileLogger, LockUpgrade, MultiLogger, PromptWaitReporter}
 
 import java.lang.reflect.Method
@@ -567,16 +567,20 @@ trait GroupExecution {
         buildOverrideOpt match {
           case Some(appendLocated) if appendLocated.value.append =>
             val taskResults = evaluateTaskWithCaching()
-
             // Check if task evaluation failed - if so, propagate the failure
             taskResults.newResults.get(labelled) match {
               case Some(ExecResult.Success((v, _))) =>
-                val taskValue = v.value.asInstanceOf[Seq[Any]]
+                val appendableTaskValue = v.value match {
+                  case a: AppendableFromYaml[?] => a
+                  case seq: Seq[Any] => AppendableFromYaml.Seq(seq)
+                  case map: Map[String, Any] => AppendableFromYaml.Map(map)
+                }
                 // Evaluate the YAML override and merge
                 evaluateBuildOverride(appendLocated, labelled) match {
                   case Right(yamlValue) =>
                     val (mergedData, serializedPaths) = PathRef.withSerializedPaths {
-                      (taskValue ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
+                      appendableTaskValue.appendFromYaml(yamlValue)
+                        .asInstanceOf[Any]
                     }
                     // Don't write merged result to paths.meta - that would overwrite the task
                     // cache and cause the task to re-execute every time. The task cache stays
