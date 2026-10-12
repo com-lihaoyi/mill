@@ -33,7 +33,7 @@ class OptMapTests extends TestSuite {
     "b" -> "BBB",
     "c" -> "CCC",
     "d" -> s"-Xplugin=${plugin1}",
-    "e" -> s"-Xplugin=${plugin1}",
+    "e" -> s"-Xplugin:${plugin1}",
     "f" -> s"-special-files=$srcDir1:$srcDir2"
   )
 
