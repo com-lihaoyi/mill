@@ -16,9 +16,18 @@ private[mill] object Watchable {
    * @param quick if true, only watch file attributes
    * @param signature the initial hash of the path contents
    */
-  case class Path(p: java.nio.file.Path, quick: Boolean, signature: Int) extends Watchable
+  case class Path(
+      p: java.nio.file.Path,
+      quick: Boolean,
+      signature: Int,
+      @com.lihaoyi.unroll
+      size: Long = -1L,
+      count: Int = -1,
+      isDir: Boolean = false
+  ) extends Watchable
   object Path {
-    def from(p: mill.api.daemon.internal.PathRefApi) = Path(p.javaPath, p.quick, p.sig)
+    def from(p: mill.api.daemon.internal.PathRefApi) =
+      Path(p.javaPath, p.quick, p.sig, p.size, p.count, p.isDir)
   }
 
   /**
