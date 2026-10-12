@@ -9,7 +9,8 @@ import scala.annotation.targetName
 import scala.language.implicitConversions
 
 @experimental
-case class Opts private (override val value: Seq[OptGroup]) extends OptsApi, AppendableFromYaml[Opts] {
+case class Opts private (override val value: Seq[OptGroup]) extends OptsApi,
+      AppendableFromYaml[Opts] {
   require(value.forall(!_.isEmpty))
 
   def toStringSeq: Seq[String] = value.flatMap(_.toStringSeq)

@@ -11,7 +11,13 @@ import java.lang.reflect.Method
 import java.util.concurrent.ThreadPoolExecutor
 import scala.collection.mutable
 import scala.util.hashing.MurmurHash3
-import mill.api.daemon.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TaskApi, TestReporter}
+import mill.api.daemon.internal.{
+  BaseModuleApi,
+  CompileProblemReporter,
+  EvaluatorApi,
+  TaskApi,
+  TestReporter
+}
 import mill.internal.SpanningForest
 import upickle.core.BufferedValue
 
