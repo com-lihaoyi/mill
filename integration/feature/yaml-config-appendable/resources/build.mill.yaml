@@ -1,0 +1,12 @@
+extends: millbuild.MyModule
+
+object foo:
+  extends: millbuild.MyModule
+  configSeq: [ "B" ]
+  configClass: { value: [ "B" ] }
+
+object bar:
+  extends: millbuild.MyModule
+  configSeq: !append [ "B" ]
+  configClass: !append { value: [ "B" ] }
+
