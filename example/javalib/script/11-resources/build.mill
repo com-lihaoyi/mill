@@ -13,7 +13,7 @@ Hello World Resource File
 /** Usage
 
 > ./mill show Foo.java:assembly
-".../out/Foo.java/assembly.dest/out.jar"
+"...$MILL_OUT/Foo.java/assembly.dest/out.jar"
 
 > out/Foo.java/assembly.dest/out.jar
 Hello World Resource File

@@ -244,7 +244,7 @@ trait GroupExecution {
       exclusive: Boolean,
       upstreamPathRefs: collection.Seq[PathRef],
       leaseTracker: Execution.LeaseTracker
-  ): GroupExecution.Results = {
+  ): GroupExecution.Results = MappedRoots.withMillDefaults(outPath = outPath) {
     // Fold the group's `sideHash`es into a single order-independent (commutative sum) value for
     // `inputsHash`, and note whether any task is side-effecting (non-zero `sideHash`, see
     // `Task.sideEffectingHash`) so we can force it to re-read rather than serve a cached value.
@@ -956,7 +956,7 @@ object GroupExecution {
       classLoader: ClassLoader
   )(t: => T): T = {
     // Tasks must be allowed to write to upstream worker's dest folders, because
-    // the point of workers is to manualy manage long-lived state which includes
+    // the point of workers is to manually manage long-lived state which includes
     // state on disk.
     val validWriteDests =
       deps.collect { case n: Task.Worker[?] =>

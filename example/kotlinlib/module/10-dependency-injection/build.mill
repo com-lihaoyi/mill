@@ -9,8 +9,8 @@
 
 > ./mill show generatedSources
 [
-  "ref:v0:.../out/generatedSourcesWithKsp2.dest/generated/java",
-  "ref:v0:.../out/generatedSourcesWithKsp2.dest/generated/kotlin"
+  "ref:v0:...$MILL_OUT/generatedSourcesWithKsp2.dest/generated/java",
+  "ref:v0:...$MILL_OUT/generatedSourcesWithKsp2.dest/generated/kotlin"
 ]
 
 > ls out/generatedSourcesWithKsp2.dest/generated/java/com/example/dagger/
