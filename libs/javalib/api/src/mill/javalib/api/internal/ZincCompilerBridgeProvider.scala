@@ -57,7 +57,12 @@ object ZincCompilerBridgeProvider {
     }
   }
 
-  /** Compile the `sbt`/Zinc compiler bridge in the `compileDest` directory */
+  /**
+   * Compile the `sbt`/Zinc compiler bridge in the `compileDest` directory
+   *
+   * @param scalacOptions extra options passed to scalac, e.g. `-release` when the bridge
+   *                      is compiled on a JVM newer than the one the Scala version supports
+   */
   def compile(
       logInfo: String => Unit,
       workingDir: os.Path,
@@ -65,7 +70,8 @@ object ZincCompilerBridgeProvider {
       scalaVersion: String,
       compilerClasspath: Seq[os.Path],
       compilerBridgeClasspath: Seq[os.Path],
-      compilerBridgeSourcesJar: os.Path
+      compilerBridgeSourcesJar: os.Path,
+      scalacOptions: Seq[String] = Nil
   ): Unit = {
     if (scalaVersion == "2.12.0") {
       // The Scala 2.10.0 compiler fails on compiling the compiler bridge
@@ -116,9 +122,20 @@ object ZincCompilerBridgeProvider {
           if (JvmWorkerUtil.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
           else "scala.tools.nsc.Main"
         )
-        compilerMain
+        val result = compilerMain
           .getMethod("process", classOf[Array[String]])
-          .invoke(null, argsArray ++ Array("-nowarn"))
+          .invoke(null, argsArray ++ scalacOptions ++ Array("-nowarn"))
+        // Scala 2's `process` returns whether compilation succeeded, Scala 3's returns a reporter
+        val success = result match {
+          case b: java.lang.Boolean => b.booleanValue
+          case reporter =>
+            !reporter.getClass.getMethod("hasErrors").invoke(reporter).asInstanceOf[Boolean]
+        }
+        // Fail here, so that callers don't go on to mark an empty bridge as compiled
+        if (!success)
+          throw IllegalStateException(
+            s"Failed to compile the compiler bridge for Scala $scalaVersion"
+          )
       } else {
         throw IllegalArgumentException("Currently not implemented case.")
       }
