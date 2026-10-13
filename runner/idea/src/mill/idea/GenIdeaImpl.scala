@@ -599,7 +599,7 @@ class GenIdeaImpl(
 
     // Generate module files for script files
     val scriptModuleFiles: Seq[(os.SubPath, Elem)] = scriptFiles.map { scriptPath =>
-      val moduleXml = scriptModuleXmlTemplate(scriptPath)
+      val moduleXml = scriptModuleXmlTemplate(scriptPath, outDir)
       val moduleFile = Tuple2(
         os.sub / "mill_modules" / s"${scriptModuleName(scriptPath)}.iml",
         moduleXml
@@ -899,22 +899,28 @@ class GenIdeaImpl(
 
   /**
    * Generate module name for a script file.
+   *
+   * Scripts in different folders can share a file name (e.g. `a/Foo.scala` and
+   * `b/Foo.scala`), so the name includes the script's folder relative to the
+   * workspace, e.g. `script-a.foo`. Scripts at the workspace root keep `script-foo`.
    */
   def scriptModuleName(scriptPath: os.Path): String = {
-    s"script-${scriptPath.baseName}".toLowerCase()
+    val rel = scriptPath.relativeTo(workDir)
+    (rel.segments.init :+ rel.baseName).mkString("script-", ".", "").toLowerCase()
   }
 
   /**
    * Generate IntelliJ module XML for a script file.
-   * The source root is the path of the file itself.
+   * The source root is the path of the file itself, and the output folder is the
+   * script's `compile.dest` under `outDir` (e.g. `out/a/Foo.scala/compile.dest`).
    */
-  def scriptModuleXmlTemplate(scriptPath: os.Path): Elem = {
+  def scriptModuleXmlTemplate(scriptPath: os.Path, outDir: os.Path): Elem = {
     val relUrl = "file://$MODULE_DIR$/" + relify(scriptPath)
 
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
         <output url={
-      s"file://$$MODULE_DIR$$/../../out/script/${scriptPath.baseName}/compile.dest"
+      "file://$MODULE_DIR$/" + relify(outDir / scriptPath.relativeTo(workDir) / "compile.dest")
     }/>
         <exclude-output />
         <content url={relUrl}>
