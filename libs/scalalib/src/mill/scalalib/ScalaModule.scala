@@ -8,7 +8,7 @@ import mill.api.{BuildCtx, ModuleRef, PathRef, Result, Task}
 import mill.util.BuildInfo
 import mill.util.Jvm
 import mill.javalib.api.{CompilationResult, Versions}
-import mill.javalib.api.JvmWorkerUtil.{scalaOrganization => scalaOrganization0, *}
+import mill.javalib.api.JvmWorkerUtil.{scalaOrganization as scalaOrganization0, *}
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
 import mill.api.daemon.internal.{ScalaModuleApi, ScalaPlatform, internal}
@@ -183,7 +183,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   protected def mandatoryScalacOptions: T[Seq[String]] = Task {
     // `-sourceroot` so scalac stores TASTY source paths relative to it.
-    if (scalaVersion().startsWith("2")) Seq()
+    if (!util.Version.isAtLeast(scalaVersion(), "3")(using util.Version.MavenOrdering)) Seq()
     else Seq("-sourceroot", BuildCtx.workspaceRoot.toString())
   }
 
