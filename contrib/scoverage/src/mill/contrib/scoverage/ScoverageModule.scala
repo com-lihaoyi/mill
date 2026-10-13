@@ -177,9 +177,11 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
       internalRepositories() ++ outer.repositoriesTask()
     }
+
+    override def bomMvnDeps: Task.Simple[Seq[Dep]] = outer.bomMvnDeps()
     override def compileMvnDeps: T[Seq[Dep]] = outer.compileMvnDeps()
-    override def mvnDeps: T[Seq[Dep]] =
-      Task { outer.mvnDeps() ++ outer.scoverageRuntimeDeps() }
+    override def mvnDeps: T[Seq[Dep]] = outer.mvnDeps() ++ outer.scoverageRuntimeDeps()
+
     override def unmanagedClasspath: T[Seq[PathRef]] = outer.unmanagedClasspath()
 
     /** Add the scoverage scalac plugin. */
