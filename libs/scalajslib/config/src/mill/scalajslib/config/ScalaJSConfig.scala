@@ -41,6 +41,39 @@ private[mill] object ScalaJSConfig {
   private[mill] def isWasmComponent(moduleKind: sjs.ModuleKind): Boolean =
     moduleKind.getClass.getName == WasmComponentClassName
 
+  /**
+   * Makes a `ModuleKind.WasmComponent` run its module initializers (the main method,
+   * or the test bridge) from the `wasi:cli/run@0.2.0#run` export, like the scala-wasm
+   * sbt plugin. A component cannot run them from its start function. Uses reflection
+   * because `WasmFeatures.withModuleInitializerExport` only exists in scala-wasm.
+   */
+  private[mill] def withWasiCliRunExport(config: sjs.StandardConfig): sjs.StandardConfig = {
+    val loader = classOf[sjs.StandardConfig].getClassLoader
+    def module(className: String): AnyRef =
+      Class.forName(className, true, loader).getField("MODULE$").get(null)
+
+    val scope = Class
+      .forName("org.scalajs.ir.WitScope$Interface", true, loader)
+      .getConstructor(classOf[String], classOf[String], classOf[String], classOf[Option[?]])
+      .newInstance("wasi", "cli", "run", Some("0.2.0"))
+    val exportCompanion =
+      module("org.scalajs.linker.interface.WasmComponentModuleInitializerExport$")
+    val resultType = module(
+      "org.scalajs.linker.interface.WasmComponentModuleInitializerExport$ResultType$ResultUnitUnit$"
+    )
+    val runExport = exportCompanion.getClass.getMethods
+      .find(m => m.getName == "apply" && m.getParameterCount == 3)
+      .get
+      .invoke(exportCompanion, scope, "run", resultType)
+
+    config.withWasmFeatures { features =>
+      features.getClass
+        .getMethod("withModuleInitializerExport", classOf[Option[?]])
+        .invoke(features, Some(runExport))
+        .asInstanceOf[sjs.WasmFeatures]
+    }
+  }
+
   /** Mill's default Scala.js linker configuration for the passed parameters */
   def config(
       sjsVersion: String,

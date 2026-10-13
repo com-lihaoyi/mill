@@ -239,6 +239,8 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
       Selenium(config)
     case config: workerApi.JsEnvConfig.Playwright =>
       Playwright(config)
+    case config: workerApi.JsEnvConfig.Wasmtime =>
+      Wasmtime(config)
   }
 
   override def close(): Unit = ScalaJSLinker.close()
@@ -295,14 +297,22 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
       useWebAssemblyJSPI = useWebAssemblyJSPI
     )
 
+    val moduleInitializers = ScalaJSConfigModule.moduleInitializers(main.toOption, true)
+    val config1 =
+      if (
+        ScalaJSConfig.isWasmComponent(config.moduleKind) &&
+        (testBridgeInit || moduleInitializers.nonEmpty)
+      ) ScalaJSConfig.withWasiCliRunExport(config)
+      else config
+
     rawLink(
       runClasspath = runClasspath,
       dest = Left(dest),
-      moduleInitializers = ScalaJSConfigModule.moduleInitializers(main.toOption, true),
+      moduleInitializers = moduleInitializers,
       forceOutJs = forceOutJs,
       testBridgeInit = testBridgeInit,
       importMap = importMap,
-      config = if (isFullLinkJS) ScalaJSConfigModule.fullOptConfig(config) else config
+      config = if (isFullLinkJS) ScalaJSConfigModule.fullOptConfig(config1) else config1
     ).map { sjsReport =>
       fromSjs(sjsReport, os.Path(dest))
     }
@@ -330,13 +340,29 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
     )
   }
 
+  /** Inputs for the JS environment; a WebAssembly component runs only on wasmtime */
+  private def jsEnvInputs(config: workerApi.JsEnvConfig, report: workerApi.Report): Seq[Input] =
+    report.publicModules.find(_.moduleID == "main") match {
+      case Some(main) if main.moduleKind == workerApi.ModuleKind.WasmComponent =>
+        config match {
+          case _: workerApi.JsEnvConfig.Wasmtime =>
+            Seq(Wasmtime.input(report.dest.toPath.resolve(s"${main.moduleID}.wasm")))
+          case _ =>
+            throw Exception(
+              "Running or testing a ModuleKind.WasmComponent module needs " +
+                "jsEnvConfig = JsEnvConfig.Wasmtime()"
+            )
+        }
+      case _ => ScalaJSConfigModule.jsEnvInputs(fromWorkerApi(report))
+    }
+
   def run(config: workerApi.JsEnvConfig, report: workerApi.Report): Unit =
-    run0(config, ScalaJSConfigModule.jsEnvInputs(fromWorkerApi(report)))
+    run0(config, jsEnvInputs(config, report))
 
   def getFramework(
       config: workerApi.JsEnvConfig,
       frameworkName: String,
       report: workerApi.Report
   ): (() => Unit, sbt.testing.Framework) =
-    rawGetFramework(config, frameworkName, ScalaJSConfigModule.jsEnvInputs(fromWorkerApi(report)))
+    rawGetFramework(config, frameworkName, jsEnvInputs(config, report))
 }

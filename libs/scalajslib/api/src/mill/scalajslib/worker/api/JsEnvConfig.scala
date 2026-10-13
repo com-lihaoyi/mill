@@ -32,6 +32,12 @@ private[scalajslib] object JsEnvConfig {
   final case class Selenium(
       capabilities: Selenium.Capabilities
   ) extends JsEnvConfig
+
+  final case class Wasmtime(
+      executable: String,
+      args: List[String],
+      env: Map[String, String]
+  ) extends JsEnvConfig
   object Selenium {
     sealed trait Capabilities
     case class ChromeOptions(headless: Boolean) extends Capabilities

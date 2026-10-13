@@ -12,6 +12,7 @@ object JsEnvConfig {
   implicit def rwPhantom: RW[Phantom] = macroRW
   implicit def rwSelenium: RW[Selenium] = macroRW
   implicit def rwPlaywright: RW[Playwright] = macroRW
+  implicit def rwWasmtime: RW[Wasmtime] = macroRW
   implicit def rw: RW[JsEnvConfig] = macroRW
 
   private given Root_JsEnvConfig: Mirrors.Root[JsEnvConfig] =
@@ -47,6 +48,23 @@ object JsEnvConfig {
   final case class ExoegoJsDomNodeJs(
       executable: String = "node",
       args: List[String] = Nil,
+      env: Map[String, String] = Map.empty
+  ) extends JsEnvConfig
+
+  /**
+   * Runs a WebAssembly component ([[ModuleKind.WasmComponent]]) with
+   * [[https://wasmtime.dev wasmtime]], through scala-wasm's
+   * [[https://github.com/scala-wasm/scala-js-env-wasmtime scala-js-env-wasmtime]].
+   * Needs the `wasmtime` executable. The defaults are the ones of scala-js-env-wasmtime.
+   */
+  final case class Wasmtime(
+      executable: String = "wasmtime",
+      args: List[String] = List(
+        "-W",
+        "gc,function-references,exceptions",
+        "-S",
+        "cli,inherit-env,inherit-network,tcp,udp,http,allow-ip-name-lookup"
+      ),
       env: Map[String, String] = Map.empty
   ) extends JsEnvConfig
 

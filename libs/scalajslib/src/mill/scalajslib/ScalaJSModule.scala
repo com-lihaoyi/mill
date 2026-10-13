@@ -97,6 +97,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
         mvn"${ScalaJSBuildInfo.scalajsEnvSelenium}"
       case _: JsEnvConfig.Playwright =>
         mvn"${ScalaJSBuildInfo.scalajsEnvPlaywright}"
+      case _: JsEnvConfig.Wasmtime =>
+        mvn"${ScalaJSBuildInfo.scalajsEnvWasmtime}"
     }
 
     Seq(dep)
