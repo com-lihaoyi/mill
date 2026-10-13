@@ -290,7 +290,7 @@ trait TestScalaJSConfigModule extends TestScalaJSModule with ScalaJSConfigModule
     linkJs(
       worker = ScalaJSConfigWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
-      runClasspath = scalaJSTestDeps() ++ runClasspath(),
+      runClasspath = runClasspath() ++ scalaJSTestDeps(),
       moduleInitializers = testModuleInitializers(),
       forceOutJs = false,
       testBridgeInit = true,
