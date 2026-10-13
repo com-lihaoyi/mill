@@ -263,11 +263,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
         "-deprecation",
         "-Wconf:msg=will be encoded on the classpath:silent",
         "-Ymagic-offset-header:SOURCE_CODE_START"
-      ) ++
-      // `-sourceroot` so scalac stores TASTY source paths relative to it. The value uses
-      // the workspace's relativizer alias (`mill-workspace`) so two reproducible-mode runs
-      // in different workspace dirs emit byte-identical `package_.class`/`.tasty`.
-      Seq("-sourceroot", rootModuleInfo.topLevelProjectRoot.toString)
+      )
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */

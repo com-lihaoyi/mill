@@ -181,7 +181,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * Mandatory command-line options to pass to the Scala compiler
    * that shouldn't be removed by overriding `scalacOptions`
    */
-  protected def mandatoryScalacOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  protected def mandatoryScalacOptions: T[Seq[String]] = Task {
+    // `-sourceroot` so scalac stores TASTY source paths relative to it.
+    if (scalaVersion().startsWith("2")) Seq()
+    else Seq("-sourceroot", BuildCtx.workspaceRoot.toString())
+  }
 
   /**
    * Scalac options to activate the compiler plugins.
@@ -665,7 +669,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
   override def semanticDbScalaVersion: T[String] = scalaVersion()
 
-  override protected def semanticDbPluginClasspath = Task {
+  override protected def semanticDbPluginClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       scalacPluginMvnDeps() ++ semanticDbPluginMvnDeps()
     )
@@ -676,7 +680,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       val sv = scalaVersion()
 
       val additionalScalacOptions = if (isScala3(sv)) {
-        Seq("-Xsemanticdb", s"-sourceroot:${BuildCtx.workspaceRoot}")
+        Seq("-Xsemanticdb")
       } else {
         Seq("-Yrangepos", s"-P:semanticdb:sourceroot:${BuildCtx.workspaceRoot}")
       }
