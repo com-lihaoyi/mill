@@ -1,0 +1,9 @@
+package mill:test@0.1.0;
+
+interface adder {
+  add: func(a: s32, b: s32) -> s32;
+}
+
+world calculator {
+  export adder;
+}

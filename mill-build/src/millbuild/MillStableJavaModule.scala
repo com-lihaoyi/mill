@@ -106,6 +106,10 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ),
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.kotlinlib.KotlinModule#KotlinTests0.mill$kotlinlib$KotlinModule$KotlinTests0$$super$kotlinFriendModules"
+    ),
+    // new override calling super, with default impl: adds the WIT bindings to generatedSources
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$generatedSources"
     )
   )
 
