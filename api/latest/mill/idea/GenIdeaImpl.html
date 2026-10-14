@@ -518,6 +518,7 @@ node3 -> node2;
             <div class="cover">
              <div class="doc">
               <p>Generate module name for a script file.</p>
+              <p>Scripts in different folders can share a file name (e.g. <code>a/Foo.scala</code> and <code>b/Foo.scala</code>), so the name includes the script's folder relative to the workspace, e.g. <code>script-a.foo</code>. Scripts at the workspace root keep <code>script-foo</code>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -531,12 +532,12 @@ node3 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="scriptModuleXmlTemplate-fffff29d">
+        <div class="documentableElement" id="scriptModuleXmlTemplate-fee">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="GenIdeaImpl.html#scriptModuleXmlTemplate-fffff29d" t="n" class="documentableName ">scriptModuleXmlTemplate</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">scriptPath</span>: <span data-unresolved-link="" t="t">Path</span>): <span data-unresolved-link="" t="t">Elem</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="GenIdeaImpl.html#scriptModuleXmlTemplate-fee" t="n" class="documentableName ">scriptModuleXmlTemplate</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">scriptPath</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">outDir</span>: <span data-unresolved-link="" t="t">Path</span>): <span data-unresolved-link="" t="t">Elem</span>
            </div>
           </div>
          </div>
@@ -546,11 +547,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Generate IntelliJ module XML for a script file. The source root is the path of the file itself.</p>
+             <p>Generate IntelliJ module XML for a script file. The source root is the path of the file itself, and the output folder is the script's <code>compile.dest</code> under <code>outDir</code> (e.g. <code>out/a/Foo.scala/compile.dest</code>).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Generate IntelliJ module XML for a script file. The source root is the path of the file itself.</p>
+              <p>Generate IntelliJ module XML for a script file. The source root is the path of the file itself, and the output folder is the script's <code>compile.dest</code> under <code>outDir</code> (e.g. <code>out/a/Foo.scala/compile.dest</code>).</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
