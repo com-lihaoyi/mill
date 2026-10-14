@@ -54,3 +54,25 @@ include::partial$example/scalalib/web/9-cross-platform-version-publishing.adoc[]
 include::partial$example/scalalib/web/10-wasm.adoc[]
 
 
+
+=== WebAssembly Components
+
+`ScalaWasmModule` links a stand-alone WebAssembly component (WASI Component Model)
+for runtimes such as https://wasmtime.dev[wasmtime], with no JavaScript host.
+It uses https://github.com/scala-wasm/scala-wasm[scala-wasm], a friendly fork of
+Scala.js, and shares the implementation and the `scalaJS*` settings of `ScalaJSModule`.
+Only the defaults differ: the scala-wasm organization and version,
+`moduleKind = ModuleKind.WasmComponent`, `scalaJSUseWebAssembly = true` and ES2022.
+
+[source,scala]
+----
+package build
+import mill.*, scalalib.*, scalajslib.*
+
+object component extends ScalaWasmModule {
+  def scalaVersion = "2.13.18"
+}
+----
+
+`./mill component.fastLinkJS` writes the component to `out/component/fastLinkJS.dest/main.wasm`.
+scala-wasm runs `wasm-tools component new`, so `wasm-tools` must be on the `PATH`.

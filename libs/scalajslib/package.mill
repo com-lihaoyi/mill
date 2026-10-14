@@ -37,7 +37,8 @@ object `package` extends MillStableScalaModule with BuildInfo {
       BuildInfo.Value("scalajsEnvSelenium", formatDep(Deps.Scalajs_1.scalajsEnvSelenium)),
       BuildInfo.Value("scalajsEnvPlaywright", formatDep(Deps.Scalajs_1.scalajsEnvPlaywright)),
       BuildInfo.Value("scalajsEnvWasmtime", formatDep(Deps.Scalajs_1.scalajsEnvWasmtime)),
-      BuildInfo.Value("scalajsImportMap", formatDep(Deps.Scalajs_1.scalajsImportMap))
+      BuildInfo.Value("scalajsImportMap", formatDep(Deps.Scalajs_1.scalajsImportMap)),
+      BuildInfo.Value("scalaWasmVersion", Deps.Scalajs_1.scalaWasmVersion)
     )
   }
 
