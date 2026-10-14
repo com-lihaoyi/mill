@@ -56,6 +56,7 @@ object JsEnvConfig {
    * [[https://wasmtime.dev wasmtime]], through scala-wasm's
    * [[https://github.com/scala-wasm/scala-js-env-wasmtime scala-js-env-wasmtime]].
    * Needs the `wasmtime` executable. The defaults are the ones of scala-js-env-wasmtime.
+   * It is the default of [[mill.scalajslib.ScalaWasmModule]].
    */
   final case class Wasmtime(
       executable: String = "wasmtime",

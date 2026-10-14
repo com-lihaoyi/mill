@@ -16,6 +16,7 @@ import mill.scalajslib.api.*
  *  - [[moduleKind]]: [[ModuleKind.WasmComponent]]
  *  - [[scalaJSUseWebAssembly]]: `true`
  *  - [[esFeatures]]: ES2022
+ *  - [[jsEnvConfig]]: [[JsEnvConfig.Wasmtime]], to `run` and `test` the component
  *
  * scala-wasm plans to upstream its work to Scala.js. When that happens, only these
  * defaults change, and modules that extend `ScalaWasmModule` keep working.
@@ -48,6 +49,9 @@ trait ScalaWasmModule extends ScalaJSModule {
   override def esFeatures: T[ESFeatures] = Task {
     super.esFeatures().withESVersion(ESVersion.ES2022)
   }
+
+  /** A component runs on [[https://wasmtime.dev wasmtime]], not on a JavaScript engine */
+  override def jsEnvConfig: T[JsEnvConfig] = Task { JsEnvConfig.Wasmtime() }
 }
 
 /** A test module for a [[ScalaWasmModule]], see [[ScalaWasmModule.ScalaWasmTests]] */

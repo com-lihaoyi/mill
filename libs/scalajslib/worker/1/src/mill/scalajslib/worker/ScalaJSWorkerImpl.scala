@@ -350,7 +350,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
           case _ =>
             throw Exception(
               "Running or testing a ModuleKind.WasmComponent module needs " +
-                "jsEnvConfig = JsEnvConfig.Wasmtime()"
+                "jsEnvConfig = JsEnvConfig.Wasmtime() (the default of ScalaWasmModule)"
             )
         }
       case _ => ScalaJSConfigModule.jsEnvInputs(fromWorkerApi(report))

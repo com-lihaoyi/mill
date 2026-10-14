@@ -5,18 +5,11 @@ import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
 import mill.scalajslib.api.*
-import mill.T
 
 object WasmtimeTests extends TestSuite {
 
-  trait ScalaWasmComponent extends ScalaJSModule {
+  trait ScalaWasmComponent extends ScalaWasmModule {
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-    override def scalaJSOrganization = "io.github.scala-wasm"
-    override def scalaJSVersion = "1.22.1-wasm.6"
-    override def moduleKind = ModuleKind.WasmComponent
-    override def esFeatures = super.esFeatures().withESVersion(ESVersion.ES2022)
-    override def scalaJSUseWebAssembly: T[Boolean] = true
-    override def jsEnvConfig = JsEnvConfig.Wasmtime()
   }
 
   object Command extends TestRootModule with ScalaWasmComponent {
@@ -27,7 +20,7 @@ object WasmtimeTests extends TestSuite {
   }
 
   object WithJunit extends TestRootModule with ScalaWasmComponent {
-    object test extends ScalaJSTests with TestScalaJSModule.Junit4ScalaJs
+    object test extends ScalaWasmTests with TestScalaJSModule.Junit4ScalaJs
 
     override lazy val millDiscover = {
       import mill.util.TokenReaders.given
@@ -55,6 +48,13 @@ object WasmtimeTests extends TestSuite {
 
   val tests: Tests = Tests {
     test("jsEnvDeps") {
+      UnitTester(WithJunit, resources / "junit").scoped { evaluator =>
+        // the default of ScalaWasmModule, also in its test module
+        for (m <- Seq[ScalaJSModule](WithJunit, WithJunit.test)) {
+          val Right(env) = evaluator(m.jsEnvConfig).runtimeChecked
+          assert(env.value == JsEnvConfig.Wasmtime())
+        }
+      }
       UnitTester(Command, resources / "ok").scoped { evaluator =>
         val Right(cp) = evaluator(Command.scalaJSLinkerClasspath).runtimeChecked
         assert(cp.value.exists(_.path.last.startsWith("scalajs-env-wasmtime_3-")))
