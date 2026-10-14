@@ -11,6 +11,36 @@ private[mill] object ScalaJSConfig {
       case _ => true
     }
 
+  private final val WasmComponentClassName =
+    "org.scalajs.linker.interface.ModuleKind$WasmComponent$"
+
+  /**
+   * `ModuleKind.WasmComponent` only exists in Scala.js linkers that implement the
+   * WebAssembly Component Model, such as the scala-wasm fork
+   * (https://github.com/scala-wasm/scala-wasm). Mill is compiled against upstream
+   * Scala.js, so it is looked up reflectively in the linker-interface on the
+   * worker classpath.
+   */
+  private[mill] def wasmComponentModuleKind(sjsVersion: String): sjs.ModuleKind =
+    try {
+      Class
+        .forName(WasmComponentClassName, true, classOf[sjs.ModuleKind].getClassLoader)
+        .getField("MODULE$")
+        .get(null)
+        .asInstanceOf[sjs.ModuleKind]
+    } catch {
+      case _: ClassNotFoundException =>
+        throw Exception(
+          s"ModuleKind.WasmComponent is not supported by Scala.js $sjsVersion. " +
+            "It requires a Scala.js linker that implements the WebAssembly Component Model, " +
+            "such as scala-wasm (extend ScalaWasmModule)."
+        )
+    }
+
+  /** Whether `moduleKind` is the `ModuleKind.WasmComponent` of a Component Model linker. */
+  private[mill] def isWasmComponent(moduleKind: sjs.ModuleKind): Boolean =
+    moduleKind.getClass.getName == WasmComponentClassName
+
   /** Mill's default Scala.js linker configuration for the passed parameters */
   def config(
       sjsVersion: String,
@@ -79,6 +109,12 @@ private[mill] object ScalaJSConfig {
       case ModuleKind.NoModule => sjs.ModuleKind.NoModule
       case ModuleKind.CommonJSModule => sjs.ModuleKind.CommonJSModule
       case ModuleKind.ESModule => sjs.ModuleKind.ESModule
+      case ModuleKind.WasmComponent =>
+        if (!useWebAssembly)
+          throw Exception(
+            "ModuleKind.WasmComponent requires the WebAssembly backend to be enabled (set scalaJSUseWebAssembly = true)"
+          )
+        wasmComponentModuleKind(sjsVersion)
     }
 
     var config = sjs.StandardConfig()

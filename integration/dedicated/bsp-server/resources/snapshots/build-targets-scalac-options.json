@@ -92,6 +92,8 @@
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "options": [
+        "-sourceroot",
+        "/workspace",
         "-Ymagic-offset-header:SOURCE_CODE_START"
       ],
       "classpath": [
@@ -119,6 +121,8 @@
         "uri": "file:///workspace/scripts/foldershared/script.scala"
       },
       "options": [
+        "-sourceroot",
+        "/workspace",
         "-Ymagic-offset-header:SOURCE_CODE_START"
       ],
       "classpath": [
