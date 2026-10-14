@@ -17,6 +17,9 @@ import mill.scalajslib.api.*
  *  - [[scalaJSUseWebAssembly]]: `true`
  *  - [[esFeatures]]: ES2022
  *
+ * It also generates Scala bindings from the WIT files in [[witDirectory]] (`wit/`),
+ * with [[https://github.com/scala-wasm/wit-bindgen-scala wit-bindgen-scala]].
+ *
  * scala-wasm plans to upstream its work to Scala.js. When that happens, only these
  * defaults change, and modules that extend `ScalaWasmModule` keep working.
  *
@@ -47,6 +50,55 @@ trait ScalaWasmModule extends ScalaJSModule {
 
   override def esFeatures: T[ESFeatures] = Task {
     super.esFeatures().withESVersion(ESVersion.ES2022)
+  }
+
+  /**
+   * Directory with the WIT files (WebAssembly Component Model interfaces) to generate
+   * Scala bindings for, with [[witBindgenExecutable]]. Bindings are generated only if
+   * the directory exists.
+   */
+  def witDirectory: T[PathRef] = Task.Source("wit")
+
+  /** The WIT world to generate bindings for (`--world`); `None` lets the generator pick it. */
+  def witWorld: T[Option[String]] = Task { None }
+
+  /** The base package of the generated bindings (`--base-package`); `None` uses the generator's default. */
+  def witPackage: T[Option[String]] = Task { None }
+
+  /**
+   * The [[https://github.com/scala-wasm/wit-bindgen-scala wit-bindgen-scala]] executable,
+   * looked up on the `PATH` unless it is an absolute path. Mill does not download it.
+   */
+  def witBindgenExecutable: T[String] = Task { "wit-bindgen-scala" }
+
+  /** Extra arguments for [[witBindgenExecutable]], e.g. `--with` remappings or `--features`. */
+  def witBindgenArgs: T[Seq[String]] = Task { Seq.empty[String] }
+
+  /**
+   * Scala bindings generated from [[witDirectory]] by [[witBindgenExecutable]].
+   * They are part of [[generatedSources]].
+   */
+  def witBindings: T[Seq[PathRef]] = Task {
+    val witDir = witDirectory().path
+    if (!os.exists(witDir)) Seq.empty[PathRef]
+    else {
+      val outDir = Task.dest / "wit-bindgen"
+      os.makeDir.all(outDir)
+      os.proc(
+        witBindgenExecutable(),
+        witDir,
+        "--out-dir",
+        outDir,
+        witWorld().toSeq.flatMap(w => Seq("--world", w)),
+        witPackage().toSeq.flatMap(p => Seq("--base-package", p)),
+        witBindgenArgs()
+      ).call(cwd = Task.dest, stdout = os.Inherit)
+      Seq(PathRef(outDir))
+    }
+  }
+
+  override def generatedSources: T[Seq[PathRef]] = Task {
+    super.generatedSources() ++ witBindings()
   }
 }
 

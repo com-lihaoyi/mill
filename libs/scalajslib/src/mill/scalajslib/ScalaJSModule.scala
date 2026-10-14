@@ -355,59 +355,6 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
    */
   def scalaJSMinify: T[Boolean] = Task { true }
 
-  /**
-   * Directory with the WIT files (WebAssembly Component Model interfaces) to
-   * generate Scala bindings for, with [[scalaJSWitBindgenExecutable]]. `None` (the
-   * default) generates nothing. Bindings target the
-   * [[https://github.com/scala-wasm/scala-wasm scala-wasm]] fork of Scala.js.
-   *
-   * Typically `Task { Some(witDirectory()) }` with `def witDirectory = Task.Source("wit")`,
-   * so that a change in a WIT file regenerates the bindings.
-   */
-  def scalaJSWitDirectory: T[Option[PathRef]] = Task { None }
-
-  /** The WIT world to generate bindings for (`--world`); `None` lets the generator pick it. */
-  def scalaJSWitWorld: T[Option[String]] = Task { None }
-
-  /** The base package of the generated bindings (`--base-package`); `None` uses the generator's default. */
-  def scalaJSWitPackage: T[Option[String]] = Task { None }
-
-  /**
-   * The [[https://github.com/scala-wasm/wit-bindgen-scala wit-bindgen-scala]] executable,
-   * looked up on the `PATH` unless it is an absolute path.
-   */
-  def scalaJSWitBindgenExecutable: T[String] = Task { "wit-bindgen-scala" }
-
-  /** Extra arguments for [[scalaJSWitBindgenExecutable]], e.g. `--with` remappings or `--features`. */
-  def scalaJSWitBindgenArgs: T[Seq[String]] = Task { Seq.empty[String] }
-
-  /**
-   * Scala bindings generated from [[scalaJSWitDirectory]] by [[scalaJSWitBindgenExecutable]].
-   * They are part of [[generatedSources]].
-   */
-  def scalaJSWitBindings: T[Seq[PathRef]] = Task {
-    scalaJSWitDirectory() match {
-      case None => Seq.empty[PathRef]
-      case Some(witDir) =>
-        val outDir = Task.dest / "wit-bindgen"
-        os.makeDir.all(outDir)
-        os.proc(
-          scalaJSWitBindgenExecutable(),
-          witDir.path,
-          "--out-dir",
-          outDir,
-          scalaJSWitWorld().toSeq.flatMap(w => Seq("--world", w)),
-          scalaJSWitPackage().toSeq.flatMap(p => Seq("--base-package", p)),
-          scalaJSWitBindgenArgs()
-        ).call(cwd = Task.dest, stdout = os.Inherit)
-        Seq(PathRef(outDir))
-    }
-  }
-
-  override def generatedSources: T[Seq[PathRef]] = Task {
-    super.generatedSources() ++ scalaJSWitBindings()
-  }
-
   override def prepareOffline(all: Flag): Command[Seq[PathRef]] = {
     val tasks =
       if (all.value) Seq(scalaJSToolsClasspath)

@@ -9,6 +9,7 @@ import mill.*
 object WitBindgenTests extends TestSuite {
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "wit-bindgen"
+  val noWitPath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "wasm-component"
 
   /**
    * A stand-in for `wit-bindgen-scala`: it records its arguments and writes one
@@ -33,16 +34,14 @@ object WitBindgenTests extends TestSuite {
     script
   }
 
-  object WitModule extends TestRootModule with ScalaJSModule {
+  /** Uses the default `wit/` directory of the module */
+  object WitModule extends TestRootModule with ScalaWasmModule {
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-    override def scalaJSVersion = "1.22.0"
 
-    def witDirectory = Task.Source("wit")
-    override def scalaJSWitDirectory = Task { Some(witDirectory()) }
-    override def scalaJSWitWorld = Task { Some("calculator") }
-    override def scalaJSWitPackage = Task { Some("bindings") }
-    override def scalaJSWitBindgenArgs = Task { Seq("--all-features") }
-    override def scalaJSWitBindgenExecutable =
+    override def witWorld = Task { Some("calculator") }
+    override def witPackage = Task { Some("bindings") }
+    override def witBindgenArgs = Task { Seq("--all-features") }
+    override def witBindgenExecutable =
       Task { fakeBindgen(Task.dest).toString }
 
     override lazy val millDiscover = {
@@ -51,9 +50,11 @@ object WitBindgenTests extends TestSuite {
     }
   }
 
-  object NoWitModule extends TestRootModule with ScalaJSModule {
+  /** A module without a `wit/` directory */
+  object NoWitModule extends TestRootModule with ScalaWasmModule {
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-    override def scalaJSVersion = "1.22.0"
+    // fails if it is ever run
+    override def witBindgenExecutable = Task { "/nonexistent/wit-bindgen-scala" }
 
     override lazy val millDiscover = {
       import mill.util.TokenReaders.given
@@ -65,7 +66,7 @@ object WitBindgenTests extends TestSuite {
     test("generatesBindings") {
       if (!scala.util.Properties.isWin) {
         UnitTester(WitModule, resourcePath).scoped { evaluator =>
-          val Right(bindings) = evaluator(WitModule.scalaJSWitBindings).runtimeChecked
+          val Right(bindings) = evaluator(WitModule.witBindings).runtimeChecked
           val Seq(outDir) = bindings.value.runtimeChecked
           assert(os.exists(outDir.path / "generated" / "Marker.scala"))
 
@@ -89,8 +90,8 @@ object WitBindgenTests extends TestSuite {
     }
 
     test("noWitDirectory") {
-      UnitTester(NoWitModule, resourcePath).scoped { evaluator =>
-        val Right(bindings) = evaluator(NoWitModule.scalaJSWitBindings).runtimeChecked
+      UnitTester(NoWitModule, noWitPath).scoped { evaluator =>
+        val Right(bindings) = evaluator(NoWitModule.witBindings).runtimeChecked
         assert(bindings.value.isEmpty)
       }
     }
