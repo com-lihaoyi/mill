@@ -16,3 +16,10 @@ object model extends BaseModule
 object consumer extends BaseModule {
   def moduleDeps = Seq(model)
 }
+
+// Uses the Kotlin >= 2.4 Build Tools API backend, which can track compiler
+// argument changes across incremental compilations.
+object options extends BaseModule {
+  def kotlinVersion = "2.4.0"
+  def kotlincOptions = Task { super.kotlincOptions() ++ Seq[String]() }
+}
