@@ -388,9 +388,13 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   }
 
   /**
-   * Extra classpath entries for linking the tests, after [[runClasspath]]. The Scala.js
-   * library and test bridge are already part of [[runClasspath]].
+   * Extra classpath entries for linking the tests, appended after [[runClasspath]].
+   * Empty by default: the Scala.js library and test bridge are part of
+   * [[mandatoryMvnDeps]], and so of [[runClasspath]].
+   *
+   * @deprecated Use [[mvnDeps]] or [[runMvnDeps]] of the test module instead.
    */
+  @deprecated("Use mvnDeps or runMvnDeps of the test module instead", "Mill after 1.3.0")
   def scalaJSTestDeps: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   protected def testLinkTask: Task[Report] = Task.Anon {
