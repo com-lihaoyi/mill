@@ -215,11 +215,13 @@ object Deps {
     mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala_runtime.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
 
-  val springBootTools_api = mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0" // scala-steward:off
+  val springBootTools_api =
+    mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0" // scala-steward:off
   val springBootTools_runtime = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.13"
   val quarkusAppModel_api = mvn"io.quarkus:quarkus-bootstrap-app-model:3.31.4" // scala-steward:off
   val quarkusBootstrapCore_api = mvn"io.quarkus:quarkus-bootstrap-core:3.31.4" // scala-steward:off
-  val quarkusCoreDeployment_api = mvn"io.quarkus:quarkus-core-deployment:3.31.4" // scala-steward:off
+  val quarkusCoreDeployment_api =
+    mvn"io.quarkus:quarkus-core-deployment:3.31.4" // scala-steward:off
   val upickle = mvn"com.lihaoyi::upickle:4.4.3"
   val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:${upickle.version}"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
