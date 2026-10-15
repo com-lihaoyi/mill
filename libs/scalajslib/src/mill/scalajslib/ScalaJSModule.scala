@@ -41,11 +41,12 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
    * used by Mill's Scala.js worker, the Scala 2 compiler plugin, and the Scala.js
    * library, scalalib, test-bridge and JUnit runtime added to the module's dependencies.
    *
-   * Override it to use a binary-compatible build of Scala.js that is published under
-   * another organization, e.g. a patched Scala.js in a private repository.
-   * [[scalaJSVersion]] must then be a version of that build. The JS environments
-   * (Node.js, jsdom, ...) are not affected.
-   * [[ScalaWasmModule]] uses it for the [[https://github.com/scala-wasm/scala-wasm scala-wasm]] fork.
+   * Override it to use a binary-compatible build or fork of Scala.js that is
+   * published under another organization, e.g. a patched linker in a private
+   * repository, or the experimental [[https://github.com/scala-wasm/scala-wasm scala-wasm]]
+   * (`"io.github.scala-wasm"`), which can link WebAssembly components
+   * ([[api.ModuleKind.WasmComponent]]). [[scalaJSVersion]] must then be a version of
+   * that build. The JS environments (Node.js, jsdom, ...) are not affected.
    */
   def scalaJSOrganization: T[String] = Task { "org.scala-js" }
 

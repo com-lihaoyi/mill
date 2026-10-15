@@ -32,8 +32,6 @@ object Deps {
 
   object Scalajs_1 {
     val scalaJsVersion = "1.22.0"
-    // The default toolchain of ScalaWasmModule: https://github.com/scala-wasm/scala-wasm
-    val scalaWasmVersion = "1.22.1-wasm.6"
     val scalajsEnvJsdomNodejs =
       mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvExoegoJsdomNodejs =

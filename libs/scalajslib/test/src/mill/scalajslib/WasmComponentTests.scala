@@ -12,26 +12,15 @@ import mill.scalalib.TestModule
 object WasmComponentTests extends TestSuite {
 
   /** A module linked by scala-wasm, a Scala.js fork that implements the Component Model */
-  object ScalaWasm extends TestRootModule with ScalaWasmModule {
+  object ScalaWasm extends TestRootModule with ScalaJSModule {
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+    override def scalaJSOrganization = "io.github.scala-wasm"
+    override def scalaJSVersion = "1.22.1-wasm.6"
+    override def moduleKind = ModuleKind.WasmComponent
+    override def esFeatures = super.esFeatures().withESVersion(ESVersion.ES2022)
+    override def scalaJSUseWebAssembly: T[Boolean] = true
 
-    object test extends ScalaWasmTests with TestModule.Utest {
-      override def utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
-    }
-
-    override lazy val millDiscover = {
-      import mill.util.TokenReaders.given
-      Discover[this.type]
-    }
-  }
-
-  /** The settings of the parent reach the test module */
-  object Overridden extends TestRootModule with ScalaWasmModule {
-    override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-    override def scalaJSVersion = "1.22.1-wasm.5"
-    override def moduleKind = ModuleKind.ESModule
-
-    object test extends ScalaWasmTests with TestModule.Utest {
+    object test extends ScalaJSTests with TestModule.Utest {
       override def utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
     }
 
@@ -55,9 +44,11 @@ object WasmComponentTests extends TestSuite {
     }
   }
 
-  object NoWasmBackend extends TestRootModule with ScalaWasmModule {
+  object NoWasmBackend extends TestRootModule with ScalaJSModule {
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-    override def scalaJSUseWebAssembly: T[Boolean] = false
+    override def scalaJSOrganization = "io.github.scala-wasm"
+    override def scalaJSVersion = "1.22.1-wasm.6"
+    override def moduleKind = ModuleKind.WasmComponent
 
     override lazy val millDiscover = {
       import mill.util.TokenReaders.given
@@ -80,29 +71,10 @@ object WasmComponentTests extends TestSuite {
       .getOrElse(false)
 
   val tests: Tests = Tests {
-    test("defaults") {
+    test("testModuleUsesParentOrganization") {
       UnitTester(ScalaWasm, millSourcePath).scoped { evaluator =>
-        for (m <- Seq[ScalaJSModule](ScalaWasm, ScalaWasm.test)) {
-          val Right(org) = evaluator(m.scalaJSOrganization).runtimeChecked
-          assert(org.value == "io.github.scala-wasm")
-          val Right(version) = evaluator(m.scalaJSVersion).runtimeChecked
-          assert(version.value == ScalaJSBuildInfo.scalaWasmVersion)
-          val Right(kind) = evaluator(m.moduleKind).runtimeChecked
-          assert(kind.value == ModuleKind.WasmComponent)
-          val Right(wasm) = evaluator(m.scalaJSUseWebAssembly).runtimeChecked
-          assert(wasm.value)
-          val Right(es) = evaluator(m.esFeatures).runtimeChecked
-          assert(es.value.esVersion == ESVersion.ES2022)
-        }
-      }
-    }
-
-    test("testModuleUsesParentSettings") {
-      UnitTester(Overridden, millSourcePath).scoped { evaluator =>
-        val Right(version) = evaluator(Overridden.test.scalaJSVersion).runtimeChecked
-        assert(version.value == "1.22.1-wasm.5")
-        val Right(kind) = evaluator(Overridden.test.moduleKind).runtimeChecked
-        assert(kind.value == ModuleKind.ESModule)
+        val Right(org) = evaluator(ScalaWasm.test.scalaJSOrganization).runtimeChecked
+        assert(org.value == "io.github.scala-wasm")
       }
     }
 
@@ -115,10 +87,9 @@ object WasmComponentTests extends TestSuite {
 
         val Right(linkerCp) = evaluator(ScalaWasm.scalaJSLinkerClasspath).runtimeChecked
         val linkerJars = linkerCp.value.map(_.path.last)
-        val linkerJar = s"scalajs-linker_2.13-${ScalaJSBuildInfo.scalaWasmVersion}.jar"
-        assert(linkerJars.contains(linkerJar))
+        assert(linkerJars.contains("scalajs-linker_2.13-1.22.1-wasm.6.jar"))
         assert(linkerCp.value.exists { p =>
-          p.path.last == linkerJar &&
+          p.path.last == "scalajs-linker_2.13-1.22.1-wasm.6.jar" &&
           p.path.segments.contains("scala-wasm")
         })
       }

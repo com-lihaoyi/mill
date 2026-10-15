@@ -33,7 +33,7 @@ private[mill] object ScalaJSConfig {
         throw Exception(
           s"ModuleKind.WasmComponent is not supported by Scala.js $sjsVersion. " +
             "It requires a Scala.js linker that implements the WebAssembly Component Model, " +
-            "such as scala-wasm (extend ScalaWasmModule)."
+            "such as scala-wasm (scalaJSOrganization = \"io.github.scala-wasm\")."
         )
     }
 
