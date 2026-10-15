@@ -986,18 +986,18 @@ node36 -> node13;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Adds the Scala.js Library as mandatory dependency.</p>
+             <p>Adds the Scala.js test bridge as a dependency, so that it is resolved together with the module's other dependencies. Resolved on its own, its transitive Scala 2.13 <code>scalajs-scalalib</code> would not be evicted by the newer one of Scala 3.8+, and its IR would shadow the Scala 3 standard library's at link time.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Adds the Scala.js Library as mandatory dependency.</p>
+              <p>Adds the Scala.js test bridge as a dependency, so that it is resolved together with the module's other dependencies. Resolved on its own, its transitive Scala 2.13 <code>scalajs-scalalib</code> would not be evicted by the newer one of Scala 3.8+, and its IR would shadow the Scala 3 standard library's at link time.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">Definition Classes</dt>
               <dd class="body-medium">
                <div>
-                <a href="ScalaJSModule.html">ScalaJSModule</a> -&gt; <a href="../scalalib/ScalaModule.html">ScalaModule</a> -&gt; <a href="../javalib/JavaModule.html">JavaModule</a> -&gt; <a href="../javalib/TestModule$$JavaModuleBase.html">JavaModuleBase</a>
+                <a href="TestScalaJSModule.html">TestScalaJSModule</a> -&gt; <a href="ScalaJSModule.html">ScalaJSModule</a> -&gt; <a href="../scalalib/ScalaModule.html">ScalaModule</a> -&gt; <a href="../javalib/JavaModule.html">JavaModule</a> -&gt; <a href="../javalib/TestModule$$JavaModuleBase.html">JavaModuleBase</a>
                </div>
               </dd>
               <dt class="body-small">Source</dt>
@@ -7476,38 +7476,6 @@ node36 -> node13;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="scalaJSTestDeps-0" data-f-inherited="TestScalaJSModule">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TestScalaJSModule$$Junit4ScalaJs.html#scalaJSTestDeps-0" t="n" class="documentableName ">scalaJSTestDeps</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">Inherited from:</dt>
-              <dd class="body-medium">
-               <a href="TestScalaJSModule.html#scalaJSTestDeps-0">TestScalaJSModule</a>
-              </dd>
-              <dt class="body-small">Source</dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/scalajslib/src/mill/scalajslib/ScalaJSModule.scala" target="_blank">ScalaJSModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="scalaJSToolsClasspath-0" data-f-inherited="ScalaJSModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -9851,6 +9819,48 @@ node36 -> node13;
               <dt class="body-small">Inherited from:</dt>
               <dd class="body-medium">
                <a href="ScalaJSModule.html#scalaJSExperimentalUseWebAssembly-0">ScalaJSModule</a>
+              </dd>
+              <dt class="body-small">Source</dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/scalajslib/src/mill/scalajslib/ScalaJSModule.scala" target="_blank">ScalaJSModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="scalaJSTestDeps-0" data-f-inherited="TestScalaJSModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TestScalaJSModule$$Junit4ScalaJs.html#scalaJSTestDeps-0" t="n" class="documentableName deprecated">scalaJSTestDeps</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Extra classpath entries for linking the tests, appended after <a href="TestScalaJSModule.html#runClasspath-0">runClasspath</a>. Empty by default: the Scala.js library and test bridge are part of <a href="TestScalaJSModule.html#mandatoryMvnDeps-0">mandatoryMvnDeps</a>, and so of <a href="TestScalaJSModule.html#runClasspath-0">runClasspath</a>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Extra classpath entries for linking the tests, appended after <a href="TestScalaJSModule.html#runClasspath-0">runClasspath</a>. Empty by default: the Scala.js library and test bridge are part of <a href="TestScalaJSModule.html#mandatoryMvnDeps-0">mandatoryMvnDeps</a>, and so of <a href="TestScalaJSModule.html#runClasspath-0">runClasspath</a>.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Deprecated</dt>
+              <dd class="body-medium">
+               <code>[Since version Mill after 1.3.0] </code>Use mvnDeps or runMvnDeps of the test module instead
+               <p>Use <a href="TestScalaJSModule.html#mvnDeps-0">mvnDeps</a> or <a href="TestScalaJSModule.html#runMvnDeps-0">runMvnDeps</a> of the test module instead.</p>
+              </dd>
+              <dt class="body-small">Inherited from:</dt>
+              <dd class="body-medium">
+               <a href="TestScalaJSModule.html#scalaJSTestDeps-0">TestScalaJSModule</a>
               </dd>
               <dt class="body-small">Source</dt>
               <dd class="body-medium">
