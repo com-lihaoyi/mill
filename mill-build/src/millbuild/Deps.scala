@@ -15,7 +15,7 @@ import mill.javalib.api.*
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "3.9.0"
+  val scalaVersion = "3.9.0" // scala-steward:off
 
   val scalaVersionJava11 = "3.7.4"
   val scala2Version = "2.13.18"
@@ -182,9 +182,9 @@ object Deps {
     mvn"org.graalvm.buildtools:graalvm-reachability-metadata:0.11.3"
   val openJson = mvn"com.github.openjson:openjson:1.0.13"
 
-  val testng_api = mvn"org.testng:testng:7.5.1"
+  val testng_api = mvn"org.testng:testng:7.5.1" // scala-steward:off
   val testng_runtime = mvn"org.testng:testng:7.12.0"
-  val sbtTestInterface_api = mvn"org.scala-sbt:test-interface:1.0"
+  val sbtTestInterface_api = mvn"org.scala-sbt:test-interface:1.0" // scala-steward:off
   def scalaCompiler(scalaVersion: String) = {
     if (JvmWorkerUtil.isScala3(scalaVersion)) mvn"org.scala-lang:scala3-compiler_3:${scalaVersion}"
     else mvn"org.scala-lang:scala-compiler:${scalaVersion}"
@@ -215,11 +215,11 @@ object Deps {
     mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala_runtime.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
 
-  val springBootTools_api = mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0"
+  val springBootTools_api = mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0" // scala-steward:off
   val springBootTools_runtime = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.13"
-  val quarkusAppModel_api = mvn"io.quarkus:quarkus-bootstrap-app-model:3.31.4"
-  val quarkusBootstrapCore_api = mvn"io.quarkus:quarkus-bootstrap-core:3.31.4"
-  val quarkusCoreDeployment_api = mvn"io.quarkus:quarkus-core-deployment:3.31.4"
+  val quarkusAppModel_api = mvn"io.quarkus:quarkus-bootstrap-app-model:3.31.4" // scala-steward:off
+  val quarkusBootstrapCore_api = mvn"io.quarkus:quarkus-bootstrap-core:3.31.4" // scala-steward:off
+  val quarkusCoreDeployment_api = mvn"io.quarkus:quarkus-core-deployment:3.31.4" // scala-steward:off
   val upickle = mvn"com.lihaoyi::upickle:4.4.3"
   val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:${upickle.version}"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
@@ -238,16 +238,16 @@ object Deps {
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
-  val kotlinBuildToolsApi23Version_api = "2.3.0"
+  val kotlinBuildToolsApi23Version_api = "2.3.0" // scala-steward:off
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
-  val kotlin24Compiler_api = mvn"org.jetbrains.kotlin:kotlin-compiler:2.4.0"
+  val kotlin24Compiler_api = mvn"org.jetbrains.kotlin:kotlin-compiler:2.4.0" // scala-steward:off
   val kotlinBuildTools23Api_api =
     mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApi23Version_api"
   // The 2.4.0 Build Tools API dropped the legacy operation factories in favour of builders; the
   // `worker-btapi-2-4` module compiles the dedicated Kotlin 2.4+ backend against this generation.
-  val kotlinBuildToolsApi24Version_api = "2.4.0"
+  val kotlinBuildToolsApi24Version_api = "2.4.0" // scala-steward:off
   val kotlinBuildTools24Api_api =
-    mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApi24Version_api"
+    mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApi24Version_api" // scala-steward:off
   val kotlinBuildToolsImpl = mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kotlinVersion"
   val kotlinStdlib = mvn"org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
   val groovyVersion_lowerBound = "4.0.28"
@@ -275,7 +275,7 @@ object Deps {
   // check with
   //   cs complete-dep io.get-coursier.jvm.indices:index-linux-amd64: | sort -V
   val coursierJvmIndexVersion = "0.0.4-201-39a6a6"
-  val gradleApi_api = mvn"dev.gradleplugins:gradle-api:8.11.1"
+  val gradleApi_api = mvn"dev.gradleplugins:gradle-api:8.11.1" // scala-steward:off
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
   val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:8.13.2"
@@ -283,8 +283,8 @@ object Deps {
     mvn"androidx.databinding:databinding-compiler-common:8.13.2"
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
-  val sbt_api = mvn"org.scala-sbt:sbt:1.10.10"
-  val mimaCore_api = mvn"com.typesafe::mima-core:1.2.1"
+  val sbt_api = mvn"org.scala-sbt:sbt:1.10.10" // scala-steward:off
+  val mimaCore_api = mvn"com.typesafe::mima-core:1.2.1" // scala-steward:off
   val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.2"
   val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.3.1"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
