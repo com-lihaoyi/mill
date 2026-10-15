@@ -390,20 +390,35 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
 
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
   override def resources: T[Seq[PathRef]] = super[ScalaJSModule].resources
-  def scalaJSTestDeps = Task {
-    defaultResolver().classpath(
-      Seq(
-        mvn"${scalaJSOrganization()}::scalajs-library:${scalaJSVersion()}",
-        mvn"${scalaJSOrganization()}::scalajs-test-bridge:${scalaJSVersion()}"
-      ).map(_.withDottyCompat(scalaVersion()))
+
+  /**
+   * Adds the Scala.js test bridge as a dependency, so that it is resolved together with
+   * the module's other dependencies. Resolved on its own, its transitive Scala 2.13
+   * `scalajs-scalalib` would not be evicted by the newer one of Scala 3.8+, and its IR
+   * would shadow the Scala 3 standard library's at link time.
+   */
+  override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+    super.mandatoryMvnDeps() ++ Seq(
+      mvn"${scalaJSOrganization()}::scalajs-test-bridge:${scalaJSVersion()}"
+        .withDottyCompat(scalaVersion())
     )
   }
+
+  /**
+   * Extra classpath entries for linking the tests, appended after [[runClasspath]].
+   * Empty by default: the Scala.js library and test bridge are part of
+   * [[mandatoryMvnDeps]], and so of [[runClasspath]].
+   *
+   * @deprecated Use [[mvnDeps]] or [[runMvnDeps]] of the test module instead.
+   */
+  @deprecated("Use mvnDeps or runMvnDeps of the test module instead", "Mill after 1.3.0")
+  def scalaJSTestDeps: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   protected def testLinkTask: Task[Report] = Task.Anon {
     linkJs(
       worker = ScalaJSWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
-      runClasspath = scalaJSTestDeps() ++ runClasspath(),
+      runClasspath = runClasspath() ++ scalaJSTestDeps(),
       mainClass = Result.Failure("No main class specified or found"),
       forceOutJs = false,
       testBridgeInit = true,
