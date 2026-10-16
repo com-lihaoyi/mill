@@ -307,8 +307,8 @@ ${expectedSnippets.mkString("\n")}
           s"""==== filteredOut:
 $filteredOut
 ==== Missing expectedLine:
-$expectedLine"""
-      ))
+$expectedLine""")
+      )
     }
   }
 
