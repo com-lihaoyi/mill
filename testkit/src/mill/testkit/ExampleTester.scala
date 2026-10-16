@@ -201,8 +201,8 @@ ${expectedSnippets.mkString("\n")}
       validateEval(expectedSnippets, result, check, debugCommandStr)
     } catch {
       case NonFatal(e) =>
-        Console.err.println("Failure:")
-        Console.err.println(debugCommandStr + "\n")
+        Console.err.println(fansi.Color.Red("Failure:"))
+        Console.err.println(fansi.Color.Red(debugCommandStr).toString + "\n")
         throw e
     }
 
@@ -303,12 +303,12 @@ ${expectedSnippets.mkString("\n")}
     for (expectedLine <- unwrappedExpected.linesIterator) {
       Predef.assert(
         filteredOut.linesIterator.exists(globMatches(expectedLine, _)),
-        (if (command == "") "" else s"==== command:\n$command\n") +
+        fansi.Color.Red((if (command == "") "" else s"==== command:\n$command\n") +
           s"""==== filteredOut:
 $filteredOut
 ==== Missing expectedLine:
 $expectedLine"""
-      )
+      ))
     }
   }
 
