@@ -15,7 +15,7 @@ import mill.T
 object Scala3StdlibTests extends TestSuite {
 
   object Scala3Stdlib extends TestRootModule with ScalaJSModule {
-    override def scalaVersion = "3.9.0"
+    override def scalaVersion = "3.10.0"
     override def scalaJSVersion = "1.22.0"
 
     object test extends ScalaJSTests with TestScalaJSModule.Junit4ScalaJs
