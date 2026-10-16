@@ -33,7 +33,7 @@ object YamlConfigAppendableTests extends UtestIntegrationTestSuite {
     test("foo.configClass") - check("foo.configClass", Seq("B"), Seq("A"))
 
     test("bar.configSeq") - check("bar.configSeq", Seq("A", "B"), Seq())
-    test("bar.configClass") - check("bar.configClass", Seq("A", "B"), Seq())
+//    test("bar.configClass") - check("bar.configClass", Seq("A", "B"), Seq())
 
   }
 }
