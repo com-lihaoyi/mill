@@ -5,7 +5,7 @@ import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 
 /** Test YAML !append tag feature. */
-object YamlConfigOverrideDepsTests extends UtestIntegrationTestSuite {
+object YamlConfigAppendableTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
 
     def check(
