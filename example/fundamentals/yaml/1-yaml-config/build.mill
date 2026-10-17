@@ -1,0 +1,45 @@
+/** Usage
+
+> mill show configSeq
+[
+  "A"
+]
+
+> mill show configClass
+{
+  "value": [
+    "A"
+  ]
+}
+
+> mill show foo.configSeq
+[
+  "B"
+]
+
+> mill show foo.configClass
+{
+  "value": [
+    "B"
+  ]
+}
+
+> mill show bar.configSeq
+[
+  "A",
+  "B"
+]
+
+*/
+
+////!append not supported for case classes yet
+/////** Usage
+////> mill show bar.configClass
+////{
+////  "value": [
+////    "A",
+////    "B"
+////  ]
+////}
+////
+////*/
