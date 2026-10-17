@@ -351,7 +351,8 @@ Module dependencies of unidocs.3_3_5:
   "core.js.2_12_20.test.mandatoryMvnDeps": [
     "org.scala-lang:scala-library:2.12.20",
     "org.scala-js::scalajs-library:1.18.2",
-    "org.scala-js::scalajs-scalalib:2.12.20+1.18.2"
+    "org.scala-js::scalajs-scalalib:2.12.20+1.18.2",
+    "org.scala-js::scalajs-test-bridge:1.18.2"
   ],
   "core.js.2_13_16.mandatoryMvnDeps": [
     "org.scala-lang:scala-library:2.13.16",
@@ -361,7 +362,8 @@ Module dependencies of unidocs.3_3_5:
   "core.js.2_13_16.test.mandatoryMvnDeps": [
     "org.scala-lang:scala-library:2.13.16",
     "org.scala-js::scalajs-library:1.18.2",
-    "org.scala-js::scalajs-scalalib:2.13.16+1.18.2"
+    "org.scala-js::scalajs-scalalib:2.13.16+1.18.2",
+    "org.scala-js::scalajs-test-bridge:1.18.2"
   ],
   "core.js.3_3_5.mandatoryMvnDeps": [
     "org.scala-lang::scala3-library::3.3.5",
@@ -424,6 +426,54 @@ Module dependencies of unidocs.3_3_5:
           },
           "name": {
             "value": "scalajs-library"
+          },
+          "attributes": {}
+        },
+        "versionConstraint": "1.18.2",
+        "variantSelector": {
+          "$type": "ConfigurationBased",
+          "configuration": {
+            "value": ""
+          }
+        },
+        "minimizedExclusions": {
+          "data": "ExcludeNone"
+        },
+        "publication": {
+          "name": "",
+          "type": {
+            "value": ""
+          },
+          "ext": {
+            "value": ""
+          },
+          "classifier": {
+            "value": ""
+          }
+        },
+        "optional0": null,
+        "transitive": true,
+        "overrides": [],
+        "boms": [],
+        "bomDependencies": [],
+        "overridesMap": [],
+        "endorseStrictVersions": false
+      },
+      "cross": {
+        "$type": "Constant",
+        "value": "_2.13",
+        "platformed": false
+      },
+      "force": false
+    },
+    {
+      "dep": {
+        "module": {
+          "organization": {
+            "value": "org.scala-js"
+          },
+          "name": {
+            "value": "scalajs-test-bridge"
           },
           "attributes": {}
         },
@@ -551,7 +601,8 @@ Module dependencies of unidocs.3_3_5:
   "io.js.2_12_20.test.mandatoryMvnDeps": [
     "org.scala-lang:scala-library:2.12.20",
     "org.scala-js::scalajs-library:1.18.2",
-    "org.scala-js::scalajs-scalalib:2.12.20+1.18.2"
+    "org.scala-js::scalajs-scalalib:2.12.20+1.18.2",
+    "org.scala-js::scalajs-test-bridge:1.18.2"
   ],
   "io.js.2_13_16.mandatoryMvnDeps": [
     "org.scala-lang:scala-library:2.13.16",
@@ -561,7 +612,8 @@ Module dependencies of unidocs.3_3_5:
   "io.js.2_13_16.test.mandatoryMvnDeps": [
     "org.scala-lang:scala-library:2.13.16",
     "org.scala-js::scalajs-library:1.18.2",
-    "org.scala-js::scalajs-scalalib:2.13.16+1.18.2"
+    "org.scala-js::scalajs-scalalib:2.13.16+1.18.2",
+    "org.scala-js::scalajs-test-bridge:1.18.2"
   ],
   "io.js.3_3_5.mandatoryMvnDeps": [
     "org.scala-lang::scala3-library::3.3.5",
@@ -624,6 +676,54 @@ Module dependencies of unidocs.3_3_5:
           },
           "name": {
             "value": "scalajs-library"
+          },
+          "attributes": {}
+        },
+        "versionConstraint": "1.18.2",
+        "variantSelector": {
+          "$type": "ConfigurationBased",
+          "configuration": {
+            "value": ""
+          }
+        },
+        "minimizedExclusions": {
+          "data": "ExcludeNone"
+        },
+        "publication": {
+          "name": "",
+          "type": {
+            "value": ""
+          },
+          "ext": {
+            "value": ""
+          },
+          "classifier": {
+            "value": ""
+          }
+        },
+        "optional0": null,
+        "transitive": true,
+        "overrides": [],
+        "boms": [],
+        "bomDependencies": [],
+        "overridesMap": [],
+        "endorseStrictVersions": false
+      },
+      "cross": {
+        "$type": "Constant",
+        "value": "_2.13",
+        "platformed": false
+      },
+      "force": false
+    },
+    {
+      "dep": {
+        "module": {
+          "organization": {
+            "value": "org.scala-js"
+          },
+          "name": {
+            "value": "scalajs-test-bridge"
           },
           "attributes": {}
         },
@@ -742,7 +842,8 @@ Module dependencies of unidocs.3_3_5:
   "protocols.js.2_12_20.test.mandatoryMvnDeps": [
     "org.scala-lang:scala-library:2.12.20",
     "org.scala-js::scalajs-library:1.18.2",
-    "org.scala-js::scalajs-scalalib:2.12.20+1.18.2"
+    "org.scala-js::scalajs-scalalib:2.12.20+1.18.2",
+    "org.scala-js::scalajs-test-bridge:1.18.2"
   ],
   "protocols.js.2_13_16.mandatoryMvnDeps": [
     "org.scala-lang:scala-library:2.13.16",
@@ -752,7 +853,8 @@ Module dependencies of unidocs.3_3_5:
   "protocols.js.2_13_16.test.mandatoryMvnDeps": [
     "org.scala-lang:scala-library:2.13.16",
     "org.scala-js::scalajs-library:1.18.2",
-    "org.scala-js::scalajs-scalalib:2.13.16+1.18.2"
+    "org.scala-js::scalajs-scalalib:2.13.16+1.18.2",
+    "org.scala-js::scalajs-test-bridge:1.18.2"
   ],
   "protocols.js.3_3_5.mandatoryMvnDeps": [
     "org.scala-lang::scala3-library::3.3.5",
@@ -815,6 +917,54 @@ Module dependencies of unidocs.3_3_5:
           },
           "name": {
             "value": "scalajs-library"
+          },
+          "attributes": {}
+        },
+        "versionConstraint": "1.18.2",
+        "variantSelector": {
+          "$type": "ConfigurationBased",
+          "configuration": {
+            "value": ""
+          }
+        },
+        "minimizedExclusions": {
+          "data": "ExcludeNone"
+        },
+        "publication": {
+          "name": "",
+          "type": {
+            "value": ""
+          },
+          "ext": {
+            "value": ""
+          },
+          "classifier": {
+            "value": ""
+          }
+        },
+        "optional0": null,
+        "transitive": true,
+        "overrides": [],
+        "boms": [],
+        "bomDependencies": [],
+        "overridesMap": [],
+        "endorseStrictVersions": false
+      },
+      "cross": {
+        "$type": "Constant",
+        "value": "_2.13",
+        "platformed": false
+      },
+      "force": false
+    },
+    {
+      "dep": {
+        "module": {
+          "organization": {
+            "value": "org.scala-js"
+          },
+          "name": {
+            "value": "scalajs-test-bridge"
           },
           "attributes": {}
         },
@@ -942,7 +1092,8 @@ Module dependencies of unidocs.3_3_5:
   "scodec.js.2_12_20.test.mandatoryMvnDeps": [
     "org.scala-lang:scala-library:2.12.20",
     "org.scala-js::scalajs-library:1.18.2",
-    "org.scala-js::scalajs-scalalib:2.12.20+1.18.2"
+    "org.scala-js::scalajs-scalalib:2.12.20+1.18.2",
+    "org.scala-js::scalajs-test-bridge:1.18.2"
   ],
   "scodec.js.2_13_16.mandatoryMvnDeps": [
     "org.scala-lang:scala-library:2.13.16",
@@ -952,7 +1103,8 @@ Module dependencies of unidocs.3_3_5:
   "scodec.js.2_13_16.test.mandatoryMvnDeps": [
     "org.scala-lang:scala-library:2.13.16",
     "org.scala-js::scalajs-library:1.18.2",
-    "org.scala-js::scalajs-scalalib:2.13.16+1.18.2"
+    "org.scala-js::scalajs-scalalib:2.13.16+1.18.2",
+    "org.scala-js::scalajs-test-bridge:1.18.2"
   ],
   "scodec.js.3_3_5.mandatoryMvnDeps": [
     "org.scala-lang::scala3-library::3.3.5",
@@ -1015,6 +1167,54 @@ Module dependencies of unidocs.3_3_5:
           },
           "name": {
             "value": "scalajs-library"
+          },
+          "attributes": {}
+        },
+        "versionConstraint": "1.18.2",
+        "variantSelector": {
+          "$type": "ConfigurationBased",
+          "configuration": {
+            "value": ""
+          }
+        },
+        "minimizedExclusions": {
+          "data": "ExcludeNone"
+        },
+        "publication": {
+          "name": "",
+          "type": {
+            "value": ""
+          },
+          "ext": {
+            "value": ""
+          },
+          "classifier": {
+            "value": ""
+          }
+        },
+        "optional0": null,
+        "transitive": true,
+        "overrides": [],
+        "boms": [],
+        "bomDependencies": [],
+        "overridesMap": [],
+        "endorseStrictVersions": false
+      },
+      "cross": {
+        "$type": "Constant",
+        "value": "_2.13",
+        "platformed": false
+      },
+      "force": false
+    },
+    {
+      "dep": {
+        "module": {
+          "organization": {
+            "value": "org.scala-js"
+          },
+          "name": {
+            "value": "scalajs-test-bridge"
           },
           "attributes": {}
         },
