@@ -46,6 +46,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
     case api.ModuleKind.NoModule => workerApi.ModuleKind.NoModule
     case api.ModuleKind.CommonJSModule => workerApi.ModuleKind.CommonJSModule
     case api.ModuleKind.ESModule => workerApi.ModuleKind.ESModule
+    case api.ModuleKind.WasmComponent => workerApi.ModuleKind.WasmComponent
   }
 
   private def toWorkerApi(esFeatures: api.ESFeatures): workerApi.ESFeatures = workerApi.ESFeatures(
@@ -145,6 +146,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
     case workerApi.ModuleKind.NoModule => api.ModuleKind.NoModule
     case workerApi.ModuleKind.ESModule => api.ModuleKind.ESModule
     case workerApi.ModuleKind.CommonJSModule => api.ModuleKind.CommonJSModule
+    case workerApi.ModuleKind.WasmComponent => api.ModuleKind.WasmComponent
   }
 
   private def fromWorkerApi(report: workerApi.Report): api.Report = {

@@ -1,9 +1,11 @@
 package mill.javalib
 
-import upickle.{ReadWriter => RW}
+import upickle.ReadWriter as RW
 import mill.api.internal.Mirrors.autoMirror
 import mill.api.daemon.internal.TestReporter
 import mill.api.internal.Mirrors
+
+import scala.annotation.nowarn
 
 trait JsonFormatters {
   import JsonFormatters.mirrors.given
@@ -51,6 +53,7 @@ trait JsonFormatters {
       _.flatten.toMap,
       coursier.core.Overrides(_)
     )
+  @nowarn("cat=deprecation")
   implicit lazy val depFormat: RW[coursier.core.Dependency] = upickle.macroRW
   implicit lazy val minimizedExclusionsFormat: RW[coursier.core.MinimizedExclusions] =
     upickle.macroRW
@@ -131,8 +134,6 @@ object JsonFormatters extends JsonFormatters {
   private[mill] object mirrors {
     given Root_coursier_Extension: Mirrors.Root[coursier.core.Extension] =
       Mirrors.autoRoot[coursier.core.Extension]
-    given Root_coursier_version_VersionInterval: Mirrors.Root[coursier.version.VersionInterval] =
-      Mirrors.autoRoot[coursier.version.VersionInterval]
     given Root_coursier_Organization: Mirrors.Root[coursier.core.Organization] =
       Mirrors.autoRoot[coursier.core.Organization]
     given Root_coursier_ModuleName: Mirrors.Root[coursier.core.ModuleName] =

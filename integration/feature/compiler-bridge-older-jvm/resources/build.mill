@@ -1,0 +1,16 @@
+package build
+import mill.*, scalalib.*
+
+// Scala 2.13.2 has no pre-compiled compiler bridge, and can't read the
+// class files of the JVM Mill runs on without `-release`
+
+// Compiled on Mill's own JVM
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.2"
+}
+
+// Targets a JVM older than 17, so it's compiled on Mill's own JVM with `-release 11`
+object bar extends ScalaModule {
+  def scalaVersion = "2.13.2"
+  def jvmVersion = "temurin:11.0.21"
+}

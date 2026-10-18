@@ -56,9 +56,13 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
     os.Path(sys.props("java.home"))
   }
 
+  private def envPath: Task[Option[String]] = Task.Input {
+    Task.env.find(_._1.equalsIgnoreCase("PATH")).map(_._2)
+  }
+
   def javaHomePathForkEnv: T[Map[String, String]] = Task {
     val javaHomeBin = (javaHome().fold(javaHomeFromCurrentRuntime())(_.path) / "bin").toString
-    val newPath = Task.env.find(_._1.equalsIgnoreCase("PATH")).map(_._2) match {
+    val newPath = envPath() match {
       case Some(p) => s"$javaHomeBin${java.io.File.pathSeparator}$p"
       case None => javaHomeBin
     }
