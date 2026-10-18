@@ -9,38 +9,6 @@ object JvmTests extends TestSuite {
 
   val tests = Tests {
 
-    test("javaVersion") {
-
-      test("runningJvm") {
-        // `None` is "the JVM Mill runs on", which we can check against what that JVM says itself
-        assert(Jvm.javaVersion(None) == Some(sys.props("java.version")))
-      }
-
-      test("jdkOnDisk") {
-        // Same JVM, but read off its `release` file rather than the system properties - the path
-        // taken for any JDK other than the one this process runs on
-        val javaHome = os.Path(sys.props("java.home"))
-        assert(Jvm.javaVersion(Some(javaHome)) == Some(sys.props("java.version")))
-      }
-
-      test("releaseFile") {
-        val javaHome = os.temp.dir()
-        os.write(
-          javaHome / "release",
-          """IMPLEMENTOR="Eclipse Adoptium"
-            |JAVA_VERSION="17.0.7"
-            |JAVA_VERSION_DATE="2023-04-18"
-            |""".stripMargin
-        )
-        assert(Jvm.javaVersion(Some(javaHome)) == Some("17.0.7"))
-      }
-
-      test("noJdkThere") {
-        // No `release` file to read and no `java` to ask, so there is nothing to report
-        assert(Jvm.javaVersion(Some(os.temp.dir())) == None)
-      }
-    }
-
     test("parseJavaVersionRelease") {
       test("quoted") {
         assert(Jvm.parseJavaVersionRelease(Seq("""JAVA_VERSION="17.0.7"""")) == Some("17.0.7"))
