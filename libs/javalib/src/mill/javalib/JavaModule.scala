@@ -1705,6 +1705,15 @@ trait JavaModule
     canRun = true
   )
 
+  private def javaHomeFromCurrentRuntime: Task[os.Path] = Task.Input {
+    // This one is always defined at Java runtime and points to the current one
+    os.Path(sys.props("java.home"))
+  }
+
+  private def javaVersionFromCurrentRuntime: Task[String] = Task.Input {
+    sys.props("java.version")
+  }
+
   @internal
   private[mill] def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {
     // `None` here means the module asked for no JDK of its own, and so is built against the one
@@ -1712,12 +1721,16 @@ trait JavaModule
     val pinnedJavaHome = javaHome().map(_.path)
     JvmBuildTarget(
       javaHome = pinnedJavaHome
-        .orElse(Option(System.getProperty("java.home")).map(os.Path(_)))
+        .orElse(Option(javaHomeFromCurrentRuntime()))
         .map(p => BspUri(p.toNIO)),
       // Deliberately not `System.getProperty("java.version")`: for a module that pins its own JDK
       // that would be the version of the JVM Mill runs on, contradicting the `javaHome` reported
       // right beside it.
-      javaVersion = Jvm.javaVersion(pinnedJavaHome)
+      javaVersion = pinnedJavaHome match {
+        case None => Option(javaVersionFromCurrentRuntime())
+        case Some(home) => Jvm.javaVersionFromReleaseFile(home)
+            .orElse(Jvm.javaVersionFromCommand(home))
+      }
     )
   }
 

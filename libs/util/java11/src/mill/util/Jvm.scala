@@ -357,22 +357,8 @@ object Jvm {
   }
 
   /**
-   * The version of a JVM, in the same form as its own `java.version` property, e.g. `"17.0.7"`.
-   *
-   * A `javaHome` of [[None]] means the JVM this process runs on, whose version we can simply read
-   * off the system properties. For any other JDK we read the `JAVA_VERSION` its `release` file
-   * records, and fall back to asking the `java` executable for those that ship without one.
-   * Returns [[None]] if neither can tell us.
-   */
-  def javaVersion(javaHome: Option[os.Path]): Option[String] = javaHome match {
-    case None => Option(System.getProperty("java.version"))
-    case Some(home) =>
-      javaVersionFromReleaseFile(home).orElse(javaVersionFromCommand(home))
-  }
-
-  /**
    * Reads `JAVA_VERSION` out of the `release` file at the root of a JDK, which every JDK since 8
-   * ships (some JREs do not, hence the fallback in [[javaVersion]]).
+   * ships (some JREs do not).
    */
   private[mill] def javaVersionFromReleaseFile(javaHome: os.Path): Option[String] = {
     val releaseFile = javaHome / "release"
@@ -388,7 +374,7 @@ object Jvm {
       .collectFirst { case s"JAVA_VERSION=$version" => version.stripPrefix("\"").stripSuffix("\"") }
       .filter(_.nonEmpty)
 
-  private def javaVersionFromCommand(javaHome: os.Path): Option[String] = {
+  private[mill] def javaVersionFromCommand(javaHome: os.Path): Option[String] = {
     // Deliberately not [[javaExe]], which falls back to the `java` on `PATH` for a JDK that has
     // none - answering the question with the version of an altogether different JVM
     val javaExePath = javaHome / "bin" / (if (isWin) "java.exe" else "java")
@@ -404,8 +390,10 @@ object Jvm {
     else None
   }
 
-  /** Pulls `17.0.7` out of `openjdk version "17.0.7" 2023-04-18` and the like. */
-  private[mill] def parseJavaVersionOutput(output: String): Option[String] =
+
+  /** Parses the version from the `java -version` output. */
+  private def parseJavaVersionOutput(output: String): Option[String] =
+    // E.g. Pulls `17.0.7` out of `openjdk version "17.0.7" 2023-04-18` and the like.
     """version "([^"]+)"""".r.findFirstMatchIn(output).map(_.group(1))
 
   /**
