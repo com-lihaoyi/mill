@@ -157,7 +157,10 @@ object PathRef {
               if (isPosix) {
                 digest.updateWithInt(os.perms(path, followLinks = false).value)
               }
-              if (!quick && jnio.Files.isReadable(path.toNIO)) {
+              if (quick) {
+                val value = attrs.size.hashCode()
+                digest.updateWithInt(value)
+              } else if (jnio.Files.isReadable(path.toNIO)) {
                 val is =
                   try Some(os.read.inputStream(path))
                   catch {
@@ -189,7 +192,7 @@ object PathRef {
     new PathRef(
       path = path,
       quick = quick,
-      sig = if (quick) -1 else sig,
+      sig = sig,
       revalidate = revalidate,
       size = size,
       count = count,
