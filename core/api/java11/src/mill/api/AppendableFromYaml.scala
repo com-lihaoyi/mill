@@ -1,4 +1,4 @@
-package mill.api.internal
+package mill.api
 
 import scala.collection.immutable.{Map as ScalaMap, Seq as ScalaSeq}
 

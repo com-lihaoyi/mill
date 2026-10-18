@@ -1,8 +1,7 @@
 package millbuild
 
 import mill.*
-import mill.api.Task
-import mill.api.internal.AppendableFromYaml
+import mill.api.{AppendableFromYaml, Task}
 
 trait MyModule extends Module {
   def configSeq: T[Seq[String]] = Task {
