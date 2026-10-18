@@ -8,8 +8,17 @@
 > mill show configClass
 {
   "value": [
-    "A"
+    "M"
   ]
+}
+
+> mill show configMap
+{
+  "default": {
+    "value": [
+      "X"
+    ]
+  }
 }
 
 > mill show foo.configSeq
@@ -20,8 +29,17 @@
 > mill show foo.configClass
 {
   "value": [
-    "B"
+    "N"
   ]
+}
+
+> mill show foo.configMap
+{
+  "new": {
+    "value": [
+      "Y"
+    ]
+  }
 }
 
 > mill show bar.configSeq
@@ -30,16 +48,26 @@
   "B"
 ]
 
-*/
+> mill show bar.configClass
+{
+  "value": [
+    "M",
+    "N"
+  ]
+}
 
-////!append not supported for case classes yet
-/////** Usage
-////> mill show bar.configClass
-////{
-////  "value": [
-////    "A",
-////    "B"
-////  ]
-////}
-////
-////*/
+> mill show bar.configMap
+{
+  "default": {
+    "value": [
+      "X"
+    ]
+  }
+  "new": {
+    "value": [
+      "Y"
+    ]
+  }
+}
+
+*/
