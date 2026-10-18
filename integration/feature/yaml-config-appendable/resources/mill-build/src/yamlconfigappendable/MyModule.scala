@@ -18,7 +18,8 @@ trait MyModule extends Module {
   }
 }
 
-case class MyConfig(value: Seq[String]) extends AppendableFromYaml[MyConfig] derives upickle.ReadWriter {
+case class MyConfig(value: Seq[String]) extends AppendableFromYaml[MyConfig]
+    derives upickle.ReadWriter {
   override def appendFromYaml(value: Any): MyConfig = value match {
     case c: MyConfig =>
       println(s"Concat ${this.value} with ${c.value}")
