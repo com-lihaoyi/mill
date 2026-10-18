@@ -262,9 +262,10 @@ object PathRef {
         revalidate: Revalidate,
         sig: Int,
         pathString: String,
-        size: Long,
-        count: Int,
-        isDir: Boolean
+        @com.lihaoyi.unroll
+        size: Long = -1L,
+        count: Int = -1,
+        isDir: Boolean = false
     )
 
     private def prefixToken(quick: Boolean, isDir: Boolean): String = {
