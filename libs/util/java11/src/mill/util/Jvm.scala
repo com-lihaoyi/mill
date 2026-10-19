@@ -390,7 +390,6 @@ object Jvm {
     else None
   }
 
-
   /** Parses the version from the `java -version` output. */
   private[mill] def parseJavaVersionOutput(output: String): Option[String] =
     // E.g. Pulls `17.0.7` out of `openjdk version "17.0.7" 2023-04-18` and the like.
