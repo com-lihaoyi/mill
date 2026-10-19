@@ -2,7 +2,7 @@ package mill.util
 
 import com.lihaoyi.unroll
 import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
-import coursier.core.{BomDependency, ResolutionProcess, VariantSelector}
+import coursier.core.{BomDependency, VariantSelector}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
@@ -37,38 +37,6 @@ import scala.util.chaining.scalaUtilChainingOps
  * launcher scripts, etc.
  */
 object Jvm {
-
-  private def mavenCompatibleFetcher(
-      fetch: ResolutionProcess.Fetch0[Task]
-  ): ResolutionProcess.Fetch0[Task] = { moduleVersions =>
-    fetch(moduleVersions).map(_.map {
-      case (moduleVersion, Right((source: MavenRepositoryLike, project))) =>
-        val hasManagedOptionality =
-          project.dependencyManagement0.exists(_._2.optional0.getOrElse(false)) ||
-            project.profiles.exists(_.dependencyManagement.exists(_._2.optional0.getOrElse(false)))
-        val mavenProject =
-          if (!hasManagedOptionality) project
-          else {
-            val dependencyManagement = project.dependencyManagement0.map {
-              case (variant, dependency) => variant -> dependency.withOptional(false)
-            }
-            val profiles = project.profiles.map { profile =>
-              profile.copy(
-                dependencyManagement = profile.dependencyManagement.map {
-                  case (configuration, dependency) =>
-                    configuration -> dependency.copy(optional0 = Some(false))
-                }
-              )
-            }
-            project.copy(
-              dependencyManagement0 = dependencyManagement,
-              profiles = profiles
-            )
-          }
-        moduleVersion -> Right(source -> mavenProject)
-      case result => result
-    })
-  }
 
   /**
    * Runs a JVM subprocess with the given configuration and returns a
@@ -948,7 +916,11 @@ object Jvm {
     val offlineMode = ctx.fold(false)(_.offline)
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
 
-    val resolutionParams0 = resolutionParams.addForceVersion0(forceVersions.toSeq*)
+    val resolutionParams0 = resolutionParams
+      .addForceVersion0(forceVersions.toSeq*)
+      // Maven dependency management does not make explicit dependencies optional,
+      // but coursier does by default (https://github.com/coursier/coursier/issues/3731)
+      .withIgnoreOptionalFromDepMgmt(true)
 
     val repositories0 =
       if (checkGradleModules)
@@ -970,9 +942,6 @@ object Jvm {
       confFiles = config.confFiles.map(_.toNIO),
       mirrors = config.mirrors
     )
-      // Maven dependency management does not make explicit dependencies optional.
-      // https://github.com/coursier/coursier/issues/3731
-      .transformFetcher(mavenCompatibleFetcher)
 
     resolve.either() match {
       case Left(error) =>
