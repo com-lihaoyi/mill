@@ -210,9 +210,27 @@ object Resolve {
       val sequenced = Result.sequence(taskList).map(_.flatten)
 
       sequenced.flatMap(flattened =>
-        if (flattened.nonEmpty) Result.Success(flattened.asInstanceOf[Seq[Task.Named[Any]]])
-        else Result.Failure(s"Cannot find default task to evaluate for module ${selector.render}")
+        if (flattened.isEmpty)
+          Result.Failure(s"Cannot find default task to evaluate for module ${selector.render}")
+        else {
+          // Only commands take arguments. Arguments given to any other task are
+          // most likely further tasks that were meant to be separated with `+`
+          val nonCommands = flattened.filter(!_.isInstanceOf[Task.Command[?]])
+          if (args.nonEmpty && nonCommands.nonEmpty)
+            Result.Failure(nonCommandArgsError(nonCommands.map(_.ctx.segments.render), args))
+          else Result.Success(flattened.asInstanceOf[Seq[Task.Named[Any]]])
+        }
       )
+    }
+
+    private def nonCommandArgsError(taskNames: Seq[String], args: Seq[String]): String = {
+      val (subject, verb, were) =
+        if (taskNames.size == 1) ("Task", "does", "was")
+        else ("Tasks", "do", "were")
+      val sep = ParseArgs.TaskSeparator
+      s"$subject ${taskNames.mkString(", ")} $verb not take any arguments, " +
+        s"but $were given: ${args.mkString(" ")}. " +
+        s"To run multiple tasks, separate them with `$sep`, e.g. `foo.compile $sep bar.compile`"
     }
 
     override def deduplicate(items: List[Task.Named[Any]]): List[Task.Named[Any]] =
