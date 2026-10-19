@@ -30,6 +30,7 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{JarEntry, JarOutputStream}
 import scala.collection.mutable
 import scala.util.Properties.isWin
+import scala.util.control.NonFatal
 import scala.util.chaining.scalaUtilChainingOps
 
 /**
@@ -354,6 +355,45 @@ object Jvm {
       propagateEnv = propagateEnv
     ))
   }
+
+  /**
+   * Reads `JAVA_VERSION` out of the `release` file at the root of a JDK, which every JDK since 8
+   * ships (some JREs do not).
+   */
+  private[mill] def javaVersionFromReleaseFile(javaHome: os.Path): Option[String] = {
+    val releaseFile = javaHome / "release"
+    if (os.isFile(releaseFile))
+      try parseJavaVersionRelease(os.read.lines(releaseFile))
+      catch { case NonFatal(_) => None }
+    else None
+  }
+
+  private[mill] def parseJavaVersionRelease(releaseFileLines: Seq[String]): Option[String] =
+    releaseFileLines.iterator
+      .map(_.trim)
+      .collectFirst { case s"JAVA_VERSION=$version" => version.stripPrefix("\"").stripSuffix("\"") }
+      .filter(_.nonEmpty)
+
+  private[mill] def javaVersionFromCommand(javaHome: os.Path): Option[String] = {
+    // Deliberately not [[javaExe]], which falls back to the `java` on `PATH` for a JDK that has
+    // none - answering the question with the version of an altogether different JVM
+    val javaExePath = javaHome / "bin" / (if (isWin) "java.exe" else "java")
+    if (os.isFile(javaExePath))
+      try {
+        val result = os.proc(javaExePath, "-version").call(
+          stderr = os.Pipe,
+          check = false,
+          mergeErrIntoOut = true
+        )
+        parseJavaVersionOutput(result.out.text())
+      } catch { case NonFatal(_) => None }
+    else None
+  }
+
+  /** Parses the version from the `java -version` output. */
+  private[mill] def parseJavaVersionOutput(output: String): Option[String] =
+    // E.g. Pulls `17.0.7` out of `openjdk version "17.0.7" 2023-04-18` and the like.
+    """version "([^"]+)"""".r.findFirstMatchIn(output).map(_.group(1))
 
   /**
    * Detects the major version of a JVM by running `java -version`.
