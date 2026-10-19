@@ -61,6 +61,7 @@ object `package` extends MillStableScalaModule {
     def runMvnDeps = Seq(Deps.coursierJvm)
 
     def buildInfoPackageName = "mill.util"
+
     def buildInfoMembers = Seq(
       BuildInfo.Value(
         "workerScalaVersion212",

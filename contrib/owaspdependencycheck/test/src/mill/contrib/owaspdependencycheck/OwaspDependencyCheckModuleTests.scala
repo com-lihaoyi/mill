@@ -25,7 +25,7 @@ object TestModule extends TestRootModule {
     override def owaspDependencyCheckFiles: T[Seq[PathRef]] = Seq.empty
   }
   object javaExample extends OwaspDependencyCheckJavaModule {
-    override def mvnDeps: T[Seq[Dep]] = Seq(mvn"ch.qos.logback:logback-classic:1.5.32")
+    override def mvnDeps: T[Seq[Dep]] = Seq(mvn"ch.qos.logback:logback-classic:1.6.5")
   }
   object failingJavaExample extends OwaspDependencyCheckJavaModule {
     override def mvnDeps: T[Seq[Dep]] = Seq(mvn"org.json:json:20230618")
@@ -36,14 +36,14 @@ object TestModule extends TestRootModule {
   }
   object failingTransitiveDeps extends OwaspDependencyCheckJavaModule {
     override def moduleDeps = Seq(failingJavaExample)
-    override def mvnDeps: T[Seq[Dep]] = Seq(mvn"ch.qos.logback:logback-classic:1.5.32")
+    override def mvnDeps: T[Seq[Dep]] = Seq(mvn"ch.qos.logback:logback-classic:1.6.5")
 
     override def owaspDependencyCheckConfigArgs: T[Seq[String]] = Task {
       super.owaspDependencyCheckConfigArgs() ++ ossScanCredentials() ++ Seq("--failOnCVSS", "4")
     }
   }
   object avoidCompile extends OwaspDependencyCheckJavaModule {
-    override def mvnDeps: T[Seq[Dep]] = Seq(mvn"ch.qos.logback:logback-classic:1.5.32")
+    override def mvnDeps: T[Seq[Dep]] = Seq(mvn"ch.qos.logback:logback-classic:1.6.5")
     override def compile: T[mill.javalib.api.CompilationResult] = Task {
       super.compile()
       throw AssertionError("should not be invoked")

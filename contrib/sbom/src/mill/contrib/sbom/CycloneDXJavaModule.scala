@@ -1,5 +1,6 @@
 package mill.contrib.sbom
 
+import coursier.core.VariantSelector
 import coursier.{Fetch, Resolution, VersionConstraint, core as cs}
 import mill.Task
 import mill.javalib.{BoundDep, JavaModule}
@@ -40,9 +41,14 @@ trait CycloneDXJavaModule extends JavaModule with CycloneDXModule {
 
   /** Based on [[resolvedRunMvnDeps]], but getting the raw artifacts */
   private def resolvedRunMvnDepsDetails(): Task[Fetch.Result] = Task.Anon {
+    val csDep = coursierDependencyTask()
     millResolver().fetchArtifacts(Seq(
       BoundDep(
-        coursierDependencyTask().withConfiguration(cs.Configuration.runtime),
+        dep =
+          if (csDep.variantSelector.asConfiguration.contains(cs.Configuration.runtime)) csDep
+          else csDep.copy(variantSelector =
+            VariantSelector.ConfigurationBased(cs.Configuration.runtime)
+          ),
         force = false
       )
     ))

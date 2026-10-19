@@ -31,6 +31,26 @@ object KotlinIncrementalCompilationTests extends UtestIntegrationTestSuite {
         assert(failsWithMissingOof(cleanCompile))
         assert(failsWithMissingOof(branchSwitchCompile))
     }
+
+    test("compiler option changes invalidate incremental state") - integrationTest { tester =>
+      import tester.*
+
+      assert(eval("options.compile").isSuccess)
+
+      modifyFile(
+        workspacePath / "build.mill",
+        _.replace("Seq[String]()", "Seq(\"-Werror\")")
+      )
+      val werrorCompile = eval("options.compile")
+      assert(!werrorCompile.isSuccess)
+      assert(werrorCompile.err.contains("'fun old(): String' is deprecated"))
+
+      modifyFile(
+        workspacePath / "build.mill",
+        _.replace("Seq(\"-Werror\")", "Seq[String]()")
+      )
+      assert(eval("options.compile").isSuccess)
+    }
   }
 
   private def failsWithMissingOof(result: IntegrationTester.EvalResult): Boolean =

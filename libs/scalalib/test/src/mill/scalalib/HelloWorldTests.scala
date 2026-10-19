@@ -39,6 +39,13 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModule
     lazy val millDiscover = Discover[this.type]
   }
+  object HelloWorldScala3 extends TestRootModule {
+    override val moduleDir = HelloWorld.moduleDir
+    object core extends HelloWorldModule {
+      def scalaVersion = scala33Version
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
   object HelloWorldNonPrecompiledBridge extends TestRootModule {
     object core extends HelloWorldModule {
       def jvmVersion = "17"
@@ -119,6 +126,17 @@ object HelloWorldTests extends TestSuite {
     os.rel / "Person.class",
     os.rel / "Person$.class"
   )
+  def compileScala3Files: Seq[os.RelPath] = Seq(
+    os.rel / "Main.class",
+    os.rel / "Main$.class",
+    os.rel / "Main0.class",
+    os.rel / "Main0$.class",
+    os.rel / "Person.class",
+    os.rel / "Person$.class",
+    os.rel / "Main.tasty",
+    os.rel / "Main0.tasty",
+    os.rel / "Person.tasty"
+  )
 
   def tests: Tests = Tests {
     test("scalaVersion") {
@@ -172,7 +190,7 @@ object HelloWorldTests extends TestSuite {
           result.value.classes.path == classesPath,
           os.exists(analysisFile),
           outputFiles.nonEmpty,
-          outputFiles.forall(expectedClassfiles.contains),
+          expectedClassfiles.filterNot(outputFiles.contains) == Seq(),
           result.evalCount > 0
         )
 
@@ -187,6 +205,34 @@ object HelloWorldTests extends TestSuite {
           eval.outPath / "mill/scalalib/JvmWorkerModule/internalWorker.dest" / s"zinc-${zincVersion}"
         ))
       }
+
+      test("compile-scala3-tasty-files") -
+        UnitTester(HelloWorldScala3, sourceRoot = resourcePath).scoped { eval =>
+          val Right(result) = eval.apply(HelloWorldScala3.core.compile).runtimeChecked
+
+          val classesPath = eval.outPath / "core/compile.dest/classes"
+          val analysisFile = result.value.analysisFile
+          val outputFiles = os.walk(result.value.classes.path)
+          val expectedClassfiles = compileScala3Files.map(classesPath / _)
+          assert(
+            result.value.classes.path == classesPath,
+            os.exists(analysisFile),
+            outputFiles.nonEmpty,
+            expectedClassfiles.filterNot(outputFiles.contains) == Seq(),
+            result.evalCount > 0
+          )
+
+          // ensure, we don't leak absolute paths in generated files (e.g. TASTy)
+          // see https://github.com/com-lihaoyi/mill/issues/7754
+          assert(
+            outputFiles.forall(!os.read(_).contains(resourcePath))
+          )
+
+          // don't recompile if nothing changed
+          val Right(result2) = eval.apply(HelloWorldScala3.core.compile).runtimeChecked
+
+          assert(result2.evalCount == 0)
+        }
 
       test("nonPreCompiledBridge") - UnitTester(
         HelloWorldNonPrecompiledBridge,

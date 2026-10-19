@@ -10,15 +10,27 @@ import coursier.maven.MavenRepositoryLike
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.util.Task
-import coursier.{Artifacts, Classifier, Dependency, Fetch, Repository, Resolution, Resolve, Type}
+import coursier.{
+  Artifacts,
+  Classifier,
+  Dependency,
+  Fetch,
+  Repository,
+  Resolution,
+  Resolve,
+  Type,
+  VersionConstraint
+}
 import mill.api.*
 import mill.api.daemon.*
+
 import java.io.{BufferedOutputStream, File}
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{JarEntry, JarOutputStream}
 import scala.collection.mutable
 import scala.util.Properties.isWin
+import scala.util.control.NonFatal
 import scala.util.chaining.scalaUtilChainingOps
 
 /**
@@ -32,8 +44,9 @@ object Jvm {
   ): ResolutionProcess.Fetch0[Task] = { moduleVersions =>
     fetch(moduleVersions).map(_.map {
       case (moduleVersion, Right((source: MavenRepositoryLike, project))) =>
-        val hasManagedOptionality = project.dependencyManagement0.exists(_._2.optional) ||
-          project.profiles.exists(_.dependencyManagement.exists(_._2.optional))
+        val hasManagedOptionality =
+          project.dependencyManagement0.exists(_._2.optional0.getOrElse(false)) ||
+            project.profiles.exists(_.dependencyManagement.exists(_._2.optional0.getOrElse(false)))
         val mavenProject =
           if (!hasManagedOptionality) project
           else {
@@ -41,14 +54,17 @@ object Jvm {
               case (variant, dependency) => variant -> dependency.withOptional(false)
             }
             val profiles = project.profiles.map { profile =>
-              profile.withDependencyManagement(profile.dependencyManagement.map {
-                case (configuration, dependency) =>
-                  configuration -> dependency.withOptional(false)
-              })
+              profile.copy(
+                dependencyManagement = profile.dependencyManagement.map {
+                  case (configuration, dependency) =>
+                    configuration -> dependency.copy(optional0 = Some(false))
+                }
+              )
             }
-            project
-              .withDependencyManagement0(dependencyManagement)
-              .withProfiles(profiles)
+            project.copy(
+              dependencyManagement0 = dependencyManagement,
+              profiles = profiles
+            )
           }
         moduleVersion -> Right(source -> mavenProject)
       case result => result
@@ -339,6 +355,45 @@ object Jvm {
       propagateEnv = propagateEnv
     ))
   }
+
+  /**
+   * Reads `JAVA_VERSION` out of the `release` file at the root of a JDK, which every JDK since 8
+   * ships (some JREs do not).
+   */
+  private[mill] def javaVersionFromReleaseFile(javaHome: os.Path): Option[String] = {
+    val releaseFile = javaHome / "release"
+    if (os.isFile(releaseFile))
+      try parseJavaVersionRelease(os.read.lines(releaseFile))
+      catch { case NonFatal(_) => None }
+    else None
+  }
+
+  private[mill] def parseJavaVersionRelease(releaseFileLines: Seq[String]): Option[String] =
+    releaseFileLines.iterator
+      .map(_.trim)
+      .collectFirst { case s"JAVA_VERSION=$version" => version.stripPrefix("\"").stripSuffix("\"") }
+      .filter(_.nonEmpty)
+
+  private[mill] def javaVersionFromCommand(javaHome: os.Path): Option[String] = {
+    // Deliberately not [[javaExe]], which falls back to the `java` on `PATH` for a JDK that has
+    // none - answering the question with the version of an altogether different JVM
+    val javaExePath = javaHome / "bin" / (if (isWin) "java.exe" else "java")
+    if (os.isFile(javaExePath))
+      try {
+        val result = os.proc(javaExePath, "-version").call(
+          stderr = os.Pipe,
+          check = false,
+          mergeErrIntoOut = true
+        )
+        parseJavaVersionOutput(result.out.text())
+      } catch { case NonFatal(_) => None }
+    else None
+  }
+
+  /** Parses the version from the `java -version` output. */
+  private[mill] def parseJavaVersionOutput(output: String): Option[String] =
+    // E.g. Pulls `17.0.7` out of `openjdk version "17.0.7" 2023-04-18` and the like.
+    """version "([^"]+)"""".r.findFirstMatchIn(output).map(_.group(1))
 
   /**
    * Detects the major version of a JVM by running `java -version`.
@@ -657,20 +712,22 @@ object Jvm {
       config: CoursierConfig
   ) =
     FileCache[Task](os.Path(config.cacheLocation).toIO)
-      .withCredentials(config.credentials)
-      .withTtl(config.ttl)
-      .withCachePolicies(config.cachePolicies)
-      .copy(userAgent = config.userAgent)
+      .copy(
+        credentials = config.credentials,
+        ttl = config.ttl,
+        cachePolicies = config.cachePolicies,
+        userAgent = config.userAgent
+      )
       // Apply Mill's default logger first, then the user customizer, so that
       // overrides in coursierCacheCustomizer (e.g. a custom logger) take precedence.
       .pipe { cache =>
-        ctx.fold(cache)(c => cache.withLogger(CoursierTickerResolutionLogger(c)))
+        ctx.fold(cache)(c => cache.copy(logger = CoursierTickerResolutionLogger(c)))
       }
       .pipe { cache =>
         coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
       }
       .pipe { cache =>
-        if (ctx.fold(false)(_.offline)) cache.withCachePolicies(Seq(CachePolicy.LocalOnly))
+        if (ctx.fold(false)(_.offline)) cache.copy(cachePolicies = Seq(CachePolicy.LocalOnly))
         else cache
       }
 
@@ -750,17 +807,16 @@ object Jvm {
     resolutionRes.flatMap { resolution =>
       val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
 
-      val artifactsResultOrError = Artifacts(coursierCache0)
-        .withResolution(resolution)
-        .withClassifiers(
+      val artifactsResultOrError = Artifacts(coursierCache0).copy(
+        resolutions = Seq(resolution),
+        classifiers =
           if (sources) Set(Classifier("sources"))
-          else Set.empty
-        )
-        .withAttributes(
+          else Set.empty,
+        attributes =
           if (sources) Seq(VariantSelector.AttributesBased.sources)
-          else Nil
-        )
-        .withArtifactTypesOpt(artifactTypes)
+          else Nil,
+        artifactTypesOpt = artifactTypes
+      )
         .eitherResult()
 
       artifactsResultOrError match {
@@ -848,7 +904,7 @@ object Jvm {
       repositories = config.repositories, // repositories to use
       indexChannel = JvmChannel.module(
         JvmChannel.centralModule(),
-        version = jvmIndexVersion
+        version = VersionConstraint(jvmIndexVersion)
       ) // use new indices published to Maven Central
     )
   }
@@ -882,24 +938,24 @@ object Jvm {
         cacheBase / "mill/jvm"
       }
     }
-    val jvmCache = JvmCache()
-      .withArchiveCache(
-        ArchiveCache()
-          .withLocation(os.Path(config.archiveCacheLocation).toIO)
-          .withCache(coursierCache0)
-          .withShortPathDirectory(shortPathDirOpt.map(_.toIO))
-      )
-      .withIndex(jvmIndex0(
+    val jvmCache = JvmCache().copy(
+      archiveCache = ArchiveCache(os.Path(config.archiveCacheLocation).toIO).copy(
+        cache = coursierCache0,
+        shortPathDirectory = shortPathDirOpt.map(_.toIO)
+      ),
+      index = Some(jvmIndex0(
         ctx,
         coursierCacheCustomizer,
         jvmIndexVersion,
         config = config
       ))
-    val javaHome = JavaHome()
-      .withCache(jvmCache)
+    )
+    val javaHome = JavaHome().copy(
+      cache = Some(jvmCache),
       // when given a version like "17", always pick highest version in the index
       // rather than the highest already on disk
-      .withUpdate(true)
+      update = true
+    )
     val file = coursierCache0.logger.use(javaHome.get(id))
       .unsafeRun()(using coursierCache0.ec)
     Result.Success(os.Path(file))
@@ -925,14 +981,14 @@ object Jvm {
       .toSeq
 
     val forceVersions = force.iterator
-      .map(mapDependencies.getOrElse(identity[Dependency](_)))
-      .map { d => d.module -> d.version }
+      .map(mapDependencies.getOrElse(identity[Dependency]))
+      .map { d => d.module -> d.versionConstraint }
       .toMap
 
     val offlineMode = ctx.fold(false)(_.offline)
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
 
-    val resolutionParams0 = resolutionParams.addForceVersion(forceVersions.toSeq*)
+    val resolutionParams0 = resolutionParams.addForceVersion0(forceVersions.toSeq*)
 
     val repositories0 =
       if (checkGradleModules)
@@ -944,15 +1000,16 @@ object Jvm {
       else
         repositories
 
-    val resolve = Resolve()
-      .withCache(coursierCache0)
-      .withDependencies(rootDeps)
-      .withRepositories(repositories0)
-      .withResolutionParams(resolutionParams0)
-      .withMapDependenciesOpt(mapDependencies)
-      .withBoms(boms.iterator.toSeq)
-      .withConfFiles(config.confFiles.map(_.toNIO))
-      .withMirrors(config.mirrors)
+    val resolve = Resolve().copy(
+      cache = coursierCache0,
+      dependencies = rootDeps,
+      repositories = repositories0,
+      resolutionParams = resolutionParams0,
+      mapDependenciesOpt = mapDependencies,
+      boms = boms.iterator.toSeq,
+      confFiles = config.confFiles.map(_.toNIO),
+      mirrors = config.mirrors
+    )
       // Maven dependency management does not make explicit dependencies optional.
       // https://github.com/coursier/coursier/issues/3731
       .transformFetcher(mavenCompatibleFetcher)

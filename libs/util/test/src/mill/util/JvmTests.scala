@@ -9,6 +9,43 @@ object JvmTests extends TestSuite {
 
   val tests = Tests {
 
+    test("parseJavaVersionRelease") {
+      test("quoted") {
+        assert(Jvm.parseJavaVersionRelease(Seq("""JAVA_VERSION="17.0.7"""")) == Some("17.0.7"))
+      }
+      test("unquoted") {
+        assert(Jvm.parseJavaVersionRelease(Seq("JAVA_VERSION=21")) == Some("21"))
+      }
+      test("firstOfMany") {
+        val lines =
+          Seq("OS_ARCH=\"x86_64\"", """JAVA_VERSION="1.8.0_402"""", "MODULES=\"java.base\"")
+        assert(Jvm.parseJavaVersionRelease(lines) == Some("1.8.0_402"))
+      }
+      test("notThere") {
+        assert(Jvm.parseJavaVersionRelease(Seq("""JAVA_VERSION_DATE="2023-04-18"""")) == None)
+      }
+      test("empty") {
+        assert(Jvm.parseJavaVersionRelease(Seq("""JAVA_VERSION=""""")) == None)
+      }
+    }
+
+    test("parseJavaVersionOutput") {
+      test("openjdk") {
+        val output =
+          """openjdk version "17.0.7" 2023-04-18
+            |OpenJDK Runtime Environment Temurin-17.0.7+7 (build 17.0.7+7)
+            |""".stripMargin
+        assert(Jvm.parseJavaVersionOutput(output) == Some("17.0.7"))
+      }
+      test("java8") {
+        val output = """java version "1.8.0_402""""
+        assert(Jvm.parseJavaVersionOutput(output) == Some("1.8.0_402"))
+      }
+      test("garbage") {
+        assert(Jvm.parseJavaVersionOutput("command not found") == None)
+      }
+    }
+
     test("createClasspathPassingJar") {
       val tmpDir = os.temp.dir()
       val aJar = tmpDir / "a.jar"
