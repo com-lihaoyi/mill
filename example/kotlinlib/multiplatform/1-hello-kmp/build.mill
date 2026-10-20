@@ -17,12 +17,6 @@ trait KotlinMultiplatformModule extends Module { kmp =>
 
   def kotlinVersion: T[String]
 
-  /**
-   * The whole source folder, so that changes to it are watched while the
-   * source sets themselves are computed by tasks
-   */
-  def kmpSrc = Task.Source("src")
-
   def kmpSourceSetDir(sourceSet: String): os.Path = moduleDir / "src" / sourceSet / "kotlin"
 
   /**
@@ -43,21 +37,19 @@ trait KotlinMultiplatformModule extends Module { kmp =>
     def kmpCompilation: String = "Main"
 
     /** Intermediate source sets between the platform and `common`, e.g. `web` for JS */
-    def kmpIntermediateSourceSets: T[Seq[String]] = Task { Seq.empty[String] }
+    def kmpIntermediateSourceSets: Seq[String] = Nil
 
-    /** Fragment names, from the most specific to `common*` */
-    def kmpFragments: T[Seq[String]] = Task {
-      (Seq(kmpPlatform) ++ kmpIntermediateSourceSets() ++ Seq("common")).map(_ + kmpCompilation)
-    }
+    /**
+     * Fragment names, from the most specific to `common*`. Not a task, as
+     * they define the folders watched by [[sources]].
+     */
+    def kmpFragments: Seq[String] =
+      (Seq(kmpPlatform) ++ kmpIntermediateSourceSets ++ Seq("common")).map(_ + kmpCompilation)
 
-    override def sources = Task {
-      // re-run on any change under the watched `src/` folder
-      kmpSrc()
-      kmpFragments().map(f => PathRef(kmpSourceSetDir(f)))
-    }
+    override def sources = Task.Sources(kmpFragments.map(kmpSourceSetDir)*)
 
     def kmpFragmentOptions: T[Seq[String]] = Task {
-      val fragments = kmpFragments()
+      val fragments = kmpFragments
       // Sources outside of the fragment folders (e.g. generated sources) belong
       // to the most specific fragment, as in the Kotlin Gradle plugin
       val fragmentSources = allKotlinSourceFiles().map(_.path).map { file =>
@@ -71,15 +63,14 @@ trait KotlinMultiplatformModule extends Module { kmp =>
         Option.when(fragmentSources.nonEmpty)(s"-Xfragment-sources=${fragmentSources.mkString(",")}")
     }
 
-    override def kotlincOptions = Task {
-      // test modules inherit the fragment options of their outer module
-      super.kotlincOptions().filterNot(_.startsWith("-Xfragment")) ++ kmpFragmentOptions()
+    override protected def mandatoryKotlincOptions = Task {
+      super.mandatoryKotlincOptions() ++ kmpFragmentOptions()
     }
 
     trait PlatformTests extends KotlinTests, PlatformModule {
       override def kmpPlatform = platform.kmpPlatform
       override def kmpCompilation = "Test"
-      override def kmpIntermediateSourceSets = Task { platform.kmpIntermediateSourceSets() }
+      override def kmpIntermediateSourceSets = platform.kmpIntermediateSourceSets
     }
   }
 }
@@ -97,7 +88,7 @@ object foo extends KotlinMultiplatformModule {
 
   object js extends PlatformModule, KotlinJsModule {
     // matches the default hierarchy of the Kotlin Gradle plugin 2.2.20
-    override def kmpIntermediateSourceSets = Task { Seq("web") }
+    override def kmpIntermediateSourceSets = Seq("web")
     def kotlinJsModuleKind = ModuleKind.ESModule
     def kotlinJsRunTarget = Some(RunTarget.Node)
 
