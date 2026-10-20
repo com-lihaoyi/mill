@@ -946,7 +946,7 @@ compiling, and passing all tests in Mill:</p>
 
 &gt; ./mill init --mill-jvm-id 21 # Repo needs Java &gt;=21 to build and test
 
-&gt; ./mill {acyclic-visitor,service-to-worker,update-method}.compile
+&gt; ./mill "{acyclic-visitor,service-to-worker,update-method}.compile"
 
 &gt; ./mill acyclic-visitor.test # run a subproject's tests
 ...
@@ -957,7 +957,7 @@ Test com.iluwatar.acyclicvisitor.ZoomTest finished, took ...
 
 &gt; ./mill __.compile # scheduled compile all subprojects
 
-&gt; ./mill {singleton,builder,decorator,proxy,strategy,observer,producer-consumer}.__.test # scheduled run some subprojects' tests</code></pre>
+&gt; ./mill "{singleton,builder,decorator,proxy,strategy,observer,producer-consumer}.__.test" # scheduled run some subprojects' tests</code></pre>
 </div>
 </div>
 </div>
