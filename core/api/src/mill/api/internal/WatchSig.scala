@@ -8,17 +8,17 @@ private[mill] object WatchSig {
   def haveNotChanged(w: Watchable): Boolean = poll(w) == signature(w)
 
   def poll(w: Watchable): Long = w match {
-    case Watchable.Path(p, quick, sig) =>
-      PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once).recomputeSig()
-    case Watchable.Value(f, _, _) =>
+    case Watchable.Path(p, quick, sig, size, count, isDir) =>
+      PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once, size, count, isDir).recomputeSig()
+    case Watchable.Value(f = f) =>
       try f()
-      catch { case _ => 0 }
+      catch { case _: Throwable => 0 }
   }
 
   def signature(w: Watchable): Long = w match {
-    case Watchable.Path(p, quick, sig) =>
-      PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once).sig
-    case Watchable.Value(_, sig, _) => sig
+    case Watchable.Path(p, quick, sig, size, count, isDir) =>
+      PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once, size, count, isDir).sig
+    case Watchable.Value(signature = sig) => sig
   }
 
 }
