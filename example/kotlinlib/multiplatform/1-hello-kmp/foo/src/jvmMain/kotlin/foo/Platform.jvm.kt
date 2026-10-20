@@ -1,3 +1,3 @@
 package foo
 
-actual fun platformName(): String = "JVM"
+actual fun platformName(): String = JavaPlatform.name()

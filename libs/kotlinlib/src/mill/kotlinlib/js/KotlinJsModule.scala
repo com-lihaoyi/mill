@@ -239,7 +239,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
           kotlinVersion = kotlinVersion(),
           destinationRoot = Task.dest,
           artifactId = artifactId(),
-          extraKotlinArgs = allKotlincOptions(),
+          // linking takes no sources, so multiplatform fragment options don't apply
+          extraKotlinArgs = allKotlincOptions().filterNot(_.startsWith("-Xfragment")),
           worker = kotlinWorker,
           useBtApi = kotlincUseBtApi()
         )

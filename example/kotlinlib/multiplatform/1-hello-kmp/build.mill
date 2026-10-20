@@ -1,7 +1,7 @@
 // A minimal Kotlin Multiplatform module `foo`, compiled for the JVM and for
 // Kotlin/JS (Node.js). Code shared between platforms lives in `commonMain`,
 // and `expect` declarations there are implemented by `actual` declarations in
-// `jvmMain` and `jsMain`.
+// `jvmMain` and `jsMain`. The JVM platform can also contain Java sources.
 
 package build
 import mill.*, kotlinlib.*, kotlinlib.js.*
@@ -15,9 +15,8 @@ import mill.*, kotlinlib.*, kotlinlib.js.*
  */
 trait KotlinMultiplatformModule extends Module { kmp =>
 
-  def kotlinVersion: T[String]
-
-  def kmpSourceSetDir(sourceSet: String): os.Path = moduleDir / "src" / sourceSet / "kotlin"
+  def kmpSourceSetDir(sourceSet: String, language: String = "kotlin"): os.Path =
+    moduleDir / "src" / sourceSet / language
 
   /**
    * A submodule compiling the source sets ("fragments") of one platform,
@@ -25,8 +24,6 @@ trait KotlinMultiplatformModule extends Module { kmp =>
    * refines the next one in [[kmpFragments]].
    */
   trait PlatformModule extends KotlinModule { platform =>
-
-    def kotlinVersion = Task { kmp.kotlinVersion() }
 
     /** The platform name, used as a source set prefix, e.g. `jvm` for `jvmMain` */
     def kmpPlatform: String = moduleSegments.value
@@ -36,17 +33,17 @@ trait KotlinMultiplatformModule extends Module { kmp =>
     /** Source set suffix of this compilation, e.g. `Main` or `Test` */
     def kmpCompilation: String = "Main"
 
-    /** Intermediate source sets between the platform and `common`, e.g. `web` for JS */
-    def kmpIntermediateSourceSets: Seq[String] = Nil
-
     /**
      * Fragment names, from the most specific to `common*`. Not a task, as
      * they define the folders watched by [[sources]].
      */
-    def kmpFragments: Seq[String] =
-      (Seq(kmpPlatform) ++ kmpIntermediateSourceSets ++ Seq("common")).map(_ + kmpCompilation)
+    def kmpFragments: Seq[String] = Seq(kmpPlatform, "common").map(_ + kmpCompilation)
 
-    override def sources = Task.Sources(kmpFragments.map(kmpSourceSetDir)*)
+    override def sources = Task.Sources(
+      (kmpFragments.map(kmpSourceSetDir(_)) ++
+        // JVM platforms can also contain Java sources, e.g. `src/jvmMain/java`
+        Option.when(!this.isInstanceOf[KotlinJsModule])(kmpSourceSetDir(kmpFragments.head, "java")))*
+    )
 
     def kmpFragmentOptions: T[Seq[String]] = Task {
       val fragments = kmpFragments
@@ -70,25 +67,24 @@ trait KotlinMultiplatformModule extends Module { kmp =>
     trait PlatformTests extends KotlinTests, PlatformModule {
       override def kmpPlatform = platform.kmpPlatform
       override def kmpCompilation = "Test"
-      override def kmpIntermediateSourceSets = platform.kmpIntermediateSourceSets
     }
   }
 }
 
 object foo extends KotlinMultiplatformModule {
-  def kotlinVersion = "2.2.20"
+  trait FooModule extends PlatformModule {
+    def kotlinVersion = "2.2.20"
+  }
 
-  object jvm extends PlatformModule {
+  object jvm extends FooModule {
     def mainClass = Some("foo.MainKt")
 
     object test extends PlatformTests, TestModule.Junit4 {
-      def mvnDeps = Seq(mvn"org.jetbrains.kotlin:kotlin-test-junit:${this.kotlinVersion()}")
+      def mvnDeps = Seq(mvn"org.jetbrains.kotlin:kotlin-test-junit:${kotlinVersion()}")
     }
   }
 
-  object js extends PlatformModule, KotlinJsModule {
-    // matches the default hierarchy of the Kotlin Gradle plugin 2.2.20
-    override def kmpIntermediateSourceSets = Seq("web")
+  object js extends FooModule, KotlinJsModule {
     def kotlinJsModuleKind = ModuleKind.ESModule
     def kotlinJsRunTarget = Some(RunTarget.Node)
 
