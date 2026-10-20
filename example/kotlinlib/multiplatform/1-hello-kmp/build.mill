@@ -1,96 +1,48 @@
-// A minimal Kotlin Multiplatform module `foo`, compiled for the JVM and for
-// Kotlin/JS (Node.js). Code shared between platforms lives in `commonMain`,
-// and `expect` declarations there are implemented by `actual` declarations in
-// `jvmMain` and `jsMain`. The JVM platform can also contain Java sources.
+// This example shows a minimal Kotlin Multiplatform module `foo`, compiled
+// for the JVM and for Kotlin/JS running on Node.js.
 
 package build
-import mill.*, kotlinlib.*, kotlinlib.js.*
-
-// PROTOTYPE: the trait below is meant to move into `mill.kotlinlib`.
-
-/**
- * A Kotlin Multiplatform module, laid out as `src/<sourceSet>/kotlin`
- * (e.g. `src/commonMain/kotlin`, `src/jvmMain/kotlin`), with one
- * [[PlatformModule]] submodule per target platform.
- */
-trait KotlinMultiplatformModule extends Module { kmp =>
-
-  def kmpSourceSetDir(sourceSet: String, language: String = "kotlin"): os.Path =
-    moduleDir / "src" / sourceSet / language
-
-  /**
-   * A submodule compiling the source sets ("fragments") of one platform,
-   * e.g. `jvmMain` and `commonMain`, in one compilation. Every fragment
-   * refines the next one in [[kmpFragments]].
-   */
-  trait PlatformModule extends KotlinModule { platform =>
-
-    /** The platform name, used as a source set prefix, e.g. `jvm` for `jvmMain` */
-    def kmpPlatform: String = moduleSegments.value
-      .collect { case l: mill.api.Segment.Label => l.value }
-      .last
-
-    /** Source set suffix of this compilation, e.g. `Main` or `Test` */
-    def kmpCompilation: String = "Main"
-
-    /**
-     * Fragment names, from the most specific to `common*`. Not a task, as
-     * they define the folders watched by [[sources]].
-     */
-    def kmpFragments: Seq[String] = Seq(kmpPlatform, "common").map(_ + kmpCompilation)
-
-    override def sources = Task.Sources(
-      (kmpFragments.map(kmpSourceSetDir(_)) ++
-        // JVM platforms can also contain Java sources, e.g. `src/jvmMain/java`
-        Option.when(!this.isInstanceOf[KotlinJsModule])(kmpSourceSetDir(kmpFragments.head, "java")))*
-    )
-
-    def kmpFragmentOptions: T[Seq[String]] = Task {
-      val fragments = kmpFragments
-      // Sources outside of the fragment folders (e.g. generated sources) belong
-      // to the most specific fragment, as in the Kotlin Gradle plugin
-      val fragmentSources = allKotlinSourceFiles().map(_.path).map { file =>
-        val fragment = fragments.find(f => file.startsWith(kmpSourceSetDir(f))).getOrElse(fragments.head)
-        s"$fragment:$file"
-      }
-      val refines = fragments.zip(fragments.drop(1)).map { case (from, to) => s"$from:$to" }
-
-      Seq(s"-Xfragments=${fragments.mkString(",")}") ++
-        Option.when(refines.nonEmpty)(s"-Xfragment-refines=${refines.mkString(",")}") ++
-        Option.when(fragmentSources.nonEmpty)(s"-Xfragment-sources=${fragmentSources.mkString(",")}")
-    }
-
-    override protected def mandatoryKotlincOptions = Task {
-      super.mandatoryKotlincOptions() ++ kmpFragmentOptions()
-    }
-
-    trait PlatformTests extends KotlinTests, PlatformModule {
-      override def kmpPlatform = platform.kmpPlatform
-      override def kmpCompilation = "Test"
-    }
-  }
-}
+import mill.*, kotlinlib.*, kotlinlib.js.*, kotlinlib.multiplatform.*
 
 object foo extends KotlinMultiplatformModule {
-  trait FooModule extends PlatformModule {
-    def kotlinVersion = "2.2.20"
-  }
+  def kotlinVersion = "2.2.20"
 
-  object jvm extends FooModule {
+  object jvm extends PlatformModule {
     def mainClass = Some("foo.MainKt")
 
     object test extends PlatformTests, TestModule.Junit4 {
-      def mvnDeps = Seq(mvn"org.jetbrains.kotlin:kotlin-test-junit:${kotlinVersion()}")
+      def mvnDeps = Seq(mvn"org.jetbrains.kotlin:kotlin-test-junit:${this.kotlinVersion()}")
     }
   }
 
-  object js extends FooModule, KotlinJsModule {
+  object js extends PlatformModule, KotlinJsModule {
     def kotlinJsModuleKind = ModuleKind.ESModule
     def kotlinJsRunTarget = Some(RunTarget.Node)
 
     object test extends PlatformTests, KotlinTestPackageTests
   }
 }
+
+// A `KotlinMultiplatformModule` contains one `PlatformModule` per target
+// platform. Its sources are laid out by source set, as in the Kotlin Gradle
+// plugin:
+//
+// ----
+// foo/src/
+//   commonMain/kotlin/   shared by all platforms
+//   jvmMain/kotlin/      only for `foo.jvm`
+//   jvmMain/java/        Java sources, only for `foo.jvm`
+//   jsMain/kotlin/       only for `foo.js`
+//   commonTest/kotlin/   tests shared by all platforms
+//   jvmTest/kotlin/      tests only for `foo.jvm.test`
+// ----
+//
+// Each platform module compiles its own source set together with
+// `commonMain`, so `expect` declarations in `commonMain` can be implemented
+// by `actual` declarations in `jvmMain` and `jsMain`. The source set used by
+// a platform module is named after it, e.g. `object jvm` reads `jvmMain`,
+// while the compiler is chosen by the traits it extends, e.g. `KotlinJsModule`
+// for Kotlin/JS.
 
 /** Usage
 
