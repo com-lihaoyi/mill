@@ -1,9 +1,0 @@
-*build/
-LICENSE.txt
-README.md
-.gradle/
-gradle/
-gradlew*
-*.properties
-screenshots/
-mill
