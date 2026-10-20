@@ -22,6 +22,8 @@ endif::[]
 link:changelog.adoc[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=stable-version&versionSuffix={mill-stable-version}[d]]
 https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=unstable-dev-version[Maven Central Version]]
 
+== Overview
+
 Mill is a build tool that improves upon the tools traditionally used
 in the JVM ecosystem:
 
@@ -73,4 +75,37 @@ Test run foo.FooTest finished: 0 failed, 0 ignored, 2 total, ...
 * link:developer.adoc[Developer Documentation]
 * link:changelog.adoc[Changelog]
 
+== Branch overview
 
+|===
+|Branch | Status | Description
+
+| `main`
+| active
+| Current development branch, targeting Mill 1.3.x
+
+| `2.x`
+| stalled
+| POC branch developed between 1.1.x and 1.3.x featuring remote cache support and relocatable out support. Some API changes are not favorable, therefore we parked the develment for now
+
+| `1.1.x`
+| on-demand
+| Maintenance branch targeting Mill 1.1.x
+
+| `0.12.x`
+| on-demand
+| Maintenance branch targeting Mill 0.12.x
+
+| `0.11.x`
+| legacy
+| Maintenance branch targeting Mill 0.11.x
+
+| `0.10.x`
+| legacy
+| Maintenance branch targeting Mill 0.10.x
+
+| `0.9.x`
+| legacy
+| Maintenance branch targeting Mill 0.9.x
+
+|===
