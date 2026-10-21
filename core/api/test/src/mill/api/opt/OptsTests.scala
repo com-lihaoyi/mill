@@ -1,5 +1,6 @@
 package mill.api.opt
 
+import mill.api.MappedRoots
 import utest.*
 import mill.api.opt.*
 
@@ -119,10 +120,6 @@ class OptsTests extends TestSuite {
       test("without-mapping") {
         val json = upickle.write(opts1)
 
-//        pprint.log(upickle.write(opts1, indent = 4))
-//        pprint.log(opts1)
-//        pprint.log(opts1.toString)
-
         assertGoldenLiteral(
           json,
           "[\"-deprecation\",\"-verbose\",[\"--release\",\"17\"],[[\"-Xplugin=\",{\"path\":\"/tmp/opts-test/.cache/plugin1\"}]],[[\"-Xplugin:\",{\"path\":\"/tmp/opts-test/.cache/plugin1\"}]],[[{\"path\":\"/tmp/opts-test/work/src1\"}]],[[{\"path\":\"/tmp/opts-test/work/src2\"}]],[[{\"path\":\"/tmp/opts-test/work/src3\"}],[{\"path\":\"/tmp/opts-test/work/src4\"}]],[\"--extra\",[\"-Xplugin=\",{\"path\":\"/tmp/opts-test/.cache/plugin1\"}],[{\"path\":\"/tmp/opts-test/work/src1\"}],[{\"path\":\"/tmp/opts-test/work/src2\"}]],[[\"-special-files=\",{\"path\":\"/tmp/opts-test/work/src1\"},\":\",{\"path\":\"/tmp/opts-test/work/src2\"}]]]"
@@ -141,16 +138,19 @@ class OptsTests extends TestSuite {
         val back = upickle.read[Opts](json)
         assert(back == expected)
       }
-//      test("with-mapping-home") {
-//        val json = upickle.write(opts1)
-//        assertGoldenLiteral(
-//          json,
-//          "{\"value\":[{\"value\":[[[\"-deprecation\",null]],[[\"-verbose\",null]],[[\"--release\",null]],[[\"17\",null]],[[\"-Xplugin=\",null],[null,\"/home/lefou/.cache/plugin1\"]],[[\"-Xplugin:\",null],[null,\"/home/lefou/.cache/plugin1\"]],[[null,\"/home/lefou/work/src1\"]],[[null,\"/home/lefou/work/src2\"]],[[null,\"/home/lefou/work/src3\"]],[[null,\"/home/lefou/work/src4\"]],[[\"--extra\",null]],[[\"-Xplugin=\",null],[null,\"/home/lefou/.cache/plugin1\"]],[[null,\"/home/lefou/work/src1\"]],[[null,\"/home/lefou/work/src2\"]]]}]}"
-//        )
-//        assert(json.split("\\Q$HOME\\E").size == 10)
-//        val back = upickle.read[Opts](json)
-//        assert(opts1 == back)
-//      }
+      test("with-mapping-home") {
+        MappedRoots.withMillDefaults(outPath = outDir, workspacePath = workDir, homePath = homeDir) {
+          val json = upickle.write(opts1)
+          assertGoldenLiteral(
+            json,
+            "[\"-deprecation\",\"-verbose\",[\"--release\",\"17\"],[[\"-Xplugin=\",{\"path\":\"$HOME/.cache/plugin1\"}]],[[\"-Xplugin:\",{\"path\":\"$HOME/.cache/plugin1\"}]],[[{\"path\":\"$WORKSPACE/src1\"}]],[[{\"path\":\"$WORKSPACE/src2\"}]],[[{\"path\":\"$WORKSPACE/src3\"}],[{\"path\":\"$WORKSPACE/src4\"}]],[\"--extra\",[\"-Xplugin=\",{\"path\":\"$HOME/.cache/plugin1\"}],[{\"path\":\"$WORKSPACE/src1\"}],[{\"path\":\"$WORKSPACE/src2\"}]],[[\"-special-files=\",{\"path\":\"$WORKSPACE/src1\"},\":\",{\"path\":\"$WORKSPACE/src2\"}]]]"
+          )
+          assert(json.split("\\Q$HOME\\E").size == 4)
+          assert(json.split("\\Q$WORKSPACE\\E").size == 9)
+          val back = upickle.read[Opts](json)
+          assert(opts1 == back)
+        }
+      }
     }
   }
 }
