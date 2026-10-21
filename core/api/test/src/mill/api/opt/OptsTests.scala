@@ -139,7 +139,11 @@ class OptsTests extends TestSuite {
         assert(back == expected)
       }
       test("with-mapping-home") {
-        MappedRoots.withMillDefaults(outPath = outDir, workspacePath = workDir, homePath = homeDir) {
+        MappedRoots.withMillDefaults(
+          outPath = outDir,
+          workspacePath = workDir,
+          homePath = homeDir
+        ) {
           val json = upickle.write(opts1)
           assertGoldenLiteral(
             json,
