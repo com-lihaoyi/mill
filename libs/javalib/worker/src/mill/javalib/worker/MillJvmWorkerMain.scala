@@ -1,8 +1,9 @@
 package mill.javalib.worker
 
-import mill.api.SystemStreamsUtils
 import mill.api.daemon.{DummyInputStream, SystemStreams}
+import mill.api.SystemStreamsUtils
 import mill.client.lock.Locks
+import mill.javalib.worker.NoMappedRootsMillRpcWireTransport
 import mill.javalib.zinc.ZincWorker
 import mill.javalib.worker.JvmWorkerRpcServer
 import mill.rpc.MillRpcWireTransport
@@ -59,7 +60,7 @@ object MillJvmWorkerMain {
         stopServer: Server.StopServer0[Unit]
     ): JvmWorkerServerData = {
       val serverName = s"$className{${connectionData.socketName}}"
-      val transport = MillRpcWireTransport(
+      val transport = NoMappedRootsMillRpcWireTransport(
         name = serverName,
         serverToClient = BufferedReader(InputStreamReader(connectionData.clientToServer)),
         clientToServer = PrintStream(connectionData.serverToClient, true),
