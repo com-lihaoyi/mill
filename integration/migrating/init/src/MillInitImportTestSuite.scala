@@ -1,6 +1,6 @@
 package mill.integration
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
-import utest.{assert, assertGoldenFile, assertGoldenLiteral}
+import utest.{assert, assertGoldenFile}
 trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
   def checkImport(
       repoName: String,
