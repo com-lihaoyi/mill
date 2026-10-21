@@ -75,14 +75,18 @@ Test run foo.FooTest finished: 0 failed, 0 ignored, 2 total, ...
 * link:developer.adoc[Developer Documentation]
 * link:changelog.adoc[Changelog]
 
-== Branch overview
+== Git Branch Overview
 
 |===
 |Branch | Status | Description
 
 | `main`
 | active
-| Current development branch, targeting Mill 1.3.x
+| Current development branch, targeting Mill 1.4.x
+
+| `1.3.x`
+| active
+| Maintenance branch targeting Mill 1.3.x
 
 | `2.x`
 | stalled
