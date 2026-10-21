@@ -786,7 +786,7 @@
 <p>This example demonstrates how to configure a simple "Hello World" Android application written in Scala targeting the JVM.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0/mill-dist-1.4.0-M0-example-androidlib-scala-1-hello-scala.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/androidlib/scala/1-hello-scala">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0-1-131925/mill-dist-1.4.0-M0-example-androidlib-scala-1-hello-scala.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/androidlib/scala/1-hello-scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: zulu:21
 
@@ -852,10 +852,10 @@ object app extends AndroidAppScalaModule {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.androidApk
-".../out/app/androidApk.dest/app.apk"
+"...$MILL_OUT/app/androidApk.dest/app.apk"
 
 &gt; ./mill show app.it.androidTestApk
-".../out/app/it/androidApk.dest/app.apk"
+"...$MILL_OUT/app/it/androidApk.dest/app.apk"
 
 &gt; ./mill show app.test
 ...
@@ -875,9 +875,9 @@ object app extends AndroidAppScalaModule {
 &gt; ./mill show app.createAndroidVirtualDevice
 ...Name: scala-test, DeviceId: medium_phone...
 
-&gt; ./mill show app.startAndroidEmulator
+&gt; ./mill app.startAndroidEmulator
 
-&gt; ./mill show app.androidInstall
+&gt; ./mill app.androidInstall
 ...All files should be loaded. Notifying the device...
 
 &gt; ./mill show app.it
@@ -901,9 +901,9 @@ object app extends AndroidAppScalaModule {
 }
 ...
 
-&gt; ./mill show app.stopAndroidEmulator
+&gt; ./mill app.stopAndroidEmulator
 
-&gt; ./mill show app.deleteAndroidVirtualDevice</code></pre>
+&gt; ./mill app.deleteAndroidVirtualDevice</code></pre>
 </div>
 </div>
 </div>

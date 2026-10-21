@@ -788,7 +788,7 @@ with your Mill build.</p>
 <p>The following examples will be assuming the <code>build.mill</code> file given below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0/mill-dist-1.4.0-M0-example-cli-builtins-1-builtin-commands.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/cli/builtins/1-builtin-commands">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0-1-131925/mill-dist-1.4.0-M0-example-cli-builtins-1-builtin-commands.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/cli/builtins/1-builtin-commands">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -923,12 +923,12 @@ is looking for the <code>foo</code> module&#8217;s source files:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.sources
 [
-  ".../foo/src"
+  "...$WORKSPACE/foo/src"
 ]
 
 &gt; ./mill show foo.allSourceFiles
 [
-  ".../foo/src.../Foo..."
+  "...$WORKSPACE/foo/src.../Foo..."
 ]</code></pre>
 </div>
 </div>
@@ -942,8 +942,8 @@ file produced by the compilation:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.compile
 {
-  "analysisFile": ".../out/foo/compile.dest/...",
-  "classes": ".../out/foo/compile.dest/classes"
+  "analysisFile": "...$MILL_OUT/foo/compile.dest/...",
+  "classes": "...$MILL_OUT/foo/compile.dest/classes"
 }</code></pre>
 </div>
 </div>
@@ -962,11 +962,11 @@ JSON results of the given task.</p>
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show 'foo.{sources,compileClasspath}'
 {
   "foo.sources": [
-    ".../foo/src"
+    "...$WORKSPACE/foo/src"
   ],
   "foo.compileClasspath": [
     ...
-    ".../foo/compile-resources"
+    "...$WORKSPACE/foo/compile-resources"
   ]
 }</code></pre>
 </div>
@@ -985,18 +985,18 @@ dictionary, whether there is one or more task in the selection</p>
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill showNamed 'foo.sources'
 {
   "foo.sources": [
-    ".../foo/src"
+    "...$WORKSPACE/foo/src"
   ]
 }
 
 &gt; ./mill showNamed 'foo.{sources,compileClasspath}'
 {
   "foo.sources": [
-    ".../foo/src"
+    "...$WORKSPACE/foo/src"
   ],
   "foo.compileClasspath": [
     ...
-    ".../foo/compile-resources"
+    "...$WORKSPACE/foo/compile-resources"
   ]
 }</code></pre>
 </div>
@@ -1112,11 +1112,11 @@ It also accepts arguments to clean specific modules, or specific tasks.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill visualize foo._
 [
-  ".../out/visualize.dest/out.dot",
-  ".../out/visualize.dest/out.json",
-  ".../out/visualize.dest/out.png",
-  ".../out/visualize.dest/out.svg",
-  ".../out/visualize.dest/out.txt"
+  "...out/visualize.dest/out.dot",
+  "...out/visualize.dest/out.json",
+  "...out/visualize.dest/out.png",
+  "...out/visualize.dest/out.svg",
+  "...out/visualize.dest/out.txt"
 ]</code></pre>
 </div>
 </div>
@@ -1190,11 +1190,11 @@ it does mean that there will be some duplicate edges that are not shown.
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill visualize foo.artifactId
 [
-  ".../out/visualize.dest/out.dot",
-  ".../out/visualize.dest/out.json",
-  ".../out/visualize.dest/out.png",
-  ".../out/visualize.dest/out.svg",
-  ".../out/visualize.dest/out.txt"
+  "...out/visualize.dest/out.dot",
+  "...out/visualize.dest/out.json",
+  "...out/visualize.dest/out.png",
+  "...out/visualize.dest/out.svg",
+  "...out/visualize.dest/out.txt"
 ]
 
 &gt; cat out/visualize.dest/out.dot
@@ -1213,11 +1213,11 @@ graph ["rankdir"="LR"]
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill visualizePlan foo.run
 [
-  ".../out/visualizePlan.dest/out.dot",
-  ".../out/visualizePlan.dest/out.json",
-  ".../out/visualizePlan.dest/out.png",
-  ".../out/visualizePlan.dest/out.svg",
-  ".../out/visualizePlan.dest/out.txt"
+  "...out/visualizePlan.dest/out.dot",
+  "...out/visualizePlan.dest/out.json",
+  "...out/visualizePlan.dest/out.png",
+  "...out/visualizePlan.dest/out.svg",
+  "...out/visualizePlan.dest/out.txt"
 ]</code></pre>
 </div>
 </div>

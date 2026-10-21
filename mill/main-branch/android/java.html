@@ -808,7 +808,7 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0/mill-dist-1.4.0-M0-example-androidlib-java-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/androidlib/java/1-hello-world">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0-1-131925/mill-dist-1.4.0-M0-example-androidlib-java-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/androidlib/java/1-hello-world">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: zulu:21
 
@@ -879,7 +879,7 @@ import mill.*, androidlib.*, scalalib.*</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.androidApk
-".../out/app/androidApk.dest/app.apk"</code></pre>
+"...$MILL_OUT/app/androidApk.dest/app.apk"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1179,7 +1179,7 @@ Android Bundle zip generation, Bundle Creation and Bundle signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0/mill-dist-1.4.0-M0-example-androidlib-java-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/androidlib/java/2-app-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0-1-131925/mill-dist-1.4.0-M0-example-androidlib-java-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/androidlib/java/2-app-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: zulu:21
 
@@ -1214,7 +1214,7 @@ object bundle extends AndroidAppBundle {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show bundle.androidBundle
-".../out/bundle/androidBundle.dest/signedBundle.aab"</code></pre>
+"...$MILL_OUT/bundle/androidBundle.dest/signedBundle.aab"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1316,7 +1316,7 @@ More informations about the R8 in general and about the Proguard rules files can
 <p><a href="https://www.guardsquare.com/manual/configuration/usage" class="bare">https://www.guardsquare.com/manual/configuration/usage</a></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0/mill-dist-1.4.0-M0-example-androidlib-java-5-R8.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/androidlib/java/5-R8">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0-1-131925/mill-dist-1.4.0-M0-example-androidlib-java-5-R8.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/androidlib/java/5-R8">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: zulu:21
 
@@ -1457,7 +1457,7 @@ There is a list of the core C/C++ libraries that can be used in the android here
 <a href="https://developer.android.com/ndk/reference" class="bare">https://developer.android.com/ndk/reference</a></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0/mill-dist-1.4.0-M0-example-androidlib-java-6-native-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/androidlib/java/6-native-libs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0-1-131925/mill-dist-1.4.0-M0-example-androidlib-java-6-native-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/androidlib/java/6-native-libs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: zulu:21
 
@@ -1530,7 +1530,7 @@ object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.androidApk
-".../out/app/androidApk.dest/app.apk"
+"...$MILL_OUT/app/androidApk.dest/app.apk"
 
 &gt; ./mill show app.it.androidTestApk
 

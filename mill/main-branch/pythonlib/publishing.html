@@ -776,7 +776,7 @@
 Start by extending it.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0/mill-dist-1.4.0-M0-example-pythonlib-publishing-1-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/pythonlib/publishing/1-publish-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0-1-131925/mill-dist-1.4.0-M0-example-pythonlib-publishing-1-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/pythonlib/publishing/1-publish-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, pythonlib.*
 
@@ -845,10 +845,10 @@ name. Override <code>publishModuleName</code> when those names differ, as they d
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show sdist
-".../out/sdist.dest/dist/testpkg_mill-0.0.2.tar.gz"
+"...$MILL_OUT/sdist.dest/dist/testpkg_mill-0.0.2.tar.gz"
 
 &gt; ./mill show wheel
-".../out/wheel.dest/dist/testpkg_mill-0.0.2-py3-none-any.whl"</code></pre>
+"...$MILL_OUT/wheel.dest/dist/testpkg_mill-0.0.2-py3-none-any.whl"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -955,7 +955,7 @@ or override the <code>pyproject</code> task with your own metadata.</p>
 with uv_build&#8217;s <code>source-include</code> setting.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0/mill-dist-1.4.0-M0-example-pythonlib-publishing-2-publish-module-advanced.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/pythonlib/publishing/2-publish-module-advanced">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0-1-131925/mill-dist-1.4.0-M0-example-pythonlib-publishing-2-publish-module-advanced.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/pythonlib/publishing/2-publish-module-advanced">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, pythonlib.*
 

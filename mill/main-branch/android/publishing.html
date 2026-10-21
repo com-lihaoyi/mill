@@ -782,7 +782,7 @@ In addition to AndroidKotlinModule, we utilize <code>AndroidLibModule</code>, wh
 library building (AAR artifact) and local publishing with minimal configuration.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0/mill-dist-1.4.0-M0-example-androidlib-kotlin-4-sum-lib-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/androidlib/kotlin/4-sum-lib-kotlin">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M0-1-131925/mill-dist-1.4.0-M0-example-androidlib-kotlin-4-sum-lib-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0-M0/example/androidlib/kotlin/4-sum-lib-kotlin">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: zulu:21
 
@@ -917,7 +917,7 @@ Publish sumlib-kotlin-0.0.1 to /home/.../.m2/repository/...
   },
   "payload": [
     [
-      ".../out/lib/androidAar.dest/library.aar",
+      "...$MILL_OUT/lib/androidAar.dest/library.aar",
       "sumlib-kotlin-0.0.1.aar"
     ],
 ...</code></pre>

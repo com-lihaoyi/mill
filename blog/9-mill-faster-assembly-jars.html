@@ -439,7 +439,7 @@ to build an assembly that we can run using <code>java -jar</code>:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show assembly
-".../out/assembly.dest/out.jar"
+"...$MILL_OUT/assembly.dest/out.jar"
 Total time: 27s
 
 $ ls -lh out/assembly.dest/out.jar
@@ -651,7 +651,7 @@ the code and re-build the assembly:</p>
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo "class dummy" &gt;&gt; src/main/scala/foo/Foo.scala
 
 &gt; ./mill show assembly
-".../out/assembly.dest/out.jar"
+"...$MILL_OUT/assembly.dest/out.jar"
 Total time: 1s
 
 &gt; sbt assembly

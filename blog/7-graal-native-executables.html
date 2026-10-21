@@ -412,7 +412,7 @@ outside of the build tool:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill show foo.assembly
-".../out/foo/assembly.dest/out.jar"
+"...$MILL_OUT/foo/assembly.dest/out.jar"
 
 $ out/foo/assembly.dest/out.jar --text "hello world"
 &lt;h1&gt;hello world&lt;/h1&gt;</code></pre>
@@ -478,7 +478,7 @@ the ArgParse4J library that the example project depends on</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill show foo.nativeImage
-".../out/foo/nativeImage.dest/native-executable"
+"...$MILL_OUT/foo/nativeImage.dest/native-executable"
 
 $ out/foo/nativeImage.dest/native-executable --text "hello world"
 &lt;h1&gt;hello world&lt;/h1&gt;</code></pre>
@@ -599,7 +599,7 @@ that the executable assembly takes about ~1s to create, while the native image t
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./mill show foo.assembly
 [1-41] [info] compiling 1 Java source...
-".../out/foo/assembly.dest/out.jar"
+"...$MILL_OUT/foo/assembly.dest/out.jar"
 ./mill show foo.assembly  0.12s user 0.06s system 21% cpu 0.818 total</code></pre>
 </div>
 </div>
@@ -614,7 +614,7 @@ that the executable assembly takes about ~1s to create, while the native image t
 [1-50] [2/8] Performing analysis...  [****]                                                                     (7.9s @ 0.77GB)
 ...
 [1-50] Finished generating 'native-executable' in 26.0s.
-".../out/foo/nativeImage.dest/native-executable"
+"...$MILL_OUT/foo/nativeImage.dest/native-executable"
 ./mill show foo.nativeImage  0.70s user 1.11s system 7% cpu 24.762 total</code></pre>
 </div>
 </div>
