@@ -1,0 +1,212 @@
+diff --git a/dist/package.mill b/dist/package.mill
+index 224a8184e24..8b1c4d81fa7 100644
+--- a/dist/package.mill
++++ b/dist/package.mill
+@@ -14,6 +14,7 @@ import scala.util.Using
+ import scala.util.Properties
+ import java.nio.file.Files
+ import java.nio.file.attribute.PosixFilePermission
++import mill.api.opt.*
+ 
+ trait DistModule extends RunModule {
+   // All modules that we want to aggregate as part of this `dev` assembly.
+@@ -246,7 +247,7 @@ trait DistModule extends RunModule {
+     )
+   }
+ 
+-  def forkArgs = Seq(
++  def forkArgs = Opts(
+     // Avoid reserving a lot of memory for the client, as the client only forward information
+     "-Xmx128m",
+     // Set UTF-8 encoding to fix Unicode character display issues on Windows
+@@ -343,7 +344,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
+     override def localTestOverridesEnv = Task {
+       val repos = Seq(localRepo().path.toNIO.toUri.toASCIIString) ++
+         Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
+-      Seq("COURSIER_REPOSITORIES" -> repos.mkString("|"))
++      OptMap("COURSIER_REPOSITORIES" -> repos.mkString("|"))
+     }
+ 
+     def localBinName = "mill-assembly.jar"
+@@ -539,7 +540,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
+     // from processed jars, not process the binary itself (which isn't a jar)
+     override def executableVersioned: T[PathRef] = install.nativeImage()
+ 
+-    def nativeImageOptions = Seq(
++    def nativeImageOptions = Opts(
+       "--no-fallback",
+       "--enable-url-protocols=http,https",
+       "-Os",
+diff --git a/dist/scripts/package.mill b/dist/scripts/package.mill
+index 3b8e1941d91..2c604e9c589 100644
+--- a/dist/scripts/package.mill
++++ b/dist/scripts/package.mill
+@@ -7,6 +7,7 @@ import mill.*
+ import mill.scalalib.*
+ import mill.api.Result
+ import millbuild.*
++import mill.api.opt.*
+ 
+ object `package` extends mill.Module { scripts =>
+ 
+@@ -97,9 +98,9 @@ object `package` extends mill.Module { scripts =>
+     def scalaVersion = millbuild.Deps.scalaVersion
+     def mvnDeps = Seq(millbuild.Deps.osLib, millbuild.Deps.pprint)
+     def utestVersion = millbuild.Deps.TestDeps.utest.version
+-    def forkEnv = Map(
+-      "MILL_TEST_SH_SCRIPT" -> millSh.compile0().path.toString(),
+-      "MILL_TEST_BAT_SCRIPT" -> millBat.compile0().path.toString(),
++    def forkEnv = OptMap(
++      "MILL_TEST_SH_SCRIPT" -> millSh.compile0().path,
++      "MILL_TEST_BAT_SCRIPT" -> millBat.compile0().path,
+       "MILL_NATIVE_SUFFIX" -> build.dist.native.nativeSuffix(),
+       "MILL_EXPECTED_DEFAULT_VERSION" -> build.millVersion(),
+       "MILL_EXPECTED_PROJECT_URL" -> Settings.projectUrl,
+diff --git a/mill-build/src/millbuild/MillBaseTestsModule.scala b/mill-build/src/millbuild/MillBaseTestsModule.scala
+index 27ea3f861e2..e1e38578724 100644
+--- a/mill-build/src/millbuild/MillBaseTestsModule.scala
++++ b/mill-build/src/millbuild/MillBaseTestsModule.scala
+@@ -2,10 +2,11 @@ package millbuild
+ 
+ import mill.*
+ import mill.scalalib.*
++import mill.api.opt.*
+ 
+ trait MillBaseTestsModule extends TestModule {
+   def forkArgs = Task {
+-    Seq(
++    Opts(
+       s"-DMILL_SCALA_3_NEXT_VERSION=${Deps.scalaVersion}",
+       s"-DMILL_SCALA_2_13_VERSION=${Deps.scala2Version}",
+       s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
+diff --git a/mill-build/src/millbuild/MillJavaModule.scala b/mill-build/src/millbuild/MillJavaModule.scala
+index 60ac92c11a1..3c509a165bf 100644
+--- a/mill-build/src/millbuild/MillJavaModule.scala
++++ b/mill-build/src/millbuild/MillJavaModule.scala
+@@ -9,6 +9,7 @@ import mill.T
+ import mill.Task
+ import mill.scalalib.Dep
+ import mill.scalalib.JavaModule
++import mill.api.opt.*
+ 
+ import java.io.File
+ 
+@@ -55,7 +56,7 @@ trait MillJavaModule extends JavaModule {
+   }
+ 
+   def testMvnDeps: T[Seq[Dep]] = Seq(Deps.TestDeps.utest)
+-  def testForkEnv: T[Map[String, String]] = forkEnv() ++ localTestOverridesEnv()
++  def testForkEnv: T[OptMap] = forkEnv() ++ localTestOverridesEnv()
+   def testModuleDeps: Seq[JavaModule] =
+     if (this == build.core.api) Seq(build.core.api)
+     else Seq(this, build.core.api.test)
+@@ -63,7 +64,7 @@ trait MillJavaModule extends JavaModule {
+   def localTestOverridesEnv = Task {
+     val localRepos = localTestRepositories().map(_.path.toNIO.toUri.toASCIIString)
+     val repos = localRepos ++ Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
+-    Seq("COURSIER_REPOSITORIES" -> repos.mkString("|"))
++    OptMap("COURSIER_REPOSITORIES" -> repos.mkString("|"))
+   }
+ 
+   def repositoriesTask = Task.Anon {
+@@ -93,7 +94,7 @@ trait MillJavaModule extends JavaModule {
+   }
+ 
+   override def javacOptions = Task {
+-    super.javacOptions() ++ ciJavacOptions() ++ Seq(
++    super.javacOptions() ++ ciJavacOptions() ++ Opts(
+       "-Xlint",
+       "-Xlint:-serial", // we don't care about java serialization
+       "-Xlint:-try", // TODO: a bunch of code needs reviewing with this lint)
+@@ -101,7 +102,7 @@ trait MillJavaModule extends JavaModule {
+     )
+   }
+ 
+-  def javadocOptions = super.javadocOptions() ++ Seq(
++  def javadocOptions = super.javadocOptions() ++ Opts(
+     // Disable warnings for missing documentation comments or tags (for example,
+     // a missing comment or class, or a missing @return tag or similar tag on a method).
+     // We have many methods without JavaDoc comments, so those warnings are useless
+diff --git a/mill-build/src/millbuild/MillPublishJavaModule.scala b/mill-build/src/millbuild/MillPublishJavaModule.scala
+index 72a4bc0656b..40b71fe1a35 100644
+--- a/mill-build/src/millbuild/MillPublishJavaModule.scala
++++ b/mill-build/src/millbuild/MillPublishJavaModule.scala
+@@ -15,6 +15,7 @@ import mill.scalalib.publish.{
+ }
+ import mill.api.TaskCtx
+ import mill.javalib.publish.LocalIvyPublisher
++import mill.api.opt.*
+ 
+ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
+ 
+@@ -25,7 +26,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
+   )
+   def pomSettings = MillPublishJavaModule.commonPomSettings(artifactName())
+   def javacOptions =
+-    super.javacOptions() ++ Seq("--release", "11", "-encoding", "UTF-8", "-deprecation")
++    super.javacOptions() ++ Opts("--release", "11", "-encoding", "UTF-8", "-deprecation")
+ 
+   /**
+    * Manifest without version info, used for jarRaw to avoid depending on publishVersion/millVersion.
+diff --git a/mill-build/src/millbuild/MillScalaModule.scala b/mill-build/src/millbuild/MillScalaModule.scala
+index 1513b969ec6..1dfaeab870d 100644
+--- a/mill-build/src/millbuild/MillScalaModule.scala
++++ b/mill-build/src/millbuild/MillScalaModule.scala
+@@ -7,6 +7,7 @@ import mill.api.BuildCtx
+ import com.goyeau.mill.scalafix.ScalafixModule
+ import mill.javalib.testrunner.TestResult
+ import upickle.implicits.namedTuples.default.given
++import mill.api.opt.*
+ 
+ /**
+  * Some custom scala settings and test convenience
+@@ -28,19 +29,19 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+ 
+   override def resolutionParams = super[MillJavaModule].resolutionParams
+ 
+-  def ciScalacOptions: T[Seq[String]] = Task {
++  def ciScalacOptions: T[Opts] = Task {
+     if (isFatalWarnings()) {
+       // Turn warnings into errors on CI
+-      if (isScala3()) Seq("-Werror") else Seq("-Xfatal-warnings")
++      if (isScala3()) Opts("-Werror") else Opts("-Xfatal-warnings")
+     } else Nil
+   }
+ 
+   def scalacOptions =
+-    super.scalacOptions() ++ Seq(
++    super.scalacOptions() ++ Opts(
+       "-deprecation",
+       "-feature"
+     ) ++ ciScalacOptions() ++ (
+-      if (isScala3()) Seq(
++      if (isScala3()) Opts(
+         "-explain-cyclic",
+         "-Wunused:all",
+         "-Wconf:msg=An existential type that came from a Scala-2 classfile:silent",
+@@ -58,7 +59,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+         // "-Wimplausible-patterns",
+         // "-rewrite", "-source", "3.7-migration"
+       )
+-      else Seq(
++      else Opts(
+         "-P:acyclic:force",
+         "-Xlint:unused",
+         "-Xlint:adapted-args",
+@@ -109,12 +110,12 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+     }
+ 
+     override def scalacOptions = Task {
+-      val base = super.scalacOptions().filterNot(_ == "-Wunused:all")
++      val base = super.scalacOptions().filterGroup(!_.contains("-Wunused:all"))
+       val sv = outer.scalaVersion()
+       val (unusedFlag, unusedWconf) =
+-        if (JvmWorkerUtil.isScala3(sv)) (Seq("-Wunused:all"), Seq("-Wconf:msg=unused:silent"))
+-        else if (sv.startsWith("2.13")) (Seq("-Wunused"), Seq("-Wconf:cat=unused:silent"))
+-        else if (sv.startsWith("2.12")) (Seq("-Ywarn-unused"), Seq("-Wconf:cat=unused:silent"))
++        if (JvmWorkerUtil.isScala3(sv)) (Opts("-Wunused:all"), Opts("-Wconf:msg=unused:silent"))
++        else if (sv.startsWith("2.13")) (Opts("-Wunused"), Opts("-Wconf:cat=unused:silent"))
++        else if (sv.startsWith("2.12")) (Opts("-Ywarn-unused"), Opts("-Wconf:cat=unused:silent"))
+         else (Nil, Nil)
+       // Tests frequently use unused-pattern bindings for assertions; keep those warnings off.
+       base ++ unusedFlag ++ unusedWconf
