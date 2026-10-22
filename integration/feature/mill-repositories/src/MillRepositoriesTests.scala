@@ -1,7 +1,8 @@
 package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
-import utest._
+import utest.*
+
 import scala.annotation.nowarn
 
 /**
@@ -28,8 +29,10 @@ object MillRepositoriesTests extends UtestIntegrationTestSuite {
       )
       def findConstants(vs: Seq[String]) = vs
         .filter(_.contains("mill-core-constants"))
-        .map(_.replace("$WORKSPACE", workspacePath.toString))
-        .map(_.split(os.pwd.toString).last)
+        // the daemon files contain full paths
+        .map(_.split(workspacePath.toString).last)
+        // the cache files contain a mapped root
+        .map(_.split("\\$WORKSPACE").last)
 
       // Make sure the various Mill jars all get resolved from `custom-local-repo` rather
       // han the `localRepo.dest` that would be normally be used in the integration tests

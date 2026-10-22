@@ -125,7 +125,7 @@ trait KaptModule extends KotlinModule { outer =>
           "-classpath",
           compileCp.mkString(File.pathSeparator)
         ),
-        allKotlincOptions(),
+        allKotlincOptions().toStringSeq,
         apClasspathOpts.flatMap(opt => Seq("-P", opt))
       ).flatten
 

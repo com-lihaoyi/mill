@@ -3,6 +3,7 @@ package mill.scalalib
 import mill.*
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
+import mill.api.opt.*
 
 import HelloWorldTests.*
 import mill.api.Discover
@@ -13,7 +14,7 @@ object ScalaMacrosTests extends TestSuite {
     object core extends ScalaModule {
       override def scalaVersion = scala213Version
       override def mvnDeps = Seq(mvn"com.github.julien-truffaut::monocle-macro::2.1.0")
-      override def scalacOptions = super.scalacOptions() ++ Seq("-Ymacro-annotations")
+      override def scalacOptions = super.scalacOptions() ++ Opts("-Ymacro-annotations")
     }
     lazy val millDiscover = Discover[this.type]
   }

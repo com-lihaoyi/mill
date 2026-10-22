@@ -1,6 +1,7 @@
 package millbuild
 
 import mill.*
+import mill.api.opt.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalajslib.ScalaJSModule

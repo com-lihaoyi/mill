@@ -1,10 +1,12 @@
 package mill.javalib
 
 import fansi.Str
+import mill.api.daemon.internal.{OptsApi, TaskApi}
 import mill.api.{Discover, Task}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.util.TokenReaders.*
+import mill.api.opt.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
@@ -12,21 +14,21 @@ object JavacOptionsJvmOptionsTests extends TestSuite {
 
   object JavacOptionsWithDeprecatedRuntimeOptions extends TestRootModule {
     object core extends JavaModule {
-      def javacOptions = Seq("-J-Dlegacy.runtime.option=true")
+      def javacOptions: Task.Simple[Opts] = Opts("-J-Dlegacy.runtime.option=true")
     }
     lazy val millDiscover = Discover[this.type]
   }
 
   object JavacOptionsAsJvmOptions extends TestRootModule {
     object core extends JavaModule {
-      override def jvmOptions = Seq("-Dnew.runtime.option=true")
+      override def jvmOptions = Opts("-Dnew.runtime.option=true")
     }
     lazy val millDiscover = Discover[this.type]
   }
 
   object SemanticDbWithDeprecatedRuntimeOptions extends TestRootModule {
     object core extends JavaModule {
-      def javacOptions = Seq("-J-Dsemanticdb.legacy.runtime=true")
+      def javacOptions: Task.Simple[Opts] = Opts("-J-Dsemanticdb.legacy.runtime=true")
     }
     lazy val millDiscover = Discover[this.type]
   }
