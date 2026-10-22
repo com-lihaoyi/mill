@@ -160,10 +160,15 @@ trait GroupExecution {
           true,
           -1
         )
+        val rootModuleDir = os.Path(rootModule.moduleDirJava)
         if ((path / "..").startsWith(workspace)) {
           rec(
-            (path / "..").subRelativeTo(workspace).segments,
-            if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
+            // The build file one level up from the root module's folder (e.g.
+            // `mill-build/build.mill` when evaluating `mill-build/mill-build`) configures
+            // the root module itself, so its keys are not nested under its folder
+            if (path / ".." == rootModuleDir / "..") Nil
+            else (path / "..").subRelativeTo(workspace).segments,
+            if (path == rootModuleDir / "../build.mill.yaml") {
               parsed0
                 .value0
                 .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }
