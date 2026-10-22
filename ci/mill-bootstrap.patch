@@ -1,5 +1,35 @@
+diff --git a/contrib/package.mill b/contrib/package.mill
+index 609c6482b7f..1919531c6fb 100644
+--- a/contrib/package.mill
++++ b/contrib/package.mill
+@@ -13,6 +13,7 @@ import mill.contrib.buildinfo.BuildInfo
+ import mill.T
+ import mill.api.Cross
+ import millbuild.*
++import mill.api.opt.*
+ 
+ /**
+  * [[build.contrib]] contains user-contributed Mill plugins that satisfy
+@@ -68,7 +69,7 @@ object `package` extends mill.Module {
+ 
+     def testArgs = Task {
+       super.testArgs() ++
+-        Seq(
++        Opts(
+           s"-DTEST_PLAY_VERSION_2_6=${Deps.Play_2_6.playVersion}",
+           s"-DTEST_PLAY_VERSION_2_7=${Deps.Play_2_7.playVersion}",
+           s"-DTEST_PLAY_VERSION_2_8=${Deps.Play_2_8.playVersion}",
+@@ -117,7 +118,7 @@ object `package` extends mill.Module {
+ 
+     def testArgs = Task {
+       super.testArgs() ++
+-        Seq(
++        Opts(
+           s"-DMILL_SCOVERAGE2_VERSION=${Deps.scalacScoverage2Plugin.version}"
+         )
+     }
 diff --git a/dist/package.mill b/dist/package.mill
-index 224a8184e24..8b1c4d81fa7 100644
+index 224a8184e24..a340b409650 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
 @@ -14,6 +14,7 @@ import scala.util.Using
@@ -19,16 +49,65 @@ index 224a8184e24..8b1c4d81fa7 100644
      // Avoid reserving a lot of memory for the client, as the client only forward information
      "-Xmx128m",
      // Set UTF-8 encoding to fix Unicode character display issues on Windows
-@@ -343,7 +344,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
+@@ -320,7 +321,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
+     val filename = if (scala.util.Properties.isWin) "run.bat" else "run"
+     val dest = Task.dest / filename
+ 
+-    val jvmArgs = testArgs() ++ forkArgs()
++    val jvmArgs = (testArgs() ++ forkArgs()).toStringSeq
+     val classpath = runClasspath().map(_.path.toString)
+     val classpathJar = Task.dest / "classpath.jar"
+     Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
+@@ -341,9 +342,11 @@ object `package` extends MillJavaModule with Proguard with DistModule {
+ 
+     // Use the unified localRepo instead of individual publishLocalTestRepo paths
      override def localTestOverridesEnv = Task {
-       val repos = Seq(localRepo().path.toNIO.toUri.toASCIIString) ++
-         Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
+-      val repos = Seq(localRepo().path.toNIO.toUri.toASCIIString) ++
+-        Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
 -      Seq("COURSIER_REPOSITORIES" -> repos.mkString("|"))
-+      OptMap("COURSIER_REPOSITORIES" -> repos.mkString("|"))
++      // TODO: We assume here, that path.toString always uses forward-slashes, but this is not the case on Windows yet
++      // See https://github.com/com-lihaoyi/os-lib/issues/433
++      val local = Opt("file:", localRepo().path)
++      val cs = Opt(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
++      OptMap("COURSIER_REPOSITORIES" -> Opt(local, "|", cs))
      }
  
      def localBinName = "mill-assembly.jar"
-@@ -539,7 +540,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
+@@ -364,24 +367,26 @@ object `package` extends MillJavaModule with Proguard with DistModule {
+ 
+   def run(args: Task[Args] = Task.Anon(Args())) = Task.Command(exclusive = true) {
+     args().value match {
+-      case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dist.raw.run")
++      case Nil => Task.fail("Need to pass in cwd as first argument to dist.raw.run")
+       case wd0 +: rest =>
+         val wd = os.Path(wd0, BuildCtx.workspaceRoot)
+         assert(os.exists(wd), s"Folder $wd does not exist")
++
++        // publishLocal is needed because executableVersioned has the actual version,
++        // so Mill needs to resolve modules at that version from ~/.ivy2/local
++        Task.traverse(allPublishModules)(m => m.publishLocalCachedWoDocs)()
++
+         try {
+-          // publishLocal is needed because executableVersioned has the actual version,
+-          // so Mill needs to resolve modules at that version from ~/.ivy2/local
+-          Task.traverse(allPublishModules)(m => m.publishLocalCachedWoDocs)()
+           Jvm.runInteractiveCommand(
+             cmd = Seq(build.dist.raw.executableVersioned().path.toString) ++ rest,
+-            env = forkEnv() ++ build.dist.raw.localTestOverridesEnv(),
++            env = forkEnv().toStringMap ++ build.dist.raw.localTestOverridesEnv().toStringMap,
+             cwd = wd,
+             propagateEnv = true
+           )
+-          mill.api.Result.Success(())
++          ()
+         } catch {
+           case e: Throwable =>
+-            mill.api.Result.Failure(s"dist.run failed with ${e.getMessage()}")
++            Task.fail(s"dist.run failed with ${e.getMessage()}")
+         }
+     }
+   }
+@@ -539,7 +544,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
      // from processed jars, not process the binary itself (which isn't a jar)
      override def executableVersioned: T[PathRef] = install.nativeImage()
  
@@ -62,6 +141,282 @@ index 3b8e1941d91..2c604e9c589 100644
        "MILL_NATIVE_SUFFIX" -> build.dist.native.nativeSuffix(),
        "MILL_EXPECTED_DEFAULT_VERSION" -> build.millVersion(),
        "MILL_EXPECTED_PROJECT_URL" -> Settings.projectUrl,
+diff --git a/dist/test/package.mill b/dist/test/package.mill
+index bad09dae2e5..6d9dd4d5508 100644
+--- a/dist/test/package.mill
++++ b/dist/test/package.mill
+@@ -1,6 +1,8 @@
+ package build.dist.test
++
+ import mill.*, scalalib.*
+ import scala.util.Using
++import mill.api.opt.*
+ 
+ object `package` extends ScalaModule with TestModule.Utest {
+   def scalaVersion = millbuild.Deps.scalaVersion
+@@ -25,10 +27,10 @@ object `package` extends ScalaModule with TestModule.Utest {
+     os.write(dest, upickle.default.write(entries))
+     PathRef(dest)
+   }
+-  def forkEnv = Map(
++  def forkEnv = OptMap(
+     "MILL_NATIVE_SUFFIX" -> build.dist.native.nativeSuffix(),
+-    "MILL_EXAMPLE_LIST_PATH" -> exampleList().path.toString,
+-    "MILL_EXAMPLE_ZIPS_MANIFEST" -> exampleZipsManifest().path.toString,
++    "MILL_EXAMPLE_LIST_PATH" -> exampleList().path,
++    "MILL_EXAMPLE_ZIPS_MANIFEST" -> exampleZipsManifest().path,
+     "MILL_EXPECTED_VERSION" -> build.millVersion(),
+     "MILL_EXPECTED_DEFAULT_VERSION" -> build.millVersion()
+   )
+diff --git a/example/package.mill b/example/package.mill
+index 13bea341637..79cc6f1feb9 100644
+--- a/example/package.mill
++++ b/example/package.mill
+@@ -17,6 +17,7 @@ import mill.api.BuildCtx
+ import mill.javalib.testrunner.TestResult
+ import mill.testkit.Chunk
+ import millbuild.Deps
++import mill.api.opt.*
+ 
+ import java.util.concurrent.atomic.AtomicInteger
+ 
+@@ -167,7 +168,7 @@ object `package` extends Module {
+      */
+     val emulatorPort: Int = androidPortCounter.getAndAdd(2)
+ 
+-    override def forkEnv = super.forkEnv() ++ Map(
++    override def forkEnv = super.forkEnv() ++ OptMap(
+       "EMULATOR_PORT" -> emulatorPort.toString
+     )
+ 
+@@ -295,8 +296,8 @@ object `package` extends Module {
+      */
+     val testPort: Int = portCounter.getAndIncrement()
+ 
+-    def forkEnv = Map("LANG" -> "C", "PORT" -> testPort.toString)
+-    def forkArgs: T[Seq[String]] = Task(List.empty[String])
++    def forkEnv = OptMap("LANG" -> "C", "PORT" -> testPort.toString)
++    def forkArgs: T[Opts] = Task(Opts())
+ 
+     /**
+      * Parses a `build.mill` for specific comments and return the split-by-type content
+diff --git a/integration/package.mill b/integration/package.mill
+index d96deb377e3..a4fc5e89e70 100644
+--- a/integration/package.mill
++++ b/integration/package.mill
+@@ -16,6 +16,7 @@ import mill.javalib.testrunner.TestResult
+ import millbuild.*
+ import upickle.implicits.namedTuples.default.given
+ import mill.api.BuildCtx
++import mill.api.opt.*
+ 
+ object `package` extends mill.Module {
+   // We compile the test code once and then offer multiple modes to
+@@ -56,13 +57,13 @@ object `package` extends mill.Module {
+     def fs2 = Task { cloneRepoImpl(reposMap("fs2"), Task.dest) }
+ 
+     def all = Task {
+-      Map(
+-        "jansi" -> jansi().path.toString,
+-        "netty" -> netty().path.toString,
+-        "FastCSV" -> FastCSV().path.toString,
+-        "ehcache3" -> ehcache3().path.toString,
+-        "Airstream" -> Airstream().path.toString,
+-        "fs2" -> fs2().path.toString
++      OptMap(
++        "jansi" -> jansi().path,
++        "netty" -> netty().path,
++        "FastCSV" -> FastCSV().path,
++        "ehcache3" -> ehcache3().path,
++        "Airstream" -> Airstream().path,
++        "fs2" -> fs2().path
+       )
+     }
+   }
+@@ -108,8 +109,8 @@ object `package` extends mill.Module {
+     def resources: T[Seq[PathRef]]
+     def runClasspath: T[Seq[PathRef]]
+     def localRunClasspath: T[Seq[PathRef]]
+-    def forkEnv: T[Map[String, String]]
+-    def forkArgs: T[Seq[String]]
++    def forkEnv: T[OptMap]
++    def forkArgs: T[Opts]
+     def testExclusive = false
+     def testClasspath: T[Seq[PathRef]]
+ 
+@@ -125,10 +126,10 @@ object `package` extends mill.Module {
+ 
+       def testForked0(
+           args: Seq[String] = Seq(),
+-          forkEnv: Task[Map[String, String]] = Task.Anon { allForkEnv() }
++          forkEnv: Task[OptMap] = Task.Anon { allForkEnv() }
+       ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
+ 
+-        val env = forkEnv()
++        val env = forkEnv().toStringMap
+         val skip = env.getOrElse(
+           "MILL_TEST_FORKED0_SKIP",
+           "0"
+@@ -138,7 +139,7 @@ object `package` extends mill.Module {
+         else sharedOutFolder().withValue(()) { workerInfo =>
+           val testModuleUtil = new mill.javalib.TestModuleUtil(
+             testUseArgsFile(),
+-            forkArgs(),
++            forkArgs().toStringSeq,
+             Seq.empty[String],
+             jvmWorker().scalalibClasspath(),
+             resources(),
+@@ -177,7 +178,7 @@ object `package` extends mill.Module {
+           forkEnv = Task.Anon {
+             val isExampleTest =
+               discoveredTestClasses().contains("mill.testkit.UtestExampleTestSuite")
+-            allForkEnv() ++ Map(
++            allForkEnv() ++ OptMap(
+               "MILL_EXAMPLE_COMMAND_OVERRIDE" -> "> mill -L1 compile",
+               "MILL_TEST_USE_IN_MEMORY" -> "1",
+               "MILL_TEST_FORKED0_SKIP" -> (if (isExampleTest) "0" else "1")
+@@ -193,12 +194,12 @@ object `package` extends mill.Module {
+       def forkEnv = Task {
+         super.forkEnv() ++
+           IntegrationTestModule.this.forkEnv() ++
+-          Map(
++          OptMap(
+             "MILL_INTEGRATION_DAEMON_MODE" -> (mode == "daemon").toString,
+             "MILL_INTEGRATION_IS_PACKAGED_LAUNCHER" -> millIntegrationIsPackagedLauncher().toString,
+-            "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
++            "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path
+           ) ++
+-          (if (millIntegrationIsPackagedLauncher()) Map()
++          (if (millIntegrationIsPackagedLauncher()) OptMap()
+            else build.dist.raw.localTestOverridesEnv())
+       }
+ 
+@@ -317,7 +318,7 @@ object `package` extends mill.Module {
+       Deps.bsp4j
+     )
+ 
+-    def forkArgs: T[Seq[String]] = Seq(
++    def forkArgs: T[Opts] = Opts(
+       s"-Dmill.integration.mill-version=${build.millVersion()}",
+       s"-Dmill.integration.coursier-version=${Deps.coursier.dep.versionConstraint.asString}"
+     )
+@@ -325,13 +326,13 @@ object `package` extends mill.Module {
+       val locale =
+         if (scala.util.Properties.isMac) "en_US.UTF-8"
+         else "C.utf8"
+-      super.forkEnv() ++ Seq(
++      super.forkEnv() ++ OptMap(
+         // Keep integration subprocess output stable even when the outer shell exports
+         // a locale alias unsupported by the current platform, e.g. macOS + C.UTF-8.
+         "LC_ALL" -> locale,
+         "LANG" -> locale,
+         // "UTEST_UPDATE_GOLDEN_TESTS" -> "1",
+-        "MILL_PROJECT_ROOT" -> BuildCtx.workspaceRoot.toString,
++        "MILL_PROJECT_ROOT" -> BuildCtx.workspaceRoot,
+         "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
+         "TEST_SCALA_JS_CURRENT_VERSION" -> Deps.Scalajs_1.scalaJsVersion,
+         "TEST_KOTLIN_VERSION" -> Deps.kotlinCompiler.version
+diff --git a/libs/androidlib/package.mill b/libs/androidlib/package.mill
+index dc14a8176c8..d1e185ffe58 100644
+--- a/libs/androidlib/package.mill
++++ b/libs/androidlib/package.mill
+@@ -5,6 +5,7 @@ import mill.*
+ import mill.contrib.buildinfo.BuildInfo
+ import mill.javalib.*
+ import millbuild.*
++import mill.api.opt.*
+ 
+ // TODO when android hardcoded versions are fixed, generate a build info
+ // TODO change MillPublishScalaModule to MillStableScalaModule after mill version when androidlib is stable and released.
+@@ -59,8 +60,8 @@ object `package` extends MillPublishScalaModule with BuildInfo {
+ 
+   trait MillAndroidModule extends MillPublishScalaModule {
+     override def javacOptions = super.javacOptions() ++ {
+-      val release = Seq("-source", "1.8", "-target", "1.8")
+-      release ++ Seq("-encoding", "UTF-8", "-deprecation")
++      val release = Opts(OptGroup("-source", "1.8"), OptGroup("-target", "1.8"))
++      release ++ Opts(OptGroup("-encoding", "UTF-8"), "-deprecation")
+     }
+ 
+     override def repositoriesTask = Task.Anon {
+diff --git a/libs/init/package.mill b/libs/init/package.mill
+index dc000a8654b..9db1105c89c 100644
+--- a/libs/init/package.mill
++++ b/libs/init/package.mill
+@@ -6,6 +6,7 @@ import mill.contrib.buildinfo.BuildInfo
+ import mill.scalalib.Assembly.Rule
+ import mill.scalalib.ScalaModule
+ import millbuild.*
++import mill.api.opt.*
+ 
+ object `package` extends MillPublishScalaModule {
+ 
+@@ -111,9 +112,9 @@ object `package` extends MillPublishScalaModule {
+     def mvnDeps = Seq(Deps.mainargs)
+     def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
+     def prependShellScript = ""
+-    def testForkEnv = super.testForkEnv() ++ Map(
++    def testForkEnv = super.testForkEnv() ++ OptMap(
+       "MILL_UNSTABLE_VERSION" -> "1",
+-      "TEST_MAIN_ASSEMBLY" -> assembly().path.toString
++      "TEST_MAIN_ASSEMBLY" -> assembly().path
+     )
+ 
+     override object test extends MillScalaTests {
+diff --git a/libs/javalib/package.mill b/libs/javalib/package.mill
+index 00846bd4cdd..cf9ab65cd9d 100644
+--- a/libs/javalib/package.mill
++++ b/libs/javalib/package.mill
+@@ -1,4 +1,5 @@
+ package build.libs.javalib
++
+ import com.github.lolgab.mill.mima.{Problem, ProblemFilter}
+ 
+ import scala.util.Properties
+@@ -15,6 +16,7 @@ import mill.contrib.buildinfo.BuildInfo
+ import mill.T
+ import mill.api.Cross
+ import millbuild.*
++import mill.api.opt.*
+ 
+ object `package` extends MillStableScalaModule {
+ 
+@@ -51,7 +53,7 @@ object `package` extends MillStableScalaModule {
+     )
+   def testForkEnv = {
+     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
+-    super.testForkEnv() ++ Map("LC_ALL" -> locale)
++    super.testForkEnv() ++ OptMap("LC_ALL" -> locale)
+   }
+ 
+   override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] =
+diff --git a/libs/scalalib/package.mill b/libs/scalalib/package.mill
+index 78cac25d072..57b620aead3 100644
+--- a/libs/scalalib/package.mill
++++ b/libs/scalalib/package.mill
+@@ -1,4 +1,5 @@
+ package build.libs.scalalib
++
+ import scala.util.Properties
+ import scala.util.chaining.*
+ 
+@@ -13,6 +14,7 @@ import mill.contrib.buildinfo.BuildInfo
+ import mill.T
+ import mill.api.Cross
+ import millbuild.*
++import mill.api.opt.*
+ 
+ object `package` extends MillStableScalaModule {
+   def moduleDeps = Seq(build.libs.javalib)
+@@ -35,7 +37,7 @@ object `package` extends MillStableScalaModule {
+ 
+   def testForkEnv = {
+     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
+-    super.testForkEnv() ++ Map("LC_ALL" -> locale)
++    super.testForkEnv() ++ OptMap("LC_ALL" -> locale)
+   }
+ 
+   object `scalafmt-worker` extends MillPublishScalaModule {
 diff --git a/mill-build/src/millbuild/MillBaseTestsModule.scala b/mill-build/src/millbuild/MillBaseTestsModule.scala
 index 27ea3f861e2..e1e38578724 100644
 --- a/mill-build/src/millbuild/MillBaseTestsModule.scala
@@ -80,7 +435,7 @@ index 27ea3f861e2..e1e38578724 100644
        s"-DMILL_SCALA_2_13_VERSION=${Deps.scala2Version}",
        s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
 diff --git a/mill-build/src/millbuild/MillJavaModule.scala b/mill-build/src/millbuild/MillJavaModule.scala
-index 60ac92c11a1..3c509a165bf 100644
+index 60ac92c11a1..9dbe5c07728 100644
 --- a/mill-build/src/millbuild/MillJavaModule.scala
 +++ b/mill-build/src/millbuild/MillJavaModule.scala
 @@ -9,6 +9,7 @@ import mill.T
@@ -91,6 +446,19 @@ index 60ac92c11a1..3c509a165bf 100644
  
  import java.io.File
  
+@@ -16,9 +17,9 @@ import scala.util.Properties
+ 
+ trait MillJavaModule extends JavaModule {
+ 
+-  def testArgs: T[Seq[String]] = Task {
+-    if (Properties.isMac || Properties.isWin) Seq("-Duser.language=en")
+-    else Nil
++  def testArgs: T[Opts] = Task {
++    if (Properties.isMac || Properties.isWin) Opts("-Duser.language=en")
++    else Opts()
+   }
+ 
+   def localTestExtraModules: Seq[MillJavaModule] = Nil
 @@ -55,7 +56,7 @@ trait MillJavaModule extends JavaModule {
    }
  
@@ -109,7 +477,19 @@ index 60ac92c11a1..3c509a165bf 100644
    }
  
    def repositoriesTask = Task.Anon {
-@@ -93,7 +94,7 @@ trait MillJavaModule extends JavaModule {
+@@ -84,16 +85,16 @@ trait MillJavaModule extends JavaModule {
+ 
+   def isFatalWarnings: T[Boolean] = Task.Input { Task.env.contains("FATAL_WARNINGS") }
+ 
+-  def ciJavacOptions: Task[Seq[String]] = Task {
+-    if (isFatalWarnings()) Seq(
++  def ciJavacOptions: Task[Opts] = Task {
++    if (isFatalWarnings()) Opts(
+       // When in CI make the warnings fatal
+       "-Werror"
+     )
+-    else Nil
++    else Opts()
    }
  
    override def javacOptions = Task {
@@ -149,7 +529,7 @@ index 72a4bc0656b..40b71fe1a35 100644
    /**
     * Manifest without version info, used for jarRaw to avoid depending on publishVersion/millVersion.
 diff --git a/mill-build/src/millbuild/MillScalaModule.scala b/mill-build/src/millbuild/MillScalaModule.scala
-index 1513b969ec6..1dfaeab870d 100644
+index 1513b969ec6..34133193ac7 100644
 --- a/mill-build/src/millbuild/MillScalaModule.scala
 +++ b/mill-build/src/millbuild/MillScalaModule.scala
 @@ -7,6 +7,7 @@ import mill.api.BuildCtx
@@ -169,8 +549,9 @@ index 1513b969ec6..1dfaeab870d 100644
      if (isFatalWarnings()) {
        // Turn warnings into errors on CI
 -      if (isScala3()) Seq("-Werror") else Seq("-Xfatal-warnings")
+-    } else Nil
 +      if (isScala3()) Opts("-Werror") else Opts("-Xfatal-warnings")
-     } else Nil
++    } else Opts()
    }
  
    def scalacOptions =
@@ -193,7 +574,7 @@ index 1513b969ec6..1dfaeab870d 100644
          "-P:acyclic:force",
          "-Xlint:unused",
          "-Xlint:adapted-args",
-@@ -109,12 +110,12 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+@@ -109,13 +110,13 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
      }
  
      override def scalacOptions = Task {
@@ -204,9 +585,118 @@ index 1513b969ec6..1dfaeab870d 100644
 -        if (JvmWorkerUtil.isScala3(sv)) (Seq("-Wunused:all"), Seq("-Wconf:msg=unused:silent"))
 -        else if (sv.startsWith("2.13")) (Seq("-Wunused"), Seq("-Wconf:cat=unused:silent"))
 -        else if (sv.startsWith("2.12")) (Seq("-Ywarn-unused"), Seq("-Wconf:cat=unused:silent"))
+-        else (Nil, Nil)
 +        if (JvmWorkerUtil.isScala3(sv)) (Opts("-Wunused:all"), Opts("-Wconf:msg=unused:silent"))
 +        else if (sv.startsWith("2.13")) (Opts("-Wunused"), Opts("-Wconf:cat=unused:silent"))
 +        else if (sv.startsWith("2.12")) (Opts("-Ywarn-unused"), Opts("-Wconf:cat=unused:silent"))
-         else (Nil, Nil)
++        else (Opts(), Opts())
        // Tests frequently use unused-pattern bindings for assertions; keep those warnings off.
        base ++ unusedFlag ++ unusedWconf
+     }
+diff --git a/runner/autooverride/package.mill b/runner/autooverride/package.mill
+index 959d0d64e60..2cf3e050147 100644
+--- a/runner/autooverride/package.mill
++++ b/runner/autooverride/package.mill
+@@ -3,6 +3,7 @@ package build.runner.autooverride
+ import mill.*
+ import mill.scalalib.*
+ import millbuild.*
++import mill.api.opt.*
+ 
+ /**
+  * AutoOverride compiler plugin for Scala 3 that automatically implements
+@@ -40,8 +41,8 @@ object `package` extends Module {
+       millbuild.Deps.TestDeps.utest
+     )
+ 
+-    def scalacOptions = super.scalacOptions() ++ Seq(
+-      s"-Xplugin:${plugin.jar().path}",
++    def scalacOptions = super.scalacOptions() ++ Opts(
++      opt"-Xplugin:${plugin.jar()}",
+       s"-Xplugin-require:auto-override"
+     )
+   }
+diff --git a/runner/bsp/package.mill b/runner/bsp/package.mill
+index 862e4b8f66b..2cfecfb751f 100644
+--- a/runner/bsp/package.mill
++++ b/runner/bsp/package.mill
+@@ -4,6 +4,7 @@ import mill.*
+ import mill.contrib.buildinfo.BuildInfo
+ import mill.T
+ import millbuild.*
++import mill.api.opt.*
+ 
+ object `package` extends MillPublishScalaModule with BuildInfo {
+   def compileModuleDeps = Seq(build.libs.javalib)
+@@ -23,13 +24,13 @@ object `package` extends MillPublishScalaModule with BuildInfo {
+ 
+   override lazy val test: MillScalaTests = new Test {}
+   trait Test extends MillScalaTests {
+-    def forkEnv: T[Map[String, String]] = Task {
++    def forkEnv: T[OptMap] = Task {
+       // We try to fetch this dependency with coursier in the tests
+       worker.publishLocalCached()
+       super.forkEnv()
+     }
+ 
+-    def forkArgs = super.forkArgs() ++ Seq(s"-DBSP4J_VERSION=${Deps.bsp4j.version}")
++    def forkArgs = super.forkArgs() ++ Opts(s"-DBSP4J_VERSION=${Deps.bsp4j.version}")
+   }
+ 
+   object worker extends MillPublishScalaModule {
+diff --git a/runner/codesig/package.mill b/runner/codesig/package.mill
+index ac7c28b2995..83998c782da 100644
+--- a/runner/codesig/package.mill
++++ b/runner/codesig/package.mill
+@@ -1,8 +1,10 @@
+ package build.runner.codesig
++
+ import mill.*
+ import mill.scalalib.*
+ import millbuild.*
+ import mill.api.BuildCtx
++import mill.api.opt.*
+ 
+ /**
+  * The CodeSig module implements a conservative call-graph analyzer at the JVM
+@@ -27,14 +29,14 @@ object `package` extends MillPublishScalaModule {
+ 
+     def testLogFolder = Task { Task.dest }
+ 
+-    def caseEnvs[V](f1: CaseModule => Task[V])(s: String, f2: V => String) = {
++    def caseEnvs[V](f1: CaseModule => Task[V])(s: String, f2: V => Opt) = {
+       Task.traverse(caseKeys) { i => f1(cases(i)).map(v => s"MILL_TEST_${s}_$i" -> f2(v)) }
+     }
+     def forkEnv = Task {
+-      Map("MILL_TEST_LOGS" -> testLogFolder().toString) ++
+-        caseEnvs(_.compile)("CLASSES", _.classes.path.toString)() ++
+-        caseEnvs(_.compileClasspath)("CLASSPATH", _.map(_.path).mkString(","))() ++
+-        caseEnvs(_.sources)("SOURCES", _.head.path.toString)()
++      OptMap("MILL_TEST_LOGS" -> testLogFolder().toString) ++
++        caseEnvs(_.compile)("CLASSES", _.classes.path)() ++
++        caseEnvs(_.compileClasspath)("CLASSPATH", cp => Opt.mkPath(cp.map(_.path), sep = ","))() ++
++        caseEnvs(_.sources)("SOURCES", _.head.path)()
+     }
+ 
+     object cases extends Cross[CaseModule](caseKeys)
+diff --git a/testkit/package.mill b/testkit/package.mill
+index 8b0407d26f8..25035e4ad9c 100644
+--- a/testkit/package.mill
++++ b/testkit/package.mill
+@@ -3,6 +3,7 @@ package build.testkit
+ import mill.*
+ import millbuild.*
+ import mill.api.BuildCtx
++import mill.api.opt.*
+ 
+ /**
+  * Mill unit/integration/example-testing helpers. Both used internally
+@@ -20,7 +21,7 @@ object `package` extends MillPublishScalaModule {
+ 
+   def forkEnv =
+     super.forkEnv() ++
+-      Map("MILL_EXECUTABLE_PATH" -> build.dist.raw.launcher().path.toString()) ++
++      OptMap("MILL_EXECUTABLE_PATH" -> build.dist.raw.launcher().path) ++
+       build.dist.raw.testForkEnv()
+ 
+   object internal extends MillScalaModule {
