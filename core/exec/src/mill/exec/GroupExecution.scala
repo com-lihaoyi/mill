@@ -55,7 +55,7 @@ trait GroupExecution {
   /** Evaluate a build override YAML value and deserialize it */
   private def evaluateBuildOverride(
       located: Located[Appendable[BufferedValue]],
-      labelled: Task.Named[_]
+      labelled: Task.Named[?]
   ): Either[upickle.core.TraceVisitor.TraceException, Any] = {
     try {
       val reader = labelled.readWriterOpt.getOrElse {
