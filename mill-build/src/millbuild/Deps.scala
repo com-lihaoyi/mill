@@ -130,7 +130,7 @@ object Deps {
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
 
   val cask = mvn"com.lihaoyi::cask:0.9.7"
-  val castor = mvn"com.lihaoyi::castor:0.3.0"
+  val castor = mvn"com.lihaoyi::castor:0.3.2"
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = mvn"org.flywaydb:flyway-core:11.8.2"
   // compile-time only: at runtime the Vaadin plugin uses the Flow version of the user's application
