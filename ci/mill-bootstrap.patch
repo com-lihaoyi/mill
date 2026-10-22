@@ -29,7 +29,7 @@ index 609c6482b7f..1919531c6fb 100644
          )
      }
 diff --git a/dist/package.mill b/dist/package.mill
-index 224a8184e24..a340b409650 100644
+index 224a8184e24..16dd66a555c 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
 @@ -14,6 +14,7 @@ import scala.util.Using
@@ -67,7 +67,7 @@ index 224a8184e24..a340b409650 100644
 -      Seq("COURSIER_REPOSITORIES" -> repos.mkString("|"))
 +      // TODO: We assume here, that path.toString always uses forward-slashes, but this is not the case on Windows yet
 +      // See https://github.com/com-lihaoyi/os-lib/issues/433
-+      val local = Opt("file:", localRepo().path)
++      val local = opt"file://${localRepo().path}"
 +      val cs = Opt(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
 +      OptMap("COURSIER_REPOSITORIES" -> Opt(local, "|", cs))
      }
@@ -435,7 +435,7 @@ index 27ea3f861e2..e1e38578724 100644
        s"-DMILL_SCALA_2_13_VERSION=${Deps.scala2Version}",
        s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
 diff --git a/mill-build/src/millbuild/MillJavaModule.scala b/mill-build/src/millbuild/MillJavaModule.scala
-index 60ac92c11a1..9dbe5c07728 100644
+index 60ac92c11a1..bad5fbeebfe 100644
 --- a/mill-build/src/millbuild/MillJavaModule.scala
 +++ b/mill-build/src/millbuild/MillJavaModule.scala
 @@ -9,6 +9,7 @@ import mill.T
@@ -459,7 +459,7 @@ index 60ac92c11a1..9dbe5c07728 100644
    }
  
    def localTestExtraModules: Seq[MillJavaModule] = Nil
-@@ -55,7 +56,7 @@ trait MillJavaModule extends JavaModule {
+@@ -55,15 +56,17 @@ trait MillJavaModule extends JavaModule {
    }
  
    def testMvnDeps: T[Seq[Dep]] = Seq(Deps.TestDeps.utest)
@@ -468,16 +468,20 @@ index 60ac92c11a1..9dbe5c07728 100644
    def testModuleDeps: Seq[JavaModule] =
      if (this == build.core.api) Seq(build.core.api)
      else Seq(this, build.core.api.test)
-@@ -63,7 +64,7 @@ trait MillJavaModule extends JavaModule {
+ 
    def localTestOverridesEnv = Task {
-     val localRepos = localTestRepositories().map(_.path.toNIO.toUri.toASCIIString)
-     val repos = localRepos ++ Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
+-    val localRepos = localTestRepositories().map(_.path.toNIO.toUri.toASCIIString)
+-    val repos = localRepos ++ Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
 -    Seq("COURSIER_REPOSITORIES" -> repos.mkString("|"))
-+    OptMap("COURSIER_REPOSITORIES" -> repos.mkString("|"))
++    // TODO: We assume here, that path.toString always uses forward-slashes, but this is not the case on Windows yet
++    // See https://github.com/com-lihaoyi/os-lib/issues/433
++    val localRepos = Opt(localTestRepositories().map(pr => opt"file://${pr.path}|")*)
++    val repos = Opt(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
++    OptMap("COURSIER_REPOSITORIES" -> Opt(localRepos,repos))
    }
  
    def repositoriesTask = Task.Anon {
-@@ -84,16 +85,16 @@ trait MillJavaModule extends JavaModule {
+@@ -84,16 +87,16 @@ trait MillJavaModule extends JavaModule {
  
    def isFatalWarnings: T[Boolean] = Task.Input { Task.env.contains("FATAL_WARNINGS") }
  
@@ -498,7 +502,7 @@ index 60ac92c11a1..9dbe5c07728 100644
        "-Xlint",
        "-Xlint:-serial", // we don't care about java serialization
        "-Xlint:-try", // TODO: a bunch of code needs reviewing with this lint)
-@@ -101,7 +102,7 @@ trait MillJavaModule extends JavaModule {
+@@ -101,7 +104,7 @@ trait MillJavaModule extends JavaModule {
      )
    }
  
