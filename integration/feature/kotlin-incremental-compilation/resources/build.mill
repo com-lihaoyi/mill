@@ -22,5 +22,5 @@ object consumer extends BaseModule {
 // argument changes across incremental compilations.
 object options extends BaseModule {
   def kotlinVersion = "2.4.0"
-  def kotlincOptions = Task { super.kotlincOptions() ++ Opts() }
+  def kotlincOptions = Task { super.kotlincOptions() ++ Opts(/* opts-placeholder */) }
 }
