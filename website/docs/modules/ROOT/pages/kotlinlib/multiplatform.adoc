@@ -1,0 +1,14 @@
+= Kotlin Multiplatform
+:language: Kotlin
+:language-small: kotlin
+
+This page contains examples of using Mill to build
+https://kotlinlang.org/docs/multiplatform.html[Kotlin Multiplatform] projects,
+sharing code between platforms such as the JVM and Kotlin/JS.
+
+NOTE: Kotlin Multiplatform support is experimental. It currently supports JVM
+and Kotlin/JS platforms, and requires Kotlin 2.0 or later.
+
+== Hello Kotlin Multiplatform
+
+include::partial$example/kotlinlib/multiplatform/1-hello-kmp.adoc[]
