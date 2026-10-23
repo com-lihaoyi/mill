@@ -57,6 +57,8 @@ Hello from JS
 ...foo.JvmPlatformTest...platformIsJvm...
 
 > ./mill foo.js.test
-...Tests: 1, Passed: 1, Failed: 0, Skipped: 0...
+
+> cat out/foo/js/test/testForked.dest/test-report.xml
+...name="Mocha Tests" tests="1" failures="0" errors="0"...
 
 */
