@@ -3,6 +3,7 @@ package mill.resolve
 import mill.api.{DefaultTaskModule, Discover, Result}
 import mill.api.TestGraphs.*
 import mill.testkit.TestRootModule
+import mainargs.arg
 import mill.{Cross, Module, Task}
 import utest.*
 object ResolveTests extends TestSuite {
@@ -146,6 +147,21 @@ object ResolveTests extends TestSuite {
     object `null` extends DefaultTaskModule {
       def defaultTask() = null
       def task = Task { "task" }
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object taskArgsModule extends TestRootModule {
+    object foo extends Module {
+      def task = Task { "foo" }
+      def cmd(@arg(positional = true) s: String) = Task.Command { s }
+    }
+    object bar extends Module {
+      def task = Task { "bar" }
+    }
+    object default extends DefaultTaskModule {
+      def defaultTask() = "task"
+      def task = Task { "default" }
     }
     lazy val millDiscover = Discover[this.type]
   }
@@ -679,5 +695,40 @@ object ResolveTests extends TestSuite {
       )
     }
 
+    test("taskArgs") {
+      val check = Checker(taskArgsModule)
+      // `mill foo.task bar.task` passes `bar.task` as an argument to `foo.task`,
+      // which takes none; it must not silently run only `foo.task`
+      test("namedTaskWithArgs") - check.checkSeq0(
+        Seq("foo.task", "bar.task"),
+        isShortError(
+          _,
+          "Task foo.task does not take any arguments, but was given: bar.task"
+        )
+      )
+      test("namedTaskWithArgsHint") - check.checkSeq0(
+        Seq("foo.task", "bar.task"),
+        isShortError(_, "separate them with `+`")
+      )
+      test("wildcardNamedTasksWithArgs") - check.checkSeq0(
+        Seq("_.task", "x"),
+        isShortError(
+          _,
+          "Tasks bar.task, default.task, foo.task do not take any arguments, but were given: x"
+        )
+      )
+      test("defaultNamedTaskWithArgs") - check.checkSeq0(
+        Seq("default", "x"),
+        isShortError(_, "Task default.task does not take any arguments, but was given: x")
+      )
+      test("separatedTasks") - check.checkSeq(
+        Seq("foo.task", "+", "bar.task"),
+        Result.Success(Set(_.foo.task, _.bar.task))
+      )
+      test("commandWithArgs") - check.checkSeq(
+        Seq("foo.cmd", "hello"),
+        Result.Success(Set(_.foo.cmd("hello")))
+      )
+    }
   }
 }

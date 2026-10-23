@@ -9,7 +9,7 @@
 
 > ./mill show generatedSources
 [
-  "ref:v0:.../out/generatedSourcesWithKapt.dest/generated/sources"
+  "ref:v0:...$MILL_OUT/generatedSourcesWithKapt.dest/generated/sources"
 ]
 
 > ls out/generatedSourcesWithKapt.dest/generated/sources/com/example/kapt/

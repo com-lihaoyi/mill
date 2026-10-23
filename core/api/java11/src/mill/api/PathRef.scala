@@ -2,7 +2,6 @@ package mill.api
 
 import mill.api.daemon.DummyOutputStream
 import mill.api.daemon.internal.PathRefApi
-import upickle.ReadWriter as RW
 
 import java.nio.file as jnio
 import java.security.{DigestOutputStream, MessageDigest}
@@ -10,11 +9,12 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.annotation.nowarn
 import scala.language.implicitConversions
 import scala.util.DynamicVariable
+import scala.util.hashing.MurmurHash3
 
 /**
- * A wrapper around `os.Path` that calculates it's hashcode based
- * on the contents of the filesystem underneath it. Used to ensure filesystem
- * changes can bust caches which are keyed off hashcodes.
+ * A wrapper around `os.Path` that calculates a `sig` (which ends up in the [[hashCode]])
+ * based on the contents of the filesystem underneath it.
+ * Used to ensure filesystem changes can bust caches which are keyed off hashcodes.
  */
 case class PathRef private[mill] (
     path: os.Path,
@@ -23,6 +23,18 @@ case class PathRef private[mill] (
     revalidate: PathRef.Revalidate
 ) extends PathRefApi {
   private[mill] def javaPath = path.toNIO
+
+  /**
+   * The path with common mapped path roots replaced, to make it relocatable.
+   * See [[MappedRoots]].
+   */
+  private val mappedPath: String = MappedRoots.encodeKnownRootsInPath(path)
+
+  /**
+   * Apply the current contextual path mapping to this PathRef.
+   * Updates [[mappedPath]] but does not recalculate the [[sig]].
+   */
+  def remap: PathRef = PathRef(path, quick, sig, revalidate)
 
   def recomputeSig(): Int = PathRef.apply(path, quick).sig
   def validate(): Boolean = recomputeSig() == sig
@@ -40,6 +52,18 @@ case class PathRef private[mill] (
 
   override def toString: String =
     PathRef.PathRefFormat.render(quick, revalidate, sig, path.toString())
+
+  // Instead of using `path` we need to use `mappedPath` to make the hashcode stable as cache key
+  override def hashCode(): Int = {
+    var h = MurmurHash3.productSeed
+    h = MurmurHash3.mix(h, "PathRef".hashCode)
+    h = MurmurHash3.mix(h, mappedPath.hashCode)
+    h = MurmurHash3.mix(h, quick.##)
+    h = MurmurHash3.mix(h, sig.##)
+    h = MurmurHash3.mix(h, revalidate.##)
+    MurmurHash3.finalizeHash(h, 4)
+  }
+
 }
 
 object PathRef {
@@ -184,28 +208,34 @@ object PathRef {
   /**
    * Default JSON formatter for [[PathRef]].
    */
-  implicit def jsonFormatter: RW[PathRef] = upickle.readwriter[String].bimap[PathRef](
-    p => {
-      storeSerializedPaths(p)
-      p.toString()
-    },
-    { s =>
-      PathRefFormat.parse(s) match {
-        case Some(parsed) =>
-          val path = os.Path(parsed.pathString)
-          val pr = PathRef(path, parsed.quick, parsed.sig, revalidate = parsed.revalidate)
-          validatedPaths.value.revalidateIfNeededOrThrow(pr)
-          storeSerializedPaths(pr)
-          pr
-        case None =>
-          val path =
-            if (s.startsWith("//")) os.Path(s.substring(2), BuildCtx.workspaceRoot)
-            else os.Path(s, currentOverrideModulePath.value)
+  implicit def jsonFormatter: upickle.ReadWriter[PathRef] =
+    upickle.readwriter[String].bimap[PathRef](
+      p => {
+        storeSerializedPaths(p)
+        PathRef.PathRefFormat.render(
+          p.quick,
+          p.revalidate,
+          p.sig,
+          MappedRoots.encodeKnownRootsInPath(p.path)
+        )
+      },
+      { s =>
+        PathRefFormat.parse(s) match {
+          case Some(parsed) =>
+            val path = os.Path(MappedRoots.decodeKnownRootsInPath(parsed.pathString))
+            val pr = PathRef(path, parsed.quick, parsed.sig, revalidate = parsed.revalidate)
+            validatedPaths.value.revalidateIfNeededOrThrow(pr)
+            storeSerializedPaths(pr)
+            pr
+          case None =>
+            val path =
+              if (s.startsWith("//")) os.Path(s.substring(2), BuildCtx.workspaceRoot)
+              else os.Path(MappedRoots.decodeKnownRootsInPath(s), currentOverrideModulePath.value)
 
-          mill.api.BuildCtx.withFilesystemCheckerDisabled(PathRef(path))
+            mill.api.BuildCtx.withFilesystemCheckerDisabled(PathRef(path))
+        }
       }
-    }
-  )
+    )
 
   /**
    * The single encode/decode codec for the [[PathRef.toString]] wire format
