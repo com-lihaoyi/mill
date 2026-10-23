@@ -100,5 +100,75 @@ object FileToStreamTailerTests extends TestSuite {
         out.close()
       }
     }
+    test("printsLineOnlyOnceItIsTerminated") {
+      val bas = ByteArrayOutputStream()
+      val ps = PrintStream(bas)
+      val file = os.temp(deleteOnExit = false)
+
+      val tailer = FileToStreamTailer(file, ps, 10)
+      try {
+        tailer.start()
+        Thread.sleep(100)
+        val out = PrintStream(os.write.outputStream(file))
+        try {
+          out.print("log ")
+          out.flush()
+          Thread.sleep(100)
+          assert(bas.toString == "")
+          out.println("line")
+          out.flush()
+          Thread.sleep(100)
+          assert(bas.toString == s"log line${System.lineSeparator()}")
+        } finally {
+          out.close()
+        }
+      } finally {
+        tailer.close()
+      }
+    }
+
+    test("flushPrintsUnterminatedLine") {
+      val bas = ByteArrayOutputStream()
+      val ps = PrintStream(bas)
+      val file = os.temp(deleteOnExit = false)
+
+      val tailer = FileToStreamTailer(file, ps, 10)
+      try {
+        tailer.start()
+        Thread.sleep(100)
+        val out = PrintStream(os.write.outputStream(file))
+        try {
+          out.print("partial line")
+          out.flush()
+          Thread.sleep(100)
+          assert(bas.toString == "")
+          tailer.flush()
+          assert(bas.toString == s"partial line${System.lineSeparator()}")
+        } finally {
+          out.close()
+        }
+      } finally {
+        tailer.close()
+      }
+    }
+
+    test("closePrintsEverythingWrittenBeforeItIsCalled") {
+      val bas = ByteArrayOutputStream()
+      val ps = PrintStream(bas)
+      val file = os.temp(deleteOnExit = false)
+
+      val tailer = FileToStreamTailer(file, ps, 10)
+      tailer.start()
+      Thread.sleep(100)
+      val out = PrintStream(os.write.outputStream(file))
+      try {
+        out.println("last line")
+        out.flush()
+      } finally {
+        out.close()
+      }
+      tailer.close()
+      assert(bas.toString == s"last line${System.lineSeparator()}")
+    }
   }
 }
