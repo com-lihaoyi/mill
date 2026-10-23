@@ -38,14 +38,12 @@ trait KotlinMultiplatformModule extends Module { kmp =>
     moduleDir / "src" / sourceSet / language
 
   /**
-   * A submodule compiling the source sets ("fragments") of one platform,
-   * e.g. `jvmMain` and `commonMain`, in one compilation. Every fragment
-   * refines the next one in [[kmpFragments]], so `expect` declarations in
-   * `commonMain` can be implemented by `actual` declarations in `jvmMain`.
+   * A submodule compiling the source sets of one platform, e.g. `jvmMain`
+   * and `commonMain`. The compiler depends on the mixed-in traits, e.g.
+   * [[KotlinJsModule]] for Kotlin/JS.
    *
-   * The platform used as source set prefix is the name of the module, e.g.
-   * `object jvm` reads `src/jvmMain`. Which compiler is used depends on the
-   * mixed-in traits, e.g. [[KotlinJsModule]] for Kotlin/JS.
+   * Name it after its Kotlin target, e.g. `object jvm` reads `jvmMain`,
+   * or override [[kmpPlatform]].
    */
   trait PlatformModule extends KotlinModule { platform =>
 
@@ -105,8 +103,7 @@ trait KotlinMultiplatformModule extends Module { kmp =>
     }
 
     /**
-     * Tests of a [[PlatformModule]], e.g. compiling `jvmTest` and `commonTest`,
-     * with the main module as a friend rather than a refined fragment.
+     * Tests of a [[PlatformModule]], e.g. compiling `jvmTest` and `commonTest`.
      */
     trait PlatformTests extends KotlinTests, PlatformModule {
       override def kmpPlatform = platform.kmpPlatform
