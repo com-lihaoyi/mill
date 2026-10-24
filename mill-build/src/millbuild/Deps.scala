@@ -276,7 +276,7 @@ object Deps {
 
   // check with
   //   cs complete-dep io.get-coursier.jvm.indices:index-linux-amd64: | sort -V
-  val coursierJvmIndexVersion = "0.0.4-201-39a6a6"
+  val coursierJvmIndexVersion = "0.0.5"
   val gradleApi_api = mvn"dev.gradleplugins:gradle-api:8.11.1" // scala-steward:off
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
