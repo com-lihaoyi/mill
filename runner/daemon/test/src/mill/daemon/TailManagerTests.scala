@@ -29,12 +29,12 @@ object TailManagerTests extends TestSuite {
         manager.close()
       }
       {
-        val expectedOut = s"last out line${System.lineSeparator()}"
-        val expectedErr = s"last err line${System.lineSeparator()}"
+        val expectedOut = "last out line\n"
+        val expectedErr = "last err line\n"
         val o = newOut.toString()
         val e = newErr.toString()
         assert(o == expectedOut)
-        assert(o == expectedErr)
+        assert(e == expectedErr)
       }
     }
   }
