@@ -19,7 +19,7 @@ object ScalaMvnDepsTests extends TestSuite {
 
     object forceVer extends ScalaModule {
       def scalaVersion = HelloWorldTests.scala213Version
-      private val osLib = mvn"com.lihaoyi::os-lib:0.11.8"
+      private val osLib = mvn"com.lihaoyi::os-lib:0.11.9"
       private val forcedOsZip = mvn"com.lihaoyi:os-zip:0.11.5"
       def resolutionParams = Task.Anon {
         super.resolutionParams().addForceVersion0(
