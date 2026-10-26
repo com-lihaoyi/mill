@@ -145,6 +145,7 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
       }
       if (dep.isRuntime) {
         builder.setRuntimeCp()
+        builder.setDeploymentCp()
       }
 
       if (dep.hasExtension) {
