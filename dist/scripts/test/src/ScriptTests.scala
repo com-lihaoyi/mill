@@ -45,7 +45,8 @@ object ScriptTests extends TestSuite {
         windowsDownload: os.RelPath
     ) {
       def macLinuxDownloadPath: String = (home / macLinuxDownload).toString
-      def windowsDownloadPath: String = (home / windowsDownload).wrapped.toString // use .toPlatformString
+      def windowsDownloadPath: String =
+        (home / windowsDownload).wrapped.toString // use .toPlatformString
     }
 
     val versions = List[VersionPaths](
