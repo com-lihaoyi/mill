@@ -75,16 +75,17 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
       .setBaseClassLoader(getClass.getClassLoader)
       .build()
 
-    val augmentAction: AugmentAction = quarkusBootstrap.bootstrap().createAugmentor()
+    Using.resource(quarkusBootstrap.bootstrap()) { curatedApplication =>
+      val augmentAction: AugmentAction = curatedApplication.createAugmentor()
 
-    val app = augmentAction.createProductionApplication()
+      val app = augmentAction.createProductionApplication()
 
-    val quarkusApp = ApplicationModelWorker.QuarkusApp(
-      destRunJar,
-      Option(app.getJar).map(j => os.Path(j.getPath)),
-      Option(app.getNativeResult).map(os.Path(_))
-    )
-    quarkusApp
+      ApplicationModelWorker.QuarkusApp(
+        destRunJar,
+        Option(app.getJar).map(j => os.Path(j.getPath)),
+        Option(app.getNativeResult).map(os.Path(_))
+      )
+    }
   }
 
   /**
@@ -362,43 +363,43 @@ class ApplicationModelWorkerImpl extends ApplicationModelWorker {
       .setDependencyInfoProvider(() => null)
       .build
 
-    val curatedApplication: CuratedApplication = quarkusBootstrap.bootstrap()
+    Using.resource(quarkusBootstrap.bootstrap()) { (curatedApplication: CuratedApplication) =>
+      val deploymentClassLoader = curatedApplication.createDeploymentClassLoader()
 
-    val deploymentClassLoader = curatedApplication.createDeploymentClassLoader()
+      val codeGenerator = deploymentClassLoader.loadClass(classOf[CodeGenerator].getName)
 
-    val codeGenerator = deploymentClassLoader.loadClass(classOf[CodeGenerator].getName)
+      val initAndRun = codeGenerator.getMethod(
+        "initAndRun",
+        classOf[QuarkusClassLoader],
+        classOf[PathCollection],
+        classOf[Path],
+        classOf[Path],
+        classOf[Consumer[_]],
+        classOf[ApplicationModel],
+        classOf[Properties],
+        classOf[String],
+        classOf[Boolean]
+      )
 
-    val initAndRun = codeGenerator.getMethod(
-      "initAndRun",
-      classOf[QuarkusClassLoader],
-      classOf[PathCollection],
-      classOf[Path],
-      classOf[Path],
-      classOf[Consumer[_]],
-      classOf[ApplicationModel],
-      classOf[Properties],
-      classOf[String],
-      classOf[Boolean]
-    )
+      val sourcesPathCollection: PathCollection = PathList.of(sourcesDir.map(_.toNIO)*)
+      val generatedSourcesPath: Path = generatedSourcesDir.toNIO
 
-    val sourcesPathCollection: PathCollection = PathList.of(sourcesDir.map(_.toNIO)*)
-    val generatedSourcesPath: Path = generatedSourcesDir.toNIO
+      val sourceRegistrar: Consumer[Path] = _ => ()
 
-    val sourceRegistrar: Consumer[Path] = _ => ()
-
-    initAndRun.invoke(
-      null,
-      deploymentClassLoader,
-      sourcesPathCollection,
-      generatedSourcesPath,
-      buildDir.toNIO,
-      sourceRegistrar,
-      applicationModel,
-      props,
-      quarkusLaunchMode.name(),
-      appModel.appMode == Test
-    )
-    generatedSourcesDir
+      initAndRun.invoke(
+        null,
+        deploymentClassLoader,
+        sourcesPathCollection,
+        generatedSourcesPath,
+        buildDir.toNIO,
+        sourceRegistrar,
+        applicationModel,
+        props,
+        quarkusLaunchMode.name(),
+        appModel.appMode == Test
+      )
+      generatedSourcesDir
+    }
   }
 
   override def close(): Unit = {
