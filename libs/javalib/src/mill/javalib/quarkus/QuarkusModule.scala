@@ -500,7 +500,7 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
   }
 
   /** Names of the Quarkus code generator input directories. */
-  def quarkusCodeGenInputs: Seq[String] = Seq("proto", "avro", "openapi", "asyncapi")
+  def quarkusCodeGenInputs: Seq[String] = Seq("proto", "avro")
 
   /** The [[quarkusCodeGenInputs]] directories next to each source folder, e.g. `src/main/proto`. */
   def quarkusCodeGenSources: T[Seq[PathRef]] = Task.Sources(
