@@ -3,13 +3,23 @@ package mill.javalib.quarkus
 import coursier.core.VariantSelector.ConfigurationBased
 import mill.api.PathRef
 import mill.{T, Task}
-import mill.javalib.{CoursierModule, Dep, DepSyntax, JavaModule, OsDetectorModule, PublishModule}
+import mill.javalib.{
+  BoundDep,
+  CoursierModule,
+  Dep,
+  DepSyntax,
+  JavaModule,
+  OsDetectorModule,
+  PublishModule
+}
 import mill.util.Jvm
 import upickle.default.ReadWriter.join
 
 import java.io.File
 import java.net.URLClassLoader
 import java.util.Properties
+import java.util.jar.JarFile
+import scala.annotation.tailrec
 import scala.util.Using
 
 @mill.api.experimental
@@ -155,6 +165,76 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
   }
 
   /**
+   * Conditional extension dependencies enabled for this module. Extensions list them under
+   * `conditional-dependencies`, and each one is enabled once every artifact in its own
+   * `dependency-condition` is present, which can in turn enable further ones.
+   * Mirrors Quarkus's Gradle `ConditionalDependenciesEnabler`; dev-mode only conditional
+   * dependencies are skipped.
+   *
+   * For more info see [[https://quarkus.io/guides/conditional-extension-dependencies]]
+   */
+  def quarkusConditionalMvnDeps: T[Seq[Dep]] = Task {
+    def resolve(deps: Seq[BoundDep]): Seq[(String, File)] =
+      millResolver().artifacts(deps, sources = false, artifactTypes = Some(artifactTypes()))
+        .detailedArtifacts0
+        .map { case (dep, _, _, file) => quarkusQualifier(dep) -> file }
+
+    // The `conditional-dependencies` declared by the given jars that aren't present yet,
+    // each as groupId:artifactId[:classifier[:type]]:version
+    def candidates(files: Seq[File], present: Set[String]): Seq[(String, Dep)] =
+      for {
+        file <- files
+        coords <- quarkusExtensionProperty(file, "conditional-dependencies")
+        parts = coords.split(":")
+        key = parts.take(2).mkString(":")
+        if parts.length >= 3 && !present(key)
+      } yield key -> mvn"$key:${parts.last}"
+
+    // Enables the first pending candidate whose `dependency-condition` is met, until none is
+    @tailrec
+    def enable(present: Set[String], pending: Seq[(String, Dep)], enabled: Seq[Dep]): Seq[Dep] =
+      pending.iterator
+        .map { case (key, dep) => (key, dep, resolve(Seq(bindDependency()(dep)))) }
+        .find { case (key, _, resolved) =>
+          resolved.find(_._1 == key).forall { case (_, file) =>
+            quarkusExtensionProperty(file, "dependency-condition")
+              .forall(condition => present(condition.split(":").take(2).mkString(":")))
+          }
+        } match {
+        case None => enabled
+        case Some((key, dep, resolved)) =>
+          val nowPresent = present ++ resolved.map(_._1)
+          val nowPending =
+            pending.filterNot(_._1 == key) ++ candidates(resolved.map(_._2), nowPresent)
+          enable(nowPresent, nowPending.distinctBy(_._1), enabled :+ dep)
+      }
+
+    val initial = resolve(Seq(BoundDep(quarkusRuntimeDependency(), force = false)))
+    val present = initial.map(_._1).toSet
+    enable(present, candidates(initial.map(_._2), present).distinctBy(_._1), Nil)
+  }
+
+  private def quarkusRuntimeDependency: Task[coursier.core.Dependency] = Task.Anon {
+    coursierDependencyTask().copy(
+      variantSelector = ConfigurationBased(coursier.core.Configuration.runtime)
+    )
+  }
+
+  private def quarkusQualifier(d: coursier.core.Dependency): String =
+    s"${d.module.organization.value}:${d.module.name.value}"
+
+  /** The space separated entries of `name` in a Quarkus extension jar's descriptor. */
+  private def quarkusExtensionProperty(file: File, name: String): Seq[String] =
+    if (!file.isFile || !file.getName.endsWith(".jar")) Nil
+    else Using.resource(JarFile(file)) { jar =>
+      Option(jar.getJarEntry("META-INF/quarkus-extension.properties")).toSeq.flatMap { entry =>
+        val props = Properties()
+        Using.resource(jar.getInputStream(entry))(props.load)
+        Option(props.getProperty(name)).toSeq.flatMap(_.trim.split("\\s+")).filter(_.nonEmpty)
+      }
+    }
+
+  /**
    * These are the application dependencies that Quarkus needs to know about
    * for bootstrapping. They generally are in 3 categories:
    * 1. Runtime applications
@@ -166,10 +246,6 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
    * This mechanism is not fully implemneted yet, and only works for a single module.
    */
   def quarkusDependencies: T[Seq[ApplicationModelWorker.Dependency]] = Task {
-    val depRuntime = coursierDependencyTask().copy(
-      variantSelector = ConfigurationBased(coursier.core.Configuration.runtime)
-    )
-
     val depCompile = coursierDependencyTask().copy(
       variantSelector = ConfigurationBased(coursier.core.Configuration.compile)
     )
@@ -181,10 +257,10 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
       millResolver().artifacts(deps, sources = false, artifactTypes = quarkusArtifactTypes)
 
     val runtimeDeps =
-      resolveArtifacts(Seq(mill.javalib.BoundDep(depRuntime, force = false)))
-
-    def qualifier(d: coursier.core.Dependency) =
-      s"${d.module.organization.value}:${d.module.name.value}"
+      resolveArtifacts(
+        Seq(BoundDep(quarkusRuntimeDependency(), force = false)) ++
+          quarkusConditionalMvnDeps().map(bindDependency())
+      )
 
     def wQualifier(d: ApplicationModelWorker.Dependency) =
       s"${d.groupId}:${d.artifactId}"
@@ -239,7 +315,7 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
       )
     }
 
-    val runtimeDepSet = runtimeDeps.detailedArtifacts0.map(da => qualifier(da._1)).toSet
+    val runtimeDepSet = runtimeDeps.detailedArtifacts0.map(da => quarkusQualifier(da._1)).toSet
 
     val quarkusPrecomputedRuntimeDeps = runtimeDeps.detailedArtifacts0.map(artifact =>
       toQuarkusDependency(
@@ -263,15 +339,16 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
 
     val deploymentDeps = resolveArtifacts(deploymentMvnDeps)
 
-    val deploymentDepsSet = deploymentDeps.detailedArtifacts0.map(da => qualifier(da._1)).toSet
+    val deploymentDepsSet =
+      deploymentDeps.detailedArtifacts0.map(da => quarkusQualifier(da._1)).toSet
 
     val quarkusDeploymentDeps = deploymentDeps.detailedArtifacts0.map { artifact =>
       val dependency = artifact._1
       toQuarkusDependency(
         artifact,
-        isRuntime = runtimeDepSet.contains(qualifier(dependency)),
+        isRuntime = runtimeDepSet.contains(quarkusQualifier(dependency)),
         isDeployment = true,
-        hasExtension = extensionDepsSet.contains(qualifier(dependency))
+        hasExtension = extensionDepsSet.contains(quarkusQualifier(dependency))
       )
     }
 
@@ -285,7 +362,7 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
     val quarkusCompileDeps =
       compileDeps.detailedArtifacts0.filterNot {
         da =>
-          val q = qualifier(da._1)
+          val q = quarkusQualifier(da._1)
           runtimeDepSet.contains(q) || deploymentDepsSet.contains(q) || extensionDepsSet.contains(q)
       }.map(artifact =>
         toQuarkusDependency(

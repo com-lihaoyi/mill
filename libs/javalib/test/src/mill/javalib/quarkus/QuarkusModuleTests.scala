@@ -24,6 +24,21 @@ object QuarkusModuleTests extends TestSuite {
       )
     }
 
+    object springWeb extends QuarkusModule, MavenModule {
+      def quarkusPlatformVersion = "3.31.3"
+
+      def artifactGroupId = "com.lihaoyi.test"
+      def artifactId = "quarkus-spring-web-test"
+      def artifactVersion = "0.0.1"
+
+      // quarkus-spring-web conditionally depends on quarkus-spring-web-rest (condition:
+      // quarkus-rest-jackson) and quarkus-spring-web-resteasy (condition: quarkus-resteasy-jackson)
+      def mvnDeps = Seq(
+        mvn"io.quarkus:quarkus-spring-web",
+        mvn"io.quarkus:quarkus-rest-jackson"
+      )
+    }
+
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -83,6 +98,27 @@ object QuarkusModuleTests extends TestSuite {
           ordinaryJar.artifactType == "jar",
           ordinaryJar.classifier.isEmpty,
           bundlePackagedJar.artifactType == "jar"
+        )
+      }
+    }
+
+    test("conditionalDependencies") {
+      UnitTester(TestCase, resourcePath).scoped { eval =>
+        val conditional = eval(TestCase.springWeb.quarkusConditionalMvnDeps).runtimeChecked.fold(
+          _.throwException,
+          identity
+        ).value
+        val dependencies = eval(TestCase.springWeb.quarkusDependencies).runtimeChecked.fold(
+          _.throwException,
+          identity
+        ).value
+        val artifactIds = dependencies.filter(_.groupId == "io.quarkus").map(_.artifactId).toSet
+
+        assert(
+          conditional.map(_.name) == Seq("quarkus-spring-web-rest"),
+          artifactIds.contains("quarkus-spring-web-rest"),
+          artifactIds.contains("quarkus-spring-web-rest-deployment"),
+          !artifactIds.contains("quarkus-spring-web-resteasy")
         )
       }
     }
