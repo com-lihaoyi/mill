@@ -352,7 +352,7 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
     )
 
     val compileDeps =
-      resolveArtifacts(Seq(mill.javalib.BoundDep(depCompile, force = false)))
+      resolveArtifacts(Seq(BoundDep(depCompile, force = false)))
 
     val quarkusCompileDeps =
       compileDeps.detailedArtifacts0.filterNot {
@@ -368,7 +368,7 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
         )
       )
 
-    quarkusRuntimeDeps ++ quarkusCompileDeps ++ quarkusDeploymentDeps
+    (quarkusRuntimeDeps ++ quarkusCompileDeps ++ quarkusDeploymentDeps).distinct
   }
 
   /**
@@ -715,7 +715,7 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
     }
 
     override def forkArgs: T[Seq[String]] = Task {
-      Seq(
+      super.forkArgs() ++ Seq(
         s"-Dquarkus-internal-test.serialized-app-model.path=${quarkusSerializedAppModel().path}",
         // Configure Log Manager and add the required opens/exports
         // See https://github.com/quarkusio/quarkus/blob/main/devtools/gradle/gradle-application-plugin/src/test/java/io/quarkus/gradle/tasks/JvmArgsConfigTest.java
