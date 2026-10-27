@@ -108,7 +108,7 @@ bar.run
 
 > ./mill bar.__.test              # Runs `test` for all transitive sub-modules of `foo`
 
-> ./mill {foo,bar}.compile        # Runs `compile` for `foo` and `bar`
+> ./mill "{foo,bar}.compile"      # Runs `compile` for `foo` and `bar`
 
 > ./mill __.compile + bar.__.test # Runs all `compile` tasks and all tests under `foo`.
 */

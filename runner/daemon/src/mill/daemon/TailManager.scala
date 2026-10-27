@@ -37,6 +37,9 @@ class TailManager(daemonDir: os.Path) extends AutoCloseable {
     tailerErr = newErr
     try t
     finally {
+      // Flush before handing back to the daemon's own streams
+      stdoutTailer.flush()
+      stderrTailer.flush()
       tailerOut = System.out
       tailerErr = System.err
     }

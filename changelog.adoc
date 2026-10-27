@@ -15,6 +15,50 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#1.3.1]
+=== 1.3.1
+:version: 1.3.1
+:milestone-name: 1.3.1
+:milestone: 155
+:prev-version: 1.3.0
+_2026-10-19_
+
+__Changes since Mill {prev-version}:__
+
+**Features and Improvements**
+
+* RunModule: retrieve `PATH` env variable in an input task ({link-pr}/7779[7779])
+* Add `-sourceroot` to `ScalaModule.mandatoryScalacOptions` ({link-pr}/7781[7781])
+* ScoverageModule: re-use the `bomMvnDeps` from the outer module ({link-pr}/7777[7777])
+* GenIdea: Use unique module names for scripts with the same file name ({link-pr}/7787[7787])
+* Track compiler argument changes in Kotlin incremental compilation (Kotlin 2.4+) ({link-pr}/7789[7789])
+* Fix Scala.js test linking on Scala 3.8+ (Scala 2.13 stdlib IR shadowed the Scala 3 one) ({link-pr}/7786[7786])
+* ScalaJSModule: configurable Scala.js organization (scalaJSOrganization) and ModuleKind.WasmComponent passthrough ({link-pr}/7783[7783])
+* Introduce `AppendableFromYaml` to make `!append` more flexible ({link-pr}/7772[7772])
+* Report the correct Java version in BSP targets ({link-pr}/7809[7809])
+* Use coursier `ignoreOptionalFromDepMgmt` instead of fetcher workaround ({link-pr}/7810[7810])
+* `mill init`(android): support declarative builds ({link-pr}/7653[7653])
+* Report an error when arguments are given to a task that is not a command ({link-pr}/7808[7808])
+
+**Internal changes and dependency updates**
+
+* Rebootstrap on Mill 1.3.0 ({link-pr}/7769[7769])
+* Migrate deprecated Coursier API ({link-pr}/7674[7674])
+* Update asm to 9.11 ({link-pr}/7766[7766])
+* Update coursier-versions to 0.6.1 ({link-pr}/7778[7778])
+* Update classgraph to 4.8.198 ({link-pr}/7774[7774])
+* CI: Bump actions/upload-artifact from 7.0.1 to 7.0.2 ({link-pr}/7793[7793])
+* Update classgraph to 4.8.199 ({link-pr}/7791[7791])
+* Mark some deps as scala-steward:off
+* Fix Contrib Owasp Dependency Check Tests ({link-pr}/7796[7796])
+* Fix Scala compiler bridge release options ({link-pr}/7780[7780])
+* Color ExampleTester failure message ({link-pr}/7800[7800])
+* Fix tests, update test literals
+* Test YAML `!append` tag ({link-pr}/7795[7795])
+* Update asm to 9.11.1 ({link-pr}/7807[7807])
+* Update scalacheck to 1.20.0 ({link-pr}/7740[7740])
+
+
 [#1.3.0]
 === 1.3.0
 :version: 1.3.0

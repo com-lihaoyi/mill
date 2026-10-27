@@ -12,12 +12,10 @@ import scala.jdk.CollectionConverters._
 
 object MillProcessLauncher {
 
-  private def outDir(outMode: OutFolderMode, workDir: os.Path, env: Map[String, String]): String =
-    OutputDirectoryLayout.outDir(outMode, workDir, env)
-
   def launchMillNoDaemon(
       args: Seq[String],
       outMode: OutFolderMode,
+      outDir: os.Path,
       runnerClasspath: Seq[os.Path],
       mainClass: String,
       useFileLocks: Boolean,
@@ -27,8 +25,7 @@ object MillProcessLauncher {
       streamsOpt: Option[mill.api.daemon.SystemStreams] = None
   ): Int = {
     val sig = f"${UUID.randomUUID().hashCode}%08x"
-    val processDir = os.Path(outDir(outMode, workDir, effectiveEnv), workDir) /
-      OutFiles.OutFiles.millNoDaemon / sig
+    val processDir = outDir / OutFiles.OutFiles.millNoDaemon / sig
 
     prepareMillRunFolder(processDir)
 
@@ -36,7 +33,13 @@ object MillProcessLauncher {
 
     val cmd = millLaunchJvmCommand(runnerClasspath, effectiveEnv, workDir, millRepositories) ++
       userPropsSeq ++
-      Seq(mainClass, processDir.toString, outMode.asString, useFileLocks.toString) ++
+      Seq(
+        mainClass,
+        processDir.toString,
+        outMode.asString,
+        outDir.toString,
+        useFileLocks.toString
+      ) ++
       loadMillConfig(ConfigConstants.millOpts, workDir) ++
       args
 
@@ -84,6 +87,7 @@ object MillProcessLauncher {
   def launchMillDaemon(
       daemonDir: os.Path,
       outMode: OutFolderMode,
+      outDir: os.Path,
       runnerClasspath: Seq[os.Path],
       useFileLocks: Boolean,
       workDir: os.Path,
@@ -91,7 +95,13 @@ object MillProcessLauncher {
       millRepositories: Seq[String]
   ): os.SubProcess = {
     val cmd = millLaunchJvmCommand(runnerClasspath, effectiveEnv, workDir, millRepositories) ++
-      Seq("mill.daemon.MillDaemonMain", daemonDir.toString, outMode.asString, useFileLocks.toString)
+      Seq(
+        "mill.daemon.MillDaemonMain",
+        daemonDir.toString,
+        outMode.asString,
+        outDir.toString,
+        useFileLocks.toString
+      )
 
     configureRunMillProcess(
       cmd,
