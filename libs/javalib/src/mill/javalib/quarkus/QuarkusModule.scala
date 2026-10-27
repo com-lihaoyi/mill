@@ -165,13 +165,8 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
   }
 
   /**
-   * Conditional extension dependencies enabled for this module. Extensions list them under
-   * `conditional-dependencies`, and each one is enabled once every artifact in its own
-   * `dependency-condition` is present, which can in turn enable further ones.
-   * Mirrors Quarkus's Gradle `ConditionalDependenciesEnabler`; dev-mode only conditional
-   * dependencies are skipped.
-   *
-   * For more info see [[https://quarkus.io/guides/conditional-extension-dependencies]]
+   * Conditional extension dependencies whose `dependency-condition` is met, see
+   * [[https://quarkus.io/guides/conditional-extension-dependencies]]
    */
   def quarkusConditionalMvnDeps: T[Seq[Dep]] = Task {
     def resolve(deps: Seq[BoundDep]): Seq[(String, File)] =
@@ -504,7 +499,19 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
     ApplicationModelWorker.LaunchMode.Development
   }
 
+  /** Names of the Quarkus code generator input directories. */
+  def quarkusCodeGenInputs: Seq[String] = Seq("proto", "avro", "openapi", "asyncapi")
+
+  /** The [[quarkusCodeGenInputs]] directories next to each source folder, e.g. `src/main/proto`. */
+  def quarkusCodeGenSources: T[Seq[PathRef]] = Task.Sources(
+    (for {
+      folder <- sourcesFolders
+      input <- quarkusCodeGenInputs
+    } yield folder / os.up / input)*
+  )
+
   def quarkusCodeGen: T[PathRef] = Task {
+    quarkusCodeGenSources() // depend on codegen sources
     os.makeDir.all(Task.dest / "build")
     os.makeDir.all(Task.dest / "generated")
     val out = quarkusApplicationModelWorker().quarkusCodeGen(
