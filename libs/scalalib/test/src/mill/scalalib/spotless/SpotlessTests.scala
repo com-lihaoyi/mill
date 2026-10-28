@@ -183,7 +183,7 @@ object SpotlessTests extends TestSuite {
           log.contains("formatted 1 files") // content is clean for RENAME/COPY
         )
 
-        assert(legacyRef0.validate())
+        assert(legacyRef0.validateSigs())
       }
     }
 
