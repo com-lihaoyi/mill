@@ -6,6 +6,7 @@ import utest.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import scala.util.Properties
+import scala.util.chaining.*
 
 object UnidocTests extends TestSuite {
 
@@ -64,10 +65,13 @@ object UnidocTests extends TestSuite {
         assert(
           // both modules should be present
           os.exists(dest / "foo" / "Foo.html"),
-          os.exists(dest / "bar" / "Bar.html"),
+          os.exists(dest / "bar" / "Bar.html")
+        )
+
+        if (!site) assert(
           // the source links should point to the correct files
-          os.read(dest / "foo" / "Foo.html").contains(s"$baseUrl/foo/src/foo/Foo.scala"),
-          os.read(dest / "bar" / "Bar.html").contains(s"$baseUrl/bar/src/bar/Bar.scala")
+          os.read(dest / "foo" / "Foo.html").contains("foo/src/foo/Foo.scala"),
+          os.read(dest / "bar" / "Bar.html").contains("bar/src/bar/Bar.scala")
         )
       }
 

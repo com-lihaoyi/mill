@@ -1,0 +1,27 @@
+extends: mill.androidlib.AndroidAppKotlinModule
+kotlinVersion: 2.2.10
+androidApplicationNamespace: com.helloworld.app
+androidApplicationId: com.helloworld.app
+androidCompileSdk: 35
+androidMinSdk: 19
+androidTargetSdk: 35
+androidVersionCode: 1
+androidVersionName: 1.0
+androidSdkModule: androidSdkModule0
+mvnDeps:
+- org.jetbrains.kotlin:kotlin-stdlib:2.2.10
+
+object androidTest:
+  extends: AndroidAppKotlinInstrumentedTests
+  mvnDeps:
+  - androidx.test.ext:junit:1.2.1
+  - androidx.test:runner:1.6.2
+  - androidx.test.espresso:espresso-core:3.5.1
+  - junit:junit:4.13.2
+
+object test:
+  extends: [AndroidAppKotlinTests, TestModule.Junit4]
+  mvnDeps:
+  - junit:junit:4.13.2
+  testParallelism: false
+  testSandboxWorkingDir: false

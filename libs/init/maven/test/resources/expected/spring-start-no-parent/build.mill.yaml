@@ -4,9 +4,9 @@ extends: [spring.boot.SpringBootModule, MavenModule, PublishModule]
 springBootPlatformVersion: 3.2.4
 mvnDeps:
 - org.springframework.boot:spring-boot-starter
-- commons-io:commons-io:2.11.0
+- commons-io:commons-io:2.22.0
 depManagement:
-- commons-io:commons-io:2.11.0
+- commons-io:commons-io:2.22.0
 artifactName: demo
 pomSettings:
   organization: com.example

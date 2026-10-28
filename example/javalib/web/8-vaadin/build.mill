@@ -61,7 +61,7 @@
 > ./mill clean prod.runBackground
 
 > ./mill show prod.repackagedJar
-...out/prod/repackagedJar.dest/out.jar...
+...$MILL_OUT/prod/repackagedJar.dest/out.jar...
 
 > java -jar out/prod/repackagedJar.dest/out.jar > prod.log 2>&1 & echo $! > prod.pid # mac/linux
 

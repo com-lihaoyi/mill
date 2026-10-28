@@ -6,7 +6,7 @@
 
 > ./mill init --mill-jvm-id 21 # Repo needs Java >=21 to build and test
 
-> ./mill {acyclic-visitor,service-to-worker,update-method}.compile
+> ./mill "{acyclic-visitor,service-to-worker,update-method}.compile"
 
 > ./mill acyclic-visitor.test # run a subproject's tests
 ...
@@ -17,6 +17,6 @@ Test com.iluwatar.acyclicvisitor.ZoomTest finished, took ...
 
 > ./mill __.compile # scheduled compile all subprojects
 
-> ./mill {singleton,builder,decorator,proxy,strategy,observer,producer-consumer}.__.test # scheduled run some subprojects' tests
+> ./mill "{singleton,builder,decorator,proxy,strategy,observer,producer-consumer}.__.test" # scheduled run some subprojects' tests
 
 */

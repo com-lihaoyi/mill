@@ -15,7 +15,7 @@ import mill.javalib.api.*
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "3.9.0"
+  val scalaVersion = "3.9.0" // scala-steward:off
 
   val scalaVersionJava11 = "3.7.4"
   val scala2Version = "2.13.18"
@@ -36,7 +36,7 @@ object Deps {
       mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvExoegoJsdomNodejs =
       mvn"net.exoego::scalajs-env-jsdom-nodejs:2.1.0".withDottyCompat(scalaVersion)
-    val scalajsEnvNodejs = mvn"org.scala-js::scalajs-env-nodejs:1.5.0".withDottyCompat(scalaVersion)
+    val scalajsEnvNodejs = mvn"org.scala-js::scalajs-env-nodejs:1.6.0".withDottyCompat(scalaVersion)
     val scalajsEnvPhantomjs =
       mvn"org.scala-js::scalajs-env-phantomjs:1.0.0".withDottyCompat(scalaVersion)
     val scalajsEnvSelenium =
@@ -97,7 +97,7 @@ object Deps {
 
   val acyclic = mvn"com.lihaoyi:::acyclic:0.3.21"
   val ammoniteVersion = "3.0.4"
-  val asmVersion = "9.10.1"
+  val asmVersion = "9.11.1"
   val asmAnalysis = mvn"org.ow2.asm:asm-analysis:${asmVersion}"
   val asmTree = mvn"org.ow2.asm:asm-tree:${asmVersion}"
 
@@ -111,7 +111,7 @@ object Deps {
   val bouncyCastleProv = mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}"
   val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
 
-  val classgraph = mvn"io.github.classgraph:classgraph:4.8.197"
+  val classgraph = mvn"io.github.classgraph:classgraph:4.8.199"
   val coursierVersion = "2.1.26"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
@@ -124,7 +124,7 @@ object Deps {
     mvn"io.get-coursier:coursier-paths:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierUtil =
     mvn"io.get-coursier::coursier-util:$coursierVersion".withDottyCompat(scalaVersion)
-  val coursierVersions = mvn"io.get-coursier::versions:0.5.3".withDottyCompat(scalaVersion)
+  val coursierVersions = mvn"io.get-coursier::versions:0.6.1".withDottyCompat(scalaVersion)
   val coursierInterface = mvn"io.get-coursier:interface:1.0.30"
   val coursierJvm =
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
@@ -135,7 +135,7 @@ object Deps {
   val flywayCore = mvn"org.flywaydb:flyway-core:11.20.3"
   // compile-time only: at runtime the Vaadin plugin uses the Flow version of the user's application
   val vaadinFlowPluginBase = mvn"com.vaadin:flow-plugin-base:25.2.0"
-  val jibCore = mvn"com.google.cloud.tools:jib-core:0.27.2"
+  val jibCore = mvn"com.google.cloud.tools:jib-core:0.27.3"
   val graphvizJava = Seq(
     mvn"guru.nidi:graphviz-java-min-deps:0.18.1",
     mvn"org.webjars.npm:viz.js-graphviz-java:2.1.3",
@@ -165,7 +165,7 @@ object Deps {
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.22.0"
   val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.26.1"
-  val osLib = mvn"com.lihaoyi::os-lib:0.11.8"
+  val osLib = mvn"com.lihaoyi::os-lib:0.11.10"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:${osLib.version}"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.8"
@@ -182,9 +182,9 @@ object Deps {
     mvn"org.graalvm.buildtools:graalvm-reachability-metadata:0.11.3"
   val openJson = mvn"com.github.openjson:openjson:1.0.13"
 
-  val testng_api = mvn"org.testng:testng:7.5.1"
+  val testng_api = mvn"org.testng:testng:7.5.1" // scala-steward:off
   val testng_runtime = mvn"org.testng:testng:7.12.0"
-  val sbtTestInterface_api = mvn"org.scala-sbt:test-interface:1.0"
+  val sbtTestInterface_api = mvn"org.scala-sbt:test-interface:1.0" // scala-steward:off
   def scalaCompiler(scalaVersion: String) = {
     if (JvmWorkerUtil.isScala3(scalaVersion)) mvn"org.scala-lang:scala3-compiler_3:${scalaVersion}"
     else mvn"org.scala-lang:scala-compiler:${scalaVersion}"
@@ -215,17 +215,19 @@ object Deps {
     mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala_runtime.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
 
-  val springBootTools_api = mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0"
+  val springBootTools_api =
+    mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0" // scala-steward:off
   val springBootTools_runtime = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.13"
-  val quarkusAppModel_api = mvn"io.quarkus:quarkus-bootstrap-app-model:3.31.4"
-  val quarkusBootstrapCore_api = mvn"io.quarkus:quarkus-bootstrap-core:3.31.4"
-  val quarkusCoreDeployment_api = mvn"io.quarkus:quarkus-core-deployment:3.31.4"
+  val quarkusAppModel_api = mvn"io.quarkus:quarkus-bootstrap-app-model:3.31.4" // scala-steward:off
+  val quarkusBootstrapCore_api = mvn"io.quarkus:quarkus-bootstrap-core:3.31.4" // scala-steward:off
+  val quarkusCoreDeployment_api =
+    mvn"io.quarkus:quarkus-core-deployment:3.31.4" // scala-steward:off
   val upickle = mvn"com.lihaoyi::upickle:4.4.3"
   val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:${upickle.version}"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
   val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
-  val zinc = mvn"org.scala-sbt::zinc:2.0.4"
+  val zinc = mvn"org.scala-sbt::zinc:2.0.5"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
   // https://github.com/google/gson/releases/tag/gson-parent-2.13.2
@@ -234,20 +236,20 @@ object Deps {
   val javaparser = mvn"com.github.javaparser:javaparser-core:3.28.2"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.18.1"
   val requests = mvn"com.lihaoyi::requests:0.9.3"
-  val logback = mvn"ch.qos.logback:logback-classic:1.6.5"
+  val logback = mvn"ch.qos.logback:logback-classic:1.6.6"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
-  val kotlinBuildToolsApi23Version_api = "2.3.0"
+  val kotlinBuildToolsApi23Version_api = "2.3.0" // scala-steward:off
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
-  val kotlin24Compiler_api = mvn"org.jetbrains.kotlin:kotlin-compiler:2.4.0"
+  val kotlin24Compiler_api = mvn"org.jetbrains.kotlin:kotlin-compiler:2.4.0" // scala-steward:off
   val kotlinBuildTools23Api_api =
     mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApi23Version_api"
   // The 2.4.0 Build Tools API dropped the legacy operation factories in favour of builders; the
   // `worker-btapi-2-4` module compiles the dedicated Kotlin 2.4+ backend against this generation.
-  val kotlinBuildToolsApi24Version_api = "2.4.0"
+  val kotlinBuildToolsApi24Version_api = "2.4.0" // scala-steward:off
   val kotlinBuildTools24Api_api =
-    mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApi24Version_api"
+    mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinBuildToolsApi24Version_api" // scala-steward:off
   val kotlinBuildToolsImpl = mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kotlinVersion"
   val kotlinStdlib = mvn"org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
   val groovyVersion_lowerBound = "4.0.28"
@@ -272,17 +274,19 @@ object Deps {
       mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   }
 
-  val coursierJvmIndexVersion = "0.0.4-162-4be9be"
-  val gradleApi_api = mvn"dev.gradleplugins:gradle-api:8.11.1"
+  // check with
+  //   cs complete-dep io.get-coursier.jvm.indices:index-linux-amd64: | sort -V
+  val coursierJvmIndexVersion = "0.0.5"
+  val gradleApi_api = mvn"dev.gradleplugins:gradle-api:8.11.1" // scala-steward:off
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
-  val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:8.13.0"
+  val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:9.5.0"
   val androidDataBindingCompilerCommon =
-    mvn"androidx.databinding:databinding-compiler-common:8.13.0"
+    mvn"androidx.databinding:databinding-compiler-common:9.5.0"
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
-  val sbt_api = mvn"org.scala-sbt:sbt:1.10.10"
-  val mimaCore_api = mvn"com.typesafe::mima-core:1.2.1"
+  val sbt_api = mvn"org.scala-sbt:sbt:1.10.10" // scala-steward:off
+  val mimaCore_api = mvn"com.typesafe::mima-core:1.2.1" // scala-steward:off
   val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.2"
   val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.3.1"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
@@ -291,7 +295,7 @@ object Deps {
 
   object RuntimeDeps {
     val dokkaVersion_runtime = "2.2.0"
-    val koverVersion_runtime = "0.8.3"
+    val koverVersion_runtime = "0.9.11"
 
     val detektCli_runtime = mvn"io.gitlab.arturbosch.detekt:detekt-cli:1.23.8"
     val dokkaAnalysisDescriptors_runtime =
@@ -310,7 +314,7 @@ object Deps {
     val ktfmt_runtime = mvn"com.facebook:ktfmt:0.64"
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
     val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:13.0.0"
-    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.102.0"
+    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.103.0"
     val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.24.0"
     val proguard_runtime = mvn"com.guardsquare:proguard-base:7.10.0"
     val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.1"
@@ -348,7 +352,7 @@ object Deps {
     mvn"org.apache.ant:ant:1.10.17",
     Deps.commonsIo,
     Deps.gson,
-    mvn"com.google.protobuf:protobuf-java:4.33.5",
+    mvn"com.google.protobuf:protobuf-java:4.33.6",
     mvn"com.google.guava:guava:33.7.2-jre",
     mvn"org.yaml:snakeyaml:2.7",
     mvn"org.apache.commons:commons-compress:1.28.0"
@@ -357,7 +361,7 @@ object Deps {
   /** Used in tests. */
   object TestDeps {
     // tests framework (test)
-    val scalaCheck = mvn"org.scalacheck::scalacheck:1.19.0"
+    val scalaCheck = mvn"org.scalacheck::scalacheck:1.20.0"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.20"
     val utest = mvn"com.lihaoyi::utest:0.10.0-RC1"
     val zioTest = mvn"dev.zio::zio-test:2.1.26"
