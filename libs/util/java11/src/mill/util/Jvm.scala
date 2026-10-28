@@ -870,12 +870,27 @@ object Jvm {
     JvmIndex.load(
       cache = coursierCache0, // the coursier.cache.Cache instance to use
       repositories = config.repositories, // repositories to use
-      indexChannel = JvmChannel.module(
-        JvmChannel.centralModule(),
-        version = VersionConstraint(jvmIndexVersion)
-      ) // use new indices published to Maven Central
+      indexChannel = jvmIndexChannel(jvmIndexVersion)
     )
   }
+
+  /**
+   * Special JVM index version, that makes Mill load the JVM index from
+   * [[https://github.com/coursier/jvm-index GitHub]] rather than from Maven Central
+   */
+  val gitHubJvmIndexVersion: String = "github"
+
+  /**
+   * The channel to load the JVM index from, for a given JVM index version.
+   *
+   * [[gitHubJvmIndexVersion]] loads the latest JVM index from GitHub, other
+   * values load the JVM index with that version from Maven Central.
+   */
+  def jvmIndexChannel(jvmIndexVersion: String): JvmChannel =
+    if (jvmIndexVersion == gitHubJvmIndexVersion) JvmChannel.gitHub()
+    else
+      // use new indices published to Maven Central
+      JvmChannel.module(JvmChannel.centralModule(), version = VersionConstraint(jvmIndexVersion))
 
   /**
    * Resolve java home using Coursier.
