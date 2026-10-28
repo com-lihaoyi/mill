@@ -16,9 +16,9 @@ object VersionChangeTests extends UtestIntegrationTestSuite {
       val javaVersion2 = eval(("javaVersion"))
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
+        ArraySeq(
           "{",
-          "  \"mill-jvm-version-changed:25.0.3->19.0.2\": {",
+          "  \"mill-jvm-version-changed:25.0.4->19.0.2\": {",
           "    \"javaVersion\": {}",
           "  }",
           "}"
