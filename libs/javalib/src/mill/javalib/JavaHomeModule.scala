@@ -9,7 +9,7 @@ import mill.api.{PathRef, Task}
 // TODO: extend OfflineSupportModule once we can break bin-compat
 trait JavaHomeModule extends CoursierModule {
 
-  @deprecated("Please use `jvmVersion` instead")
+  @deprecated("Please use `jvmVersion` instead", "Mill after 1.1.0-RC3")
   def jvmId: T[String] = ""
   def jvmVersion: T[String] = jvmId()
 
