@@ -18,7 +18,7 @@ import scala.util.hashing.MurmurHash3
  */
 case class PathRef private[mill] (
     path: os.Path,
-    @deprecated("fullSig.isEmpty instead.", "Mill after 1.4.0-M1")
+    @deprecated("fullSig.isEmpty instead.", "Mill after 1.4.0-M0")
     override val quick: Boolean,
     override val quickSig: Int,
     revalidate: PathRef.Revalidate,
@@ -28,7 +28,7 @@ case class PathRef private[mill] (
 
   private[mill] def javaPath = path.toNIO
 
-  @deprecated("Use quickSig or fullSig instead.", "Mill after 1.4.0-M1")
+  @deprecated("Use quickSig or fullSig instead.", "Mill after 1.4.0-M0")
   override def sig: Int = fullSig.getOrElse(quickSig)
 
   /**
@@ -44,12 +44,12 @@ case class PathRef private[mill] (
   def remap: PathRef = new PathRef(path, fullSig.isEmpty, quickSig, revalidate, fullSig)
 
   def recompute(): PathRef = PathRef.apply(path, fullSig.isEmpty, revalidate)
-  @deprecated("Use recompute instead", "Mill after 1.4.0-M1")
+  @deprecated("Use recompute instead", "Mill after 1.4.0-M0")
   def recomputeSig(): Int = {
     val c = PathRef.calc(path, fullSig.isEmpty)
     c.fullSig.getOrElse(c.quickSig)
   }
-  @deprecated("Use validateSigs instead", "Mill after 1.4.0-M1")
+  @deprecated("Use validateSigs instead", "Mill after 1.4.0-M0")
   def validate(): Boolean = validateSigs()
   def validateSigs(): Boolean = {
     val fresh = recompute()
@@ -333,7 +333,7 @@ object PathRef {
     final case class Parsed(
         quick: Boolean,
         revalidate: Revalidate,
-        @deprecated("Use quickSig for access", "Mill after 1.4.0-M1")
+        @deprecated("Use quickSig for access", "Mill after 1.4.0-M0")
         sig: Int, // quickSig !!
         pathString: String,
         @com.lihaoyi.unroll
