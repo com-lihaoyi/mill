@@ -1,9 +1,12 @@
 package mill.util
 
+import coursier.jvm.JvmChannel
+import coursier.version.VersionConstraint
 import mill.util.Jvm
 import utest.{TestSuite, Tests, test}
 
 import java.util.jar.{Attributes, JarFile}
+import scala.concurrent.ExecutionContext
 
 object JvmTests extends TestSuite {
 
@@ -63,6 +66,23 @@ object JvmTests extends TestSuite {
       assert(jar.getManifest().getMainAttributes().containsKey(Attributes.Name.CLASS_PATH))
       assert(jar.getManifest().getMainAttributes().getValue(Attributes.Name.CLASS_PATH) ==
         Seq(dep1, dep2).map(_.toURL.toExternalForm()).mkString(" "))
+    }
+
+    test("jvmIndexChannel") {
+      test("github") {
+        assert(Jvm.jvmIndexChannel(Jvm.gitHubJvmIndexVersion) == JvmChannel.gitHub())
+      }
+      test("central") {
+        val expected =
+          JvmChannel.module(JvmChannel.centralModule(), VersionConstraint("0.0.5"))
+        assert(Jvm.jvmIndexChannel("0.0.5") == expected)
+      }
+    }
+
+    test("gitHubJvmIndex") {
+      val index = Jvm.jvmIndex0(jvmIndexVersion = Jvm.gitHubJvmIndexVersion)
+        .unsafeRun()(using ExecutionContext.global)
+      assert(index.lookup("temurin", "17").exists(_.nonEmpty))
     }
 
   }

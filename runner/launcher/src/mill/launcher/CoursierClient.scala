@@ -2,7 +2,7 @@ package mill.launcher
 
 import coursier.{Artifacts, Dependency, ModuleName, Organization, Resolve, VersionConstraint}
 import coursier.cache.{ArchiveCache, FileCache}
-import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
+import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
 import coursier.util.Task
 import coursier.core.Module
 import mill.constants.BuildInfo
@@ -10,6 +10,7 @@ import upickle.default.*
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import mill.api.JsonFormatters.*
+
 object CoursierClient {
 
   private def cacheDir(outDir: String): os.Path =
@@ -124,8 +125,7 @@ object CoursierClient {
         index = Some(JvmIndex.load(
           cache = coursierCache0,
           repositories = configuredRepos ++ Resolve.defaultRepositories,
-          indexChannel =
-            JvmChannel.module(JvmChannel.centralModule(), version = VersionConstraint(indexVersion))
+          indexChannel = mill.util.Jvm.jvmIndexChannel(indexVersion)
         ))
       )
 

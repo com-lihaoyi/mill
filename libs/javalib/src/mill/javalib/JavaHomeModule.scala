@@ -13,6 +13,13 @@ trait JavaHomeModule extends CoursierModule {
   def jvmId: T[String] = ""
   def jvmVersion: T[String] = jvmId()
 
+  /**
+   * Version of the Coursier JVM index used to resolve [[jvmVersion]].
+   *
+   * Either a version of the JVM index published on Maven Central (such as `0.0.5`
+   * or `latest.release`), or `github` to use the latest JVM index from
+   * https://github.com/coursier/jvm-index directly
+   */
   def jvmIndexVersion: T[String] = mill.javalib.api.Versions.coursierJvmIndexVersion
 
   def useShortJvmPath(jvmVersion: String): Boolean =
