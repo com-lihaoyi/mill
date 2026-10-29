@@ -399,11 +399,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     val compileDestination = os.Path(outputArgs.last)
     if (irClasspath.isEmpty) {
-      Task.log.info(
-        s"Compiling ${allKotlinSourceFiles.size} Kotlin sources to $compileDestination ..."
-      )
+      if (allKotlinSourceFiles.nonEmpty) {
+        Task.log.info(s"Compiling ${allKotlinSourceFiles.size} Kotlin sources")
+      }
     } else {
-      Task.log.info(s"Linking IR to $compileDestination")
+      Task.log.info("Linking IR")
     }
     val workerResult = worker.compile(
       target = KotlinWorkerTarget.Js,
