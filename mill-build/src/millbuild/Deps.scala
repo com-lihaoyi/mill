@@ -227,11 +227,11 @@ object Deps {
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
   val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
-  val zinc = mvn"org.scala-sbt::zinc:2.0.4"
+  val zinc = mvn"org.scala-sbt::zinc:2.0.5"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
   // https://github.com/google/gson/releases/tag/gson-parent-2.13.2
-  val gson = mvn"com.google.code.gson:gson:2.14.0"
+  val gson = mvn"com.google.code.gson:gson:2.15.0"
   val fansi = mvn"com.lihaoyi::fansi:0.5.1"
   val javaparser = mvn"com.github.javaparser:javaparser-core:3.28.2"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.18.1"
@@ -276,13 +276,13 @@ object Deps {
 
   // check with
   //   cs complete-dep io.get-coursier.jvm.indices:index-linux-amd64: | sort -V
-  val coursierJvmIndexVersion = "0.0.4-201-39a6a6"
+  val coursierJvmIndexVersion = "0.0.5"
   val gradleApi_api = mvn"dev.gradleplugins:gradle-api:8.11.1" // scala-steward:off
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
-  val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:8.13.2"
+  val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:9.5.0"
   val androidDataBindingCompilerCommon =
-    mvn"androidx.databinding:databinding-compiler-common:8.13.2"
+    mvn"androidx.databinding:databinding-compiler-common:9.5.0"
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10" // scala-steward:off
@@ -314,7 +314,7 @@ object Deps {
     val ktfmt_runtime = mvn"com.facebook:ktfmt:0.64"
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
     val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:13.0.0"
-    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.102.0"
+    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.103.0"
     val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.24.0"
     val proguard_runtime = mvn"com.guardsquare:proguard-base:7.10.0"
     val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.1"

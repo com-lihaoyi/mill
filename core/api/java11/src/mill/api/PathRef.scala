@@ -6,7 +6,7 @@ import mill.api.daemon.internal.PathRefApi
 import java.nio.file as jnio
 import java.security.{DigestOutputStream, MessageDigest}
 import java.util.concurrent.ConcurrentHashMap
-import scala.annotation.nowarn
+import scala.annotation.{nowarn, unused}
 import scala.language.implicitConversions
 import scala.util.DynamicVariable
 import scala.util.hashing.MurmurHash3
@@ -18,11 +18,18 @@ import scala.util.hashing.MurmurHash3
  */
 case class PathRef private[mill] (
     path: os.Path,
-    quick: Boolean,
-    sig: Int,
-    revalidate: PathRef.Revalidate
+    @deprecated("fullSig.isEmpty instead.", "Mill after 1.4.0-M1")
+    override val quick: Boolean,
+    override val quickSig: Int,
+    revalidate: PathRef.Revalidate,
+    override val fullSig: Option[Int]
 ) extends PathRefApi {
+  require(quick == fullSig.isEmpty)
+
   private[mill] def javaPath = path.toNIO
+
+  @deprecated("Use quickSig or fullSig instead.", "Mill after 1.4.0-M1")
+  override def sig: Int = fullSig.getOrElse(quickSig)
 
   /**
    * The path with common mapped path roots replaced, to make it relocatable.
@@ -34,33 +41,44 @@ case class PathRef private[mill] (
    * Apply the current contextual path mapping to this PathRef.
    * Updates [[mappedPath]] but does not recalculate the [[sig]].
    */
-  def remap: PathRef = PathRef(path, quick, sig, revalidate)
+  def remap: PathRef = new PathRef(path, fullSig.isEmpty, quickSig, revalidate, fullSig)
 
-  def recomputeSig(): Int = PathRef.apply(path, quick).sig
-  def validate(): Boolean = recomputeSig() == sig
+  def recompute(): PathRef = PathRef.apply(path, fullSig.isEmpty, revalidate)
+  @deprecated("Use recompute instead", "Mill after 1.4.0-M1")
+  def recomputeSig(): Int = {
+    val c = PathRef.calc(path, fullSig.isEmpty)
+    c.fullSig.getOrElse(c.quickSig)
+  }
+  @deprecated("Use validateSigs instead", "Mill after 1.4.0-M1")
+  def validate(): Boolean = validateSigs()
+  def validateSigs(): Boolean = {
+    val fresh = recompute()
+    fresh.quickSig == quickSig && fresh.fullSig == fullSig
+  }
 
   /* Hide case class specific copy method. */
   private def copy(
       path: os.Path = path,
       quick: Boolean = quick,
-      sig: Int = sig,
-      revalidate: PathRef.Revalidate
-  ): PathRef = PathRef(path, quick, sig, revalidate)
+      quickSig: Int = quickSig,
+      revalidate: PathRef.Revalidate = revalidate: @nowarn("msg=unused private member"),
+      fullSig: Option[Int] = fullSig
+  ): PathRef = PathRef(path, quick, quickSig, revalidate, fullSig)
 
   def withRevalidate(revalidate: PathRef.Revalidate): PathRef = copy(revalidate = revalidate)
   def withRevalidateOnce: PathRef = copy(revalidate = PathRef.Revalidate.Once)
 
   override def toString: String =
-    PathRef.PathRefFormat.render(quick, revalidate, sig, path.toString())
+    PathRef.PathRefFormat.render(quickSig, revalidate, fullSig, path.toString())
 
   // Instead of using `path` we need to use `mappedPath` to make the hashcode stable as cache key
   override def hashCode(): Int = {
     var h = MurmurHash3.productSeed
-    h = MurmurHash3.mix(h, "PathRef".hashCode)
-    h = MurmurHash3.mix(h, mappedPath.hashCode)
-    h = MurmurHash3.mix(h, quick.##)
-    h = MurmurHash3.mix(h, sig.##)
-    h = MurmurHash3.mix(h, revalidate.##)
+    h = MurmurHash3.mix(h, "PathRef".hashCode())
+    h = MurmurHash3.mix(h, mappedPath.hashCode())
+    h = MurmurHash3.mix(h, quickSig.##)
+    h = MurmurHash3.mix(h, fullSig.hashCode())
+    h = MurmurHash3.mix(h, revalidate.hashCode())
     MurmurHash3.finalizeHash(h, 4)
   }
 
@@ -113,8 +131,22 @@ object PathRef {
     case object Always extends Revalidate
   }
 
-  def apply(path: os.Path, quick: Boolean, sig: Int, revalidate: Revalidate): PathRef =
-    new PathRef(path, quick, sig, revalidate)
+  @deprecated("Use another overload that supports fullSig parameter", "Mill after 1.4.0-M0")
+  def apply(path: os.Path, quick: Boolean, sig: Int, revalidate: Revalidate): PathRef = {
+    // we no longer can support this version, as we don't have a quickSig for a non-quick pathref
+    val sigs = if (!quick) {
+      // FIXME: consider removing the sys-err-out in non-snapshot release
+      System.err.println(
+        "This method is no longer supported for non-quick PathRef's. Recomputing signatures ..."
+      )
+      // need to recompute it
+      val c = calc(path, quick)
+      (quickSig = c.quickSig, fullSig = c.fullSig)
+    } else {
+      (quickSig = sig, fullSig = None)
+    }
+    new PathRef(path, quick, sigs.quickSig, revalidate, sigs.fullSig)
+  }
 
   /**
    * Create a [[PathRef]] by recursively digesting the content of a given `path`.
@@ -129,48 +161,86 @@ object PathRef {
       quick: Boolean = false,
       revalidate: Revalidate = Revalidate.Never
   ): PathRef = {
+    val c = calc(path, quick)
+    PathRef(path, quick, c.quickSig, revalidate, c.fullSig)
+  }
+
+  private def calc(
+      path: os.Path,
+      quick: Boolean
+  ): (
+      count: Int,
+      isDir: Boolean,
+      size: Long,
+      quickSig: Int,
+      fullSig: Option[Int]
+  ) = {
     val basePath = path
+    val isDir = os.isDir(path)
+    val isPosix = path.wrapped.getFileSystem.supportedFileAttributeViews().contains("posix")
 
-    val sig = {
-      val isPosix = path.wrapped.getFileSystem.supportedFileAttributeViews().contains("posix")
-      val digest = MessageDigest.getInstance("MD5")
-      val digestOut = DigestOutputStream(DummyOutputStream, digest)
+    var size = 0L
+    var count = 0
 
-      def updateWithInt(value: Int): Unit = {
-        digest.update((value >>> 24).toByte)
-        digest.update((value >>> 16).toByte)
-        digest.update((value >>> 8).toByte)
-        digest.update(value.toByte)
-      }
+    val (quickSig, fullSig) = {
+
+      val quickDigest = MessageDigest.getInstance("MD5")
+
+      val fullDigest = Option.when(!quick)(MessageDigest.getInstance("MD5"))
+      val fullDigestOut = fullDigest.map(d => DigestOutputStream(DummyOutputStream, d))
 
       if (os.exists(path)) {
         for (
           (path, attrs) <-
-            os.walk.attrs(path, includeTarget = true, followLinks = true).sortBy(_._1.toString)
+            os.walk.attrs(path, includeTarget = true, followLinks = true)
+              .sortBy(_._1.toString)
         ) {
+          // each entry counts
+          count += 1
+
+          // only real files, not symlink or other stuff like sockets
+          if (attrs.isFile) {
+            size += attrs.size
+          }
+
           val sub = path.subRelativeTo(basePath)
-          digest.update(sub.toString().getBytes())
+
+          // Digest sub-path
+          quickDigest.update(sub.toString().getBytes())
+          fullDigest.foreach(_.update(sub.toString().getBytes()))
+
           if (!attrs.isDir) {
             try {
+
+              // Digest file permissions
               if (isPosix) {
-                updateWithInt(os.perms(path, followLinks = false).value)
+                // TODO: Should we only digest the effective permissions, at least in the quick version ?
+                quickDigest.updateWithInt(os.perms(path, followLinks = false).value)
+                fullDigest.foreach(_.updateWithInt(os.perms(path, followLinks = false).value))
               }
-              if (quick) {
-                val value = (attrs.mtime, attrs.size).hashCode()
-                updateWithInt(value)
-              } else if (jnio.Files.isReadable(path.toNIO)) {
-                val is =
-                  try Some(os.read.inputStream(path))
-                  catch {
-                    case _: jnio.FileSystemException =>
-                      // This is known to happen, when we try to digest a socket file.
-                      // We ignore the content of this file for now, as we would do,
-                      // when the file isn't readable.
-                      // See https://github.com/com-lihaoyi/mill/issues/1875
-                      None
-                  }
-                is.foreach(os.Internals.transfer(_, digestOut))
+
+              // Digest the file size
+              val value = attrs.size.hashCode()
+              quickDigest.updateWithInt(value)
+              // fullDigest.foreach(_.updateWithInt(value))
+
+              // Digest the file contents
+              if (!quick && jnio.Files.isReadable(path.toNIO)) {
+                fullDigestOut.foreach { d =>
+                  val is =
+                    try Some(os.read.inputStream(path))
+                    catch {
+                      case _: jnio.FileSystemException =>
+                        // This is known to happen, when we try to digest a socket file.
+                        // We ignore the content of this file for now, as we would do,
+                        // when the file isn't readable.
+                        // See https://github.com/com-lihaoyi/mill/issues/1875
+                        None
+                    }
+                  is.foreach(os.Internals.transfer(_, d))
+                }
               }
+
             } catch {
               case _: java.nio.file.NoSuchFileException =>
               // If file was deleted after we listed the folder but before we operate on it,
@@ -184,10 +254,19 @@ object PathRef {
         }
       }
 
-      java.util.Arrays.hashCode(digest.digest())
+      (
+        java.util.Arrays.hashCode(quickDigest.digest()),
+        fullDigest.map(d => java.util.Arrays.hashCode(d.digest()))
+      )
     }
 
-    PathRef(path, quick, sig, revalidate)
+    (
+      count = count,
+      isDir = isDir,
+      size = size,
+      quickSig = quickSig,
+      fullSig = fullSig
+    )
   }
 
   private[mill] def withSerializedPaths[T](block: => T): (T, Seq[PathRef]) = {
@@ -213,9 +292,9 @@ object PathRef {
       p => {
         storeSerializedPaths(p)
         PathRef.PathRefFormat.render(
-          p.quick,
+          p.quickSig,
           p.revalidate,
-          p.sig,
+          p.fullSig,
           MappedRoots.encodeKnownRootsInPath(p.path)
         )
       },
@@ -223,7 +302,13 @@ object PathRef {
         PathRefFormat.parse(s) match {
           case Some(parsed) =>
             val path = os.Path(MappedRoots.decodeKnownRootsInPath(parsed.pathString))
-            val pr = PathRef(path, parsed.quick, parsed.sig, revalidate = parsed.revalidate)
+            val pr = PathRef(
+              path = path,
+              quick = parsed.quick,
+              quickSig = parsed.quickSig,
+              revalidate = parsed.revalidate,
+              fullSig = parsed.fullSig
+            )
             validatedPaths.value.revalidateIfNeededOrThrow(pr)
             storeSerializedPaths(pr)
             pr
@@ -245,7 +330,17 @@ object PathRef {
    * by `PathRefTests.json`.
    */
   private[mill] object PathRefFormat {
-    final case class Parsed(quick: Boolean, revalidate: Revalidate, sig: Int, pathString: String)
+    final case class Parsed(
+        quick: Boolean,
+        revalidate: Revalidate,
+        @deprecated("Use quickSig for access", "Mill after 1.4.0-M1")
+        sig: Int, // quickSig !!
+        pathString: String,
+        @com.lihaoyi.unroll
+        fullSig: Option[Int] = None
+    ) {
+      def quickSig: Int = sig
+    }
 
     private def quickToken(quick: Boolean): String = if (quick) "qref" else "ref"
 
@@ -267,33 +362,61 @@ object PathRef {
     // round-trip handling of negative numbers work =(
     private def parseSig(hex: String): Int = java.lang.Long.parseLong(hex, 16).toInt
 
-    def render(quick: Boolean, revalidate: Revalidate, sig: Int, pathString: String): String =
-      s"${quickToken(quick)}:${revalidateToken(revalidate)}:${renderSig(sig)}:$pathString"
+    def render(
+        quickSig: Int,
+        revalidate: Revalidate,
+        fullSig: Option[Int],
+        pathString: String
+    ): String = {
+      s"${quickToken(fullSig.isEmpty)}:${revalidateToken(revalidate)}:${renderSig(quickSig)}:${fullSig.map(renderSig).getOrElse("")}:$pathString"
+    }
 
     def parse(s: String): Option[Parsed] = {
-      val firstColon = s.indexOf(':')
-      if (firstColon < 0) None
+      val colon1 = s.indexOf(':')
+      if (colon1 < 0) None
       else {
-        val prefix = s.substring(0, firstColon)
+        val prefix = s.substring(0, colon1)
         if (prefix != "ref" && prefix != "qref") None
         else {
-          val secondColon = s.indexOf(':', firstColon + 1)
-          val thirdColon = if (secondColon < 0) -1 else s.indexOf(':', secondColon + 1)
-          if (secondColon < 0 || thirdColon < 0) None
-          else Some(Parsed(
-            quick = prefix == "qref",
-            revalidate = parseRevalidate(s.substring(firstColon + 1, secondColon)),
-            sig = parseSig(s.substring(secondColon + 1, thirdColon)),
-            pathString = s.substring(thirdColon + 1)
-          ))
+          val colon2 = s.indexOf(':', colon1 + 1)
+          val colon3 = if (colon2 < 0) -1 else s.indexOf(':', colon2 + 1)
+          val colon4 = if (colon3 < 0) -1 else s.indexOf(':', colon3 + 1)
+          if (colon2 < 0 || colon3 < 0 || colon4 < 0) None
+          else {
+            val quickSig = parseSig(s.substring(colon2 + 1, colon3))
+            val fullSig =
+              Option(s.substring(colon3 + 1, colon4)).filter(_.nonEmpty).map(parseSig(_))
+            Some(Parsed(
+              quick = fullSig.isEmpty,
+              revalidate = parseRevalidate(s.substring(colon1 + 1, colon2)),
+              sig = quickSig,
+              pathString = s.substring(colon4 + 1),
+              fullSig = fullSig
+            ))
+          }
         }
       }
     }
   }
+
   private[mill] val currentOverrideModulePath = DynamicVariable[os.Path](null)
 
-  @nowarn("msg=unused")
+  @unused
   private def unapply(pathRef: PathRef): Option[(os.Path, Boolean, Int, Revalidate)] = {
-    Some((pathRef.path, pathRef.quick, pathRef.sig, pathRef.revalidate))
+    Some((
+      pathRef.path,
+      pathRef.quick,
+      pathRef.sig,
+      pathRef.revalidate
+    ))
+  }
+
+  extension (digest: MessageDigest) {
+    private def updateWithInt(value: Int): Unit = {
+      digest.update((value >>> 24).toByte)
+      digest.update((value >>> 16).toByte)
+      digest.update((value >>> 8).toByte)
+      digest.update(value.toByte)
+    }
   }
 }
