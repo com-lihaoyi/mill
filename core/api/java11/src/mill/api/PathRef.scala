@@ -6,7 +6,7 @@ import mill.api.daemon.internal.PathRefApi
 import java.nio.file as jnio
 import java.security.{DigestOutputStream, MessageDigest}
 import java.util.concurrent.ConcurrentHashMap
-import scala.annotation.nowarn
+import scala.annotation.{nowarn, unused}
 import scala.language.implicitConversions
 import scala.util.DynamicVariable
 import scala.util.hashing.MurmurHash3
@@ -61,7 +61,7 @@ case class PathRef private[mill] (
       path: os.Path = path,
       quick: Boolean = quick,
       quickSig: Int = quickSig,
-      revalidate: PathRef.Revalidate = revalidate,
+      revalidate: PathRef.Revalidate = revalidate: @nowarn("msg=unused private member"),
       fullSig: Option[Int] = fullSig
   ): PathRef = PathRef(path, quick, quickSig, revalidate, fullSig)
 
@@ -401,7 +401,7 @@ object PathRef {
 
   private[mill] val currentOverrideModulePath = DynamicVariable[os.Path](null)
 
-  @nowarn("msg=unused")
+  @unused
   private def unapply(pathRef: PathRef): Option[(os.Path, Boolean, Int, Revalidate)] = {
     Some((
       pathRef.path,
