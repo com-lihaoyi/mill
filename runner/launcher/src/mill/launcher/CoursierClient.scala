@@ -10,6 +10,7 @@ import upickle.default.*
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import mill.api.JsonFormatters.*
+
 object CoursierClient {
 
   private def cacheDir(outDir: String): os.Path =

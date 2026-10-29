@@ -878,7 +878,7 @@ object Jvm {
    * Special JVM index version, that makes Mill load the JVM index from
    * [[https://github.com/coursier/jvm-index GitHub]] rather than from Maven Central
    */
-  private val gitHubJvmIndexVersion: String = "github"
+  private[mill] val gitHubJvmIndexVersion: String = "github"
 
   /**
    * The channel to load the JVM index from, for a given JVM index version.
@@ -886,7 +886,7 @@ object Jvm {
    * [[gitHubJvmIndexVersion]] loads the latest JVM index from GitHub, other
    * values load the JVM index with that version from Maven Central.
    */
-  private def jvmIndexChannel(jvmIndexVersion: String): JvmChannel =
+  private[mill] def jvmIndexChannel(jvmIndexVersion: String): JvmChannel =
     if (jvmIndexVersion == gitHubJvmIndexVersion) JvmChannel.gitHub()
     else
       // use new indices published to Maven Central
