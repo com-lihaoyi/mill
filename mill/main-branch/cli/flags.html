@@ -811,7 +811,7 @@ to the right place.</p>
 <div class="listingblock">
 <div class="title">Output of <code>mill --help</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">Mill Build Tool, version 1.1.6-96-4e2a50-DIRTY8beaeb86
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">Mill Build Tool, version 1.4.0-M0-20-3edc3b-DIRTY3b384176
 Usage: mill [options] task [task-options] [+ task ...]
 
 Task cheat sheet:
@@ -857,7 +857,9 @@ Options:
                          set
   --help                 Print this help message and exit.
   --help-advanced        Print a internal or advanced command flags not intended for common usage
-  --import &lt;str&gt;         Additional ivy dependencies to load into mill, e.g. plugins.
+  --import &lt;str&gt;         Additional Maven runtime dependencies to load into Mill, e.g. plugins.
+                         Format is the same as 'mvnDeps' ('group:artifact:version'). A 'mvn:' or
+                         'ivy:' prefix is also accepted.
   -j --jobs &lt;str&gt;        The number of parallel threads. It can be an integer e.g. `5` meaning 5
                          threads, an expression e.g. `0.5C` meaning half as many threads as
                          available cores, or `C-2` meaning 2 threads less than the number of cores.
@@ -878,7 +880,7 @@ See documentation at https://mill-build.org for more details</code></pre>
 <div class="title">Output of <code>mill --help-advanced</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill --help-advanced
-Mill Build Tool, version 1.1.0-28-6e5003
+Mill Build Tool, version 1.4.0-M0-20-3edc3b-DIRTYf3b74f04
 Usage: mill [options] task [task-options] [+ task ...]
 
 Advanced and internal command-line flags not intended for common usage. Use at your own risk!
