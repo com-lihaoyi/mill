@@ -65,8 +65,16 @@ object IntegrationTester {
     override def productIterator = productElements0.iterator
 
     def exitCode: Int = result.exitCode
-    private def cleanup(s: String) =
-      fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText.trim()
+    private def cleanup(s: String) = {
+      try {
+        fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText.trim()
+      } catch {
+        case ex: IllegalStateException =>
+          // work around upstream regex parse issue
+          // see https://github.com/com-lihaoyi/mill/issues/7847
+          fansi.Str(s, errorMode = fansi.ErrorMode.Sanitize).plainText.trim()
+      }
+    }
 
     def out = cleanup(result.out.text())
     def err = cleanup(result.err.text())
