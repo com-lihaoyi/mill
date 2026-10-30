@@ -15,6 +15,45 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#1.4.0-M1]
+=== 1.4.0-M1
+:version: 1.4.0-M1
+:milestone-name: 1.4.0-M1
+:milestone: 156
+:prev-version: 1.3.1
+_2026-10-30_
+
+__Changes since Mill {prev-version}:__
+
+**Features and Improvements**
+
+* Dynamically map known root paths in cache files ({link-pr}/7725[7725])
+* New `mill.api.opt` API for configuration data containing paths ({link-pr}/7638[7638])
+* fix(android): make `createAndroidVirtualDevice` depend on `emulatorExe` ({link-pr}/7815[7815])
+* `PathRef`: Drop `mtime` and always compute and keep a `quickSig` ({link-pr}/7837[7837])
+* Support getting coursier's JVM index from GitHub ({link-pr}/7842[7842])
+* GenIdea: Fix meta-build module name in `scala_compiler.xml` ({link-pr}/7848[7848])
+* Doc update for `--import` option ({link-pr}/7849[7849])
+
+**Internal changes and dependency updates**
+
+* Rebootstrap on Mill 1.3.1 ({link-pr}/7811[7811])
+* Add branch overview to readme
+* Don't use assertGoldenLiteral in inappropriate location ({link-pr}/7814[7814])
+* Update TailManager to flush before completion and FileToStreamTailer to flush partial lines ({link-pr}/7822[7822])
+* Update logback-classic to 1.6.6 ({link-pr}/7827[7827])
+* Update mill-jvm-index-version to 0.0.5
+* Update os-lib to 0.11.10 ({link-pr}/7825[7825])
+* Update coursier-jvm-index to 0.0.5 ({link-pr}/7834[7834])
+* Update compiler-interface and zinc to 2.0.5 ({link-pr}/7841[7841])
+* Update palantir-java-format to 2.103.0 ({link-pr}/7839[7839])
+* Update databinding-compiler to 9.5.0 ({link-pr}/7838[7838])
+* Update gson to 2.15.0 ({link-pr}/7823[7823])
+* Update error_prone_core to 2.51.0 ({link-pr}/7818[7818])
+* Update flyway-core to 11.20.3 ({link-pr}/7712[7712])
+* Review some `@deprecated` annotations ({link-pr}/7845[7845])
+
+
 [#1.3.1]
 === 1.3.1
 :version: 1.3.1
