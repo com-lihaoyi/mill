@@ -3,6 +3,7 @@
 package build
 
 import mill.*
+import mill.api.opt.*
 import mill.javalib.*
 import mill.javalib.micronaut.*
 import mill.javalib.publish.*
@@ -18,7 +19,7 @@ object `package` extends MicronautAotModule, MavenModule, PublishModule {
 
   def bomMvnDeps = Seq(mvn"io.micronaut.platform:micronaut-platform:5.0.2")
 
-  def javacOptions = Seq(
+  def javacOptions = Opts(
     "-Amicronaut.processing.group=example.micronaut",
     "-Amicronaut.processing.module=default"
   )

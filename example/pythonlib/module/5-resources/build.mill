@@ -1,5 +1,7 @@
 package build
+
 import mill.*, pythonlib.*
+import mill.api.opt.*
 
 object foo extends PythonModule {
   def mainScript = Task.Source("src/foo.py")
@@ -12,8 +14,8 @@ object foo extends PythonModule {
 
     def otherFiles = Task.Source("other-files")
 
-    def forkEnv: T[Map[String, String]] =
-      super.forkEnv() ++ Map("OTHER_FILES_DIR" -> otherFiles().path.toString)
+    def forkEnv: T[OptMap] =
+      super.forkEnv() ++ OptMap("OTHER_FILES_DIR" -> otherFiles().path)
   }
 }
 

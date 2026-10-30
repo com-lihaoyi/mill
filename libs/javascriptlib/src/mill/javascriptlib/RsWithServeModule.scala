@@ -2,6 +2,7 @@ package mill.javascriptlib
 
 import mill.*
 import os.*
+import mill.api.opt.*
 
 trait RsWithServeModule extends ReactScriptsModule {
   override def npmDevDeps: T[Seq[String]] = Task {
@@ -12,7 +13,7 @@ trait RsWithServeModule extends ReactScriptsModule {
   def run: T[CommandResult] = Task {
     val compiled = compile().path
     val build = bundle().path
-    val env = forkEnv()
+    val env = forkEnv().toStringMap
     os.call(
       (
         (compiled / "node_modules/serve/bin/serve.js").toString,

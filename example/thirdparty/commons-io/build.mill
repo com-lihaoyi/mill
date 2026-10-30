@@ -4,10 +4,11 @@ package build
 
 import mill.*, javalib.*, publish.*
 import contrib.jmh.JmhModule
+import mill.api.opt.*
 
 object `package` extends PublishModule, MavenModule {
   def jvmVersion = "temurin:11.0.24"
-  def javacOptions = Seq("-encoding", "UTF-8")
+  def javacOptions = Opts("-encoding", "UTF-8")
   def publishVersion = "2.17.0-SNAPSHOT"
 
   def pomSettings = PomSettings(

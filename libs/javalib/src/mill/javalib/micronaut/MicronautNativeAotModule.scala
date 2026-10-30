@@ -3,6 +3,7 @@ package mill.javalib.micronaut
 import mill.api.{PathRef, experimental}
 import mill.javalib.NativeImageModule
 import mill.{T, Task}
+import mill.api.opt.*
 
 /**
  * An extension of [[MicronautAotModule]] that provides
@@ -29,12 +30,14 @@ trait MicronautNativeAotModule extends MicronautAotModule, NativeImageModule {
     super.nativeImageClasspath() ++ micronautAotClasspath()
   }
 
-  override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
+  override def nativeImageOptions: Task.Simple[Opts] = Task {
     val configurationsPath = micronautProcessAOT().path / "classes/META-INF"
-    super.nativeImageOptions() ++ Seq(
+    super.nativeImageOptions() ++ Opts(
       "--no-fallback",
-      "--configurations-path",
-      configurationsPath.toString
+      OptGroup(
+        "--configurations-path",
+        configurationsPath
+      )
     )
   }
 

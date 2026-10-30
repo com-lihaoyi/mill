@@ -12,6 +12,7 @@ import mill.androidlib.databinding.{
   AndroidDataBindingWorkerModule
 }
 import mill.util.Jvm
+import mill.api.opt.*
 
 // TODO expose Compose configuration options
 // https://kotlinlang.org/docs/compose-compiler-options.html possible options
@@ -240,8 +241,8 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     friendlyPathFlag
   }
 
-  override def kotlincOptions: T[Seq[String]] = Task {
-    super.kotlincOptions() ++ kotlincFriendPaths().toSeq
+  override def kotlincOptions: T[Opts] = Task {
+    super.kotlincOptions() ++ Opts(kotlincFriendPaths())
   }
 
   def kspDependencyResolver: Task[CoursierModule.Resolver] = Task.Anon {

@@ -5,6 +5,7 @@ import mill.api.{BuildCtx, Discover, PathRef}
 import mill.javalib.publish.License
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
+import mill.api.opt.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets
@@ -156,10 +157,10 @@ object HelloWorldTests extends TestSuite {
       assert(
         PythonModule.pathEnvironmentValue(Map("Path" -> "windows-path")) == "windows-path",
         PythonModule.uvEnvironment(
-          Map("UV_OFFLINE" -> "default", "DEFAULT" -> "1"),
-          Map("UV_OFFLINE" -> "false", "FORK" -> "1"),
+          OptMap("UV_OFFLINE" -> "default", "DEFAULT" -> "1"),
+          OptMap("UV_OFFLINE" -> "false", "FORK" -> "1"),
           offline = true
-        ) == Map("UV_OFFLINE" -> "1", "DEFAULT" -> "1", "FORK" -> "1")
+        ) == OptMap("UV_OFFLINE" -> "1", "DEFAULT" -> "1", "FORK" -> "1")
       )
     }
 
