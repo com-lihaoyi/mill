@@ -95,7 +95,7 @@ All checks passed!
 ]
 
 > ./mill show bundle
-".../out/bundle.dest/bundle"
+"...$MILL_OUT/bundle.dest/bundle"
 
 > out/bundle.dest/bundle
 Hello from the bare root!

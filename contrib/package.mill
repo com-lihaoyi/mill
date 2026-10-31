@@ -204,7 +204,7 @@ object `package` extends mill.Module {
     override def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq(
       BuildInfo.Value(
         "flowPluginBaseVersion",
-        Deps.vaadinFlowPluginBase.version,
+        Deps.vaadinFlowPluginBase_api.version,
         "Version of flow-plugin-base the worker is compiled against, the oldest supported Flow version"
       ),
       BuildInfo.Value("slf4jSimpleVersion", Deps.RuntimeDeps.slf4jSimple_runtime.version)
@@ -220,7 +220,7 @@ object `package` extends mill.Module {
      */
     object worker extends MillPublishScalaModule {
       def compileModuleDeps = Seq(vaadin.api)
-      def compileMvnDeps = Seq(Deps.vaadinFlowPluginBase)
+      def compileMvnDeps = Seq(Deps.vaadinFlowPluginBase_api)
     }
   }
 

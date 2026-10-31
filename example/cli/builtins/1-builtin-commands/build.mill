@@ -128,12 +128,12 @@ Inputs:
 
 > ./mill show foo.sources
 [
-  ".../foo/src"
+  "...$WORKSPACE/foo/src"
 ]
 
 > ./mill show foo.allSourceFiles
 [
-  ".../foo/src.../Foo..."
+  "...$WORKSPACE/foo/src.../Foo..."
 ]
 
 */
@@ -147,8 +147,8 @@ Inputs:
 
 > ./mill show foo.compile
 {
-  "analysisFile": ".../out/foo/compile.dest/...",
-  "classes": ".../out/foo/compile.dest/classes"
+  "analysisFile": "...$MILL_OUT/foo/compile.dest/...",
+  "classes": "...$MILL_OUT/foo/compile.dest/classes"
 }
 */
 
@@ -165,11 +165,11 @@ Inputs:
 > ./mill show 'foo.{sources,compileClasspath}'
 {
   "foo.sources": [
-    ".../foo/src"
+    "...$WORKSPACE/foo/src"
   ],
   "foo.compileClasspath": [
     ...
-    ".../foo/compile-resources"
+    "...$WORKSPACE/foo/compile-resources"
   ]
 }
 
@@ -185,18 +185,18 @@ Inputs:
 > ./mill showNamed 'foo.sources'
 {
   "foo.sources": [
-    ".../foo/src"
+    "...$WORKSPACE/foo/src"
   ]
 }
 
 > ./mill showNamed 'foo.{sources,compileClasspath}'
 {
   "foo.sources": [
-    ".../foo/src"
+    "...$WORKSPACE/foo/src"
   ],
   "foo.compileClasspath": [
     ...
-    ".../foo/compile-resources"
+    "...$WORKSPACE/foo/compile-resources"
   ]
 }
 
@@ -288,11 +288,11 @@ foo.compileClasspath
 /** Usage
 > ./mill visualize foo._
 [
-  ".../out/visualize.dest/out.dot",
-  ".../out/visualize.dest/out.json",
-  ".../out/visualize.dest/out.png",
-  ".../out/visualize.dest/out.svg",
-  ".../out/visualize.dest/out.txt"
+  "...out/visualize.dest/out.dot",
+  "...out/visualize.dest/out.json",
+  "...out/visualize.dest/out.png",
+  "...out/visualize.dest/out.svg",
+  "...out/visualize.dest/out.txt"
 ]
 */
 //
@@ -343,11 +343,11 @@ graph ["rankdir"="LR"]
 /** Usage
 > ./mill visualize foo.artifactId
 [
-  ".../out/visualize.dest/out.dot",
-  ".../out/visualize.dest/out.json",
-  ".../out/visualize.dest/out.png",
-  ".../out/visualize.dest/out.svg",
-  ".../out/visualize.dest/out.txt"
+  "...out/visualize.dest/out.dot",
+  "...out/visualize.dest/out.json",
+  "...out/visualize.dest/out.png",
+  "...out/visualize.dest/out.svg",
+  "...out/visualize.dest/out.txt"
 ]
 
 > cat out/visualize.dest/out.dot
@@ -356,17 +356,20 @@ graph ["rankdir"="LR"]
 "foo.artifactId" ["style"="solid","shape"="box"]
 }
 */
+//// in visualize and visualizePlan, we don't see $MILL_OUT,
+//// since this is not the task result but the task STDOUT output.
+//// To see the $MILL_OUT here, add a `show`
 //
 // == visualizePlan
 //
 /** Usage
 > ./mill visualizePlan foo.run
 [
-  ".../out/visualizePlan.dest/out.dot",
-  ".../out/visualizePlan.dest/out.json",
-  ".../out/visualizePlan.dest/out.png",
-  ".../out/visualizePlan.dest/out.svg",
-  ".../out/visualizePlan.dest/out.txt"
+  "...out/visualizePlan.dest/out.dot",
+  "...out/visualizePlan.dest/out.json",
+  "...out/visualizePlan.dest/out.png",
+  "...out/visualizePlan.dest/out.svg",
+  "...out/visualizePlan.dest/out.txt"
 ]
 */
 //

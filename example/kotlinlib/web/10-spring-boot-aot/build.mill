@@ -69,7 +69,7 @@ object `package` extends SpringBootModule, KotlinModule { outer =>
 }
 
 > ./mill show native.nativeImage
-...out/native/nativeImage.dest/native-executable...
+...$MILL_OUT/native/nativeImage.dest/native-executable...
 
 > ./mill native.nativeRunBackground
 

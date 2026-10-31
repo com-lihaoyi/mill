@@ -78,13 +78,13 @@ private object IdeWorkerSupport {
     val workerClass = classLoader.loadClass("mill.bsp.worker.BspWorkerImpl")
     val startBspServer = workerClass.getMethod(
       "startBspServer",
-      classOf[os.Path],
-      classOf[SystemStreams],
-      classOf[os.Path],
-      java.lang.Boolean.TYPE,
-      classOf[Logger],
-      classOf[Boolean],
-      classOf[BspBootstrapBridge]
+      classOf[os.Path], // topLevelBuildRoot
+      classOf[SystemStreams], // streams
+      classOf[os.Path], // logDir
+      java.lang.Boolean.TYPE, // canReload
+      classOf[Logger], // baseLogger
+      classOf[Boolean], // bspWatch
+      classOf[BspBootstrapBridge] // bootstrapBridge
     )
 
     BspHandles(classLoader, startBspServer)

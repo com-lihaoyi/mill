@@ -166,12 +166,12 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
    * This mechanism is not fully implemneted yet, and only works for a single module.
    */
   def quarkusDependencies: T[Seq[ApplicationModelWorker.Dependency]] = Task {
-    val depRuntime = coursierDependencyTask().withVariantSelector(
-      ConfigurationBased(coursier.core.Configuration.runtime)
+    val depRuntime = coursierDependencyTask().copy(
+      variantSelector = ConfigurationBased(coursier.core.Configuration.runtime)
     )
 
-    val depCompile = coursierDependencyTask().withVariantSelector(
-      ConfigurationBased(coursier.core.Configuration.compile)
+    val depCompile = coursierDependencyTask().copy(
+      variantSelector = ConfigurationBased(coursier.core.Configuration.compile)
     )
 
     val jarLikeArtifactTypes = artifactTypes()
@@ -206,8 +206,8 @@ trait QuarkusModule extends JavaModule, OsDetectorModule { outer =>
       val (dependency, publication, _, file) = artifact
       val attributes = publication.fold(
         variantPublication =>
-          dependency.attributes.withClassifier(
-            variantPublication.classifier.getOrElse(dependency.attributes.classifier)
+          dependency.attributes.copy(
+            classifier = variantPublication.classifier.getOrElse(dependency.attributes.classifier)
           ),
         _.attributes
       )

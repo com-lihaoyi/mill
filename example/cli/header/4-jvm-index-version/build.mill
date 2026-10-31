@@ -12,6 +12,12 @@
 //
 // - https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/[JVM Indices on Maven Central]
 //
+// You can also set `mill-jvm-index-version: github` to load the JVM index straight from
+// the https://github.com/coursier/jvm-index[Coursier JVM Index GitHub repository]. This
+// index is updated more often than the ones published on Maven Central, so it gives you
+// access to newly-released JVMs sooner, but the JVM versions it resolves to may change
+// over time as it gets updated.
+//
 package build
 
 import mill.*

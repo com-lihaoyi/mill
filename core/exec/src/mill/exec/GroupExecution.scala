@@ -244,7 +244,7 @@ trait GroupExecution {
       exclusive: Boolean,
       upstreamPathRefs: collection.Seq[PathRef],
       leaseTracker: Execution.LeaseTracker
-  ): GroupExecution.Results = {
+  ): GroupExecution.Results = MappedRoots.withMillDefaults(outPath = outPath) {
     // Fold the group's `sideHash`es into a single order-independent (commutative sum) value for
     // `inputsHash`, and note whether any task is side-effecting (non-zero `sideHash`, see
     // `Task.sideEffectingHash`) so we can force it to re-read rather than serve a cached value.
@@ -567,16 +567,20 @@ trait GroupExecution {
         buildOverrideOpt match {
           case Some(appendLocated) if appendLocated.value.append =>
             val taskResults = evaluateTaskWithCaching()
-
             // Check if task evaluation failed - if so, propagate the failure
             taskResults.newResults.get(labelled) match {
               case Some(ExecResult.Success((v, _))) =>
-                val taskValue = v.value.asInstanceOf[Seq[Any]]
+                val appendableTaskValue = v.value match {
+                  case a: AppendableFromYaml[?] => a
+                  case seq: Seq[Any] => AppendableFromYaml.Seq(seq)
+                  case map: Map[String, Any] => AppendableFromYaml.Map(map)
+                }
                 // Evaluate the YAML override and merge
                 evaluateBuildOverride(appendLocated, labelled) match {
                   case Right(yamlValue) =>
                     val (mergedData, serializedPaths) = PathRef.withSerializedPaths {
-                      (taskValue ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
+                      appendableTaskValue.appendFromYaml(yamlValue)
+                        .asInstanceOf[Any]
                     }
                     // Don't write merged result to paths.meta - that would overwrite the task
                     // cache and cause the task to re-execute every time. The task cache stays
@@ -956,7 +960,7 @@ object GroupExecution {
       classLoader: ClassLoader
   )(t: => T): T = {
     // Tasks must be allowed to write to upstream worker's dest folders, because
-    // the point of workers is to manualy manage long-lived state which includes
+    // the point of workers is to manually manage long-lived state which includes
     // state on disk.
     val validWriteDests =
       deps.collect { case n: Task.Worker[?] =>
