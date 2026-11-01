@@ -27,11 +27,11 @@ class JsonArrayLogger[T: upickle.Writer](outPath: os.Path, indent: Int) {
     // Make sure all writes to `traceStream` are synchronized, as we
     // have two threads writing to it (one while active, one on close()
     traceStream.synchronized {
+      traceStream.println("[")
       while ({
         buffer.take() match {
           case Some(v) =>
             if (used) traceStream.println(",")
-            else traceStream.println("[")
             used = true
             val indented = upickle.write(v, indent = indent)
               .linesIterator
@@ -93,7 +93,7 @@ object JsonArrayLogger {
     }
   }
 
-  private object Profile {
+  private[mill] object Profile {
     case class Timing(
         label: String,
         millis: Int,
