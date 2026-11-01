@@ -97,7 +97,7 @@ object Deps {
 
   val acyclic = mvn"com.lihaoyi:::acyclic:0.3.21"
   val ammoniteVersion = "3.0.4"
-  val asmVersion = "9.11"
+  val asmVersion = "9.11.1"
   val asmAnalysis = mvn"org.ow2.asm:asm-analysis:${asmVersion}"
   val asmTree = mvn"org.ow2.asm:asm-tree:${asmVersion}"
 
@@ -132,14 +132,14 @@ object Deps {
   val cask = mvn"com.lihaoyi::cask:0.9.7"
   val castor = mvn"com.lihaoyi::castor:0.3.0"
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
-  val flywayCore = mvn"org.flywaydb:flyway-core:11.8.2"
+  val flywayCore = mvn"org.flywaydb:flyway-core:11.20.3"
   // compile-time only: at runtime the Vaadin plugin uses the Flow version of the user's application
-  val vaadinFlowPluginBase = mvn"com.vaadin:flow-plugin-base:25.2.0"
+  val vaadinFlowPluginBase_api = mvn"com.vaadin:flow-plugin-base:25.2.0" // scala-steward:off
   val jibCore = mvn"com.google.cloud.tools:jib-core:0.27.3"
   val graphvizJava = Seq(
     mvn"guru.nidi:graphviz-java-min-deps:0.18.1",
     mvn"org.webjars.npm:viz.js-graphviz-java:2.1.3",
-    mvn"org.apache.xmlgraphics:batik-rasterizer:1.19"
+    mvn"org.apache.xmlgraphics:batik-rasterizer:1.20"
   )
   val graphvizWithExcludes = mvn"guru.nidi:graphviz-java-min-deps:0.18.1"
     // We only need the in-memory library for some stuff, and don't
@@ -165,7 +165,7 @@ object Deps {
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.22.0"
   val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.26.1"
-  val osLib = mvn"com.lihaoyi::os-lib:0.11.8"
+  val osLib = mvn"com.lihaoyi::os-lib:0.11.10"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:${osLib.version}"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.8"
@@ -227,16 +227,16 @@ object Deps {
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
   val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
-  val zinc = mvn"org.scala-sbt::zinc:2.0.4"
+  val zinc = mvn"org.scala-sbt::zinc:2.0.5"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
   // https://github.com/google/gson/releases/tag/gson-parent-2.13.2
-  val gson = mvn"com.google.code.gson:gson:2.14.0"
+  val gson = mvn"com.google.code.gson:gson:2.15.0"
   val fansi = mvn"com.lihaoyi::fansi:0.5.1"
   val javaparser = mvn"com.github.javaparser:javaparser-core:3.28.2"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.18.1"
   val requests = mvn"com.lihaoyi::requests:0.9.3"
-  val logback = mvn"ch.qos.logback:logback-classic:1.6.5"
+  val logback = mvn"ch.qos.logback:logback-classic:1.6.6"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
@@ -276,14 +276,14 @@ object Deps {
 
   // check with
   //   cs complete-dep io.get-coursier.jvm.indices:index-linux-amd64: | sort -V
-  val coursierJvmIndexVersion = "0.0.4-201-39a6a6"
+  val coursierJvmIndexVersion = "0.0.5"
   val gradleApi_api = mvn"dev.gradleplugins:gradle-api:8.11.1" // scala-steward:off
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
-  val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:8.13.2"
+  val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:9.5.0"
   val androidDataBindingCompilerCommon =
-    mvn"androidx.databinding:databinding-compiler-common:8.13.2"
-  val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
+    mvn"androidx.databinding:databinding-compiler-common:9.5.0"
+  val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.60.1"
 
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10" // scala-steward:off
   val mimaCore_api = mvn"com.typesafe::mima-core:1.2.1" // scala-steward:off
@@ -302,8 +302,8 @@ object Deps {
       mvn"org.jetbrains.dokka:analysis-kotlin-descriptors:$dokkaVersion_runtime"
     val dokkaBase_runtime = mvn"org.jetbrains.dokka:dokka-base:$dokkaVersion_runtime"
     val dokkaCli_runtime = mvn"org.jetbrains.dokka:dokka-cli:$dokkaVersion_runtime"
-    val errorProneCore_runtime = mvn"com.google.errorprone:error_prone_core:2.49.0"
-    val freemarker_runtime = mvn"org.freemarker:freemarker:2.3.34"
+    val errorProneCore_runtime = mvn"com.google.errorprone:error_prone_core:2.51.0"
+    val freemarker_runtime = mvn"org.freemarker:freemarker:2.3.35"
     val jupiterInterface_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
     val jupiterInterface6_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.19.0"
     val kotestJvm_runtime =
@@ -314,8 +314,8 @@ object Deps {
     val ktfmt_runtime = mvn"com.facebook:ktfmt:0.64"
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
     val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:13.0.0"
-    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.102.0"
-    val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.24.0"
+    val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.103.0"
+    val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.29.0"
     val proguard_runtime = mvn"com.guardsquare:proguard-base:7.10.0"
     val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.1"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
@@ -361,7 +361,7 @@ object Deps {
   /** Used in tests. */
   object TestDeps {
     // tests framework (test)
-    val scalaCheck = mvn"org.scalacheck::scalacheck:1.19.0"
+    val scalaCheck = mvn"org.scalacheck::scalacheck:1.20.0"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.20"
     val utest = mvn"com.lihaoyi::utest:0.10.0-RC1"
     val zioTest = mvn"dev.zio::zio-test:2.1.26"

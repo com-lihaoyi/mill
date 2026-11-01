@@ -3,8 +3,7 @@ package mill.daemon
 import mill.constants.{DaemonFiles, Util}
 import mill.constants.OutFiles.OutFiles
 import mill.daemon.MillMain0.handleMillException
-import mill.api.BuildCtx
-import mill.internal.{LauncherLockRegistry, LauncherOutFilesState, OutputDirectoryLayout}
+import mill.internal.{LauncherLockRegistry, LauncherOutFilesState}
 import mill.launcher.DaemonRpc
 import mill.server.Server
 
@@ -32,12 +31,8 @@ object MillNoDaemonMain0 {
 
     val processId = Server.computeProcessId()
     val env = System.getenv().asScala.toMap
-    val out = os.Path(
-      OutputDirectoryLayout.outDir(args.outMode, BuildCtx.workspaceRoot, env),
-      BuildCtx.workspaceRoot
-    )
     Server.watchProcessIdFile(
-      out / OutFiles.millNoDaemon / s"pid-$processId" / DaemonFiles.processId,
+      args.outDir / OutFiles.millNoDaemon / s"pid-$processId" / DaemonFiles.processId,
       processId,
       running = () => true,
       exit = msg => {
@@ -46,8 +41,8 @@ object MillNoDaemonMain0 {
       }
     )
 
-    val outLock = MillMain0.outFileLock(out)
-    val sharedOutLockManager = SharedOutLockManager(outLock, out)
+    val outLock = MillMain0.outFileLock(args.outDir)
+    val sharedOutLockManager = SharedOutLockManager(outLock, args.outDir)
 
     // Create runner that executes subprocesses locally with inherited I/O
     val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
@@ -74,6 +69,7 @@ object MillNoDaemonMain0 {
           daemonDir = args.daemonDir,
           sharedOutLockManager = sharedOutLockManager,
           launcherSubprocessRunner = launcherRunner,
+          outDir = args.outDir,
           serverToClientOpt = None,
           millRepositories = Seq.empty
         )

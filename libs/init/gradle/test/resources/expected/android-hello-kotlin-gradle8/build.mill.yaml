@@ -1,2 +1,7 @@
 mill-version: SNAPSHOT
 mill-jvm-version: system
+extends: Module
+
+object androidSdkModule0:
+  extends: mill.androidlib.AndroidSdkModule
+  buildToolsVersion: 36.0.0

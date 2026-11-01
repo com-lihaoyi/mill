@@ -331,12 +331,10 @@ class GenIdeaImpl(
         .map(toResolvedJar)
         .collect { case Some(r) => r }
 
-    val compilerSettings = resolvedModules
-      .foldLeft(Map[(Seq[os.Path], Seq[String]), Vector[JavaModuleApi]]()) {
-        (r, q) =>
-          val key = (q.pluginClasspath.map(os.Path(_)), q.scalaOptions)
-          r + (key -> (r.getOrElse(key, Vector()) :+ q.module))
-      }
+    val compilerSettings: Map[(Seq[os.Path], Seq[String]), Seq[String]] =
+      resolvedModules.groupMap(m => (m.pluginClasspath.map(os.Path(_)), m.scalaOptions))(m =>
+        IdeUtils.moduleName(m.segments).getOrElse("")
+      )
 
     // Get bspScriptIgnore rules (same as BSP integration)
     val bspScriptIgnore: Seq[String] = MillBuildRootModuleApi.bspScriptIgnore(evaluators)
@@ -875,13 +873,10 @@ class GenIdeaImpl(
   }
 
   def scalaCompilerTemplate(
-      settings: Map[(Seq[os.Path], Seq[String]), Vector[JavaModuleApi]]
+      settings: Map[(Seq[os.Path], Seq[String]), Seq[String]]
   ) = {
-    def modulesString(mods: Seq[ModuleApi]) =
-      mods.map(m => IdeUtils.moduleName(m.moduleSegments).getOrElse("")).mkString(",")
-
     val orderedSettings = settings.toSeq.map {
-      case ((plugins, params), mods) => ((plugins, params), modulesString(mods))
+      case ((plugins, params), names) => ((plugins, params), names.sorted.mkString(","))
     }.sortBy(_._2).zipWithIndex
 
     <project version={"" + ideaConfigVersion}>
