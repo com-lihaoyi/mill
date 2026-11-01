@@ -11,6 +11,8 @@ object ScoverageTests extends UtestIntegrationTestSuite {
         import tester.*
         assert(eval("__.compile").isSuccess)
         assert(eval("core[2.13.11].scoverage.xmlReport").isSuccess)
+        assert(eval("extra.scoverage.xmlReport").isSuccess)
+        assert(eval("withBom.scoverage.xmlReport").isSuccess)
       }
     }
   }

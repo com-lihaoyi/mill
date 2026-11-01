@@ -47,7 +47,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
         "-Wconf:msg=import scala.language.implicitConversions:silent",
         "-Wconf:msg=IterableOnceExtensionMethods:silent",
         "-Wconf:msg=is deprecated:silent",
-        "-Wconf:msg=cannot be checked at runtime:silent"
+        "-Wconf:msg=cannot be checked at runtime:silent",
+        "-Wconf:msg=@nowarn annotation does not suppress any warnings:silent"
         // "-Wconf:msg=unused:silent"
         // "-no-indent",
         // "-Wvalue-discard",
@@ -66,7 +67,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
         "-Wconf:msg=case companions no longer extend FunctionN:silent",
         "-Wconf:msg=access modifiers for:silent",
         "-Wconf:msg=is deprecated:silent",
-        "-Wconf:msg=found in a package prefix of the required type:silent"
+        "-Wconf:msg=found in a package prefix of the required type:silent",
+        "-Wconf:msg=@nowarn annotation does not suppress any warnings:silent"
       )
     )
 

@@ -43,7 +43,7 @@ object `package` extends QuarkusModule, MavenModule {
 /** Usage
 
 > ./mill show quarkusRunJar
-...out/quarkusApp.dest/quarkus/quarkus-app/quarkus-run.jar...
+...$MILL_OUT/quarkusApp.dest/quarkus/quarkus-app/quarkus-run.jar...
 
 > ./mill show runBackground
 

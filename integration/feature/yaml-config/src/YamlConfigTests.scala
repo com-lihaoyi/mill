@@ -11,12 +11,13 @@ object YamlConfigTests extends UtestIntegrationTestSuite {
       val outLines = res.out.linesIterator.toSeq
 
       // Ensure that all these YAML scalar values that look like various types have their
-      // raw text perserved when parsed as strings in `forkEnv`, rather than being round-tripped
+      // raw text preserved when parsed as strings in `forkEnv`, rather than being round-tripped
       // through their respective type causing loss of the original string representation.
       val expected = Seq(
         "NULL2" -> "Null",
         "NULL3" -> "NULL",
         "NULL4" -> "~",
+        "NULL5" -> "null",
         "TRUE1" -> "y",
         "TRUE2" -> "Y",
         "TRUE3" -> "yes",

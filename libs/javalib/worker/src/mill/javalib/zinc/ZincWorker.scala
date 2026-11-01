@@ -11,7 +11,7 @@ import mill.javalib.api.internal.ZincCompilerBridgeProvider
 import mill.javalib.api.internal.ZincCompilerBridgeProvider.AcquireResult
 import mill.javalib.worker.*
 import mill.javalib.zinc.ZincWorker.*
-import mill.util.{CachedFactory, CachedFactoryWithInitData, RefCountedClassLoaderCache}
+import mill.util.{CachedFactory, CachedFactoryWithInitData, Jvm, RefCountedClassLoaderCache}
 import sbt.internal.inc
 import sbt.internal.inc.*
 import sbt.internal.inc.classpath.ClasspathUtil
@@ -97,7 +97,10 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
             scalaVersion,
             scalaOrganization,
             compilerClasspath.map(_.path),
-            compilerBridgeProvider
+            compilerBridgeProvider,
+            forkJavaRelease = forkJavaHome
+              .map(home => Jvm.getJavaMajorVersion(Some(home)))
+              .filter(_ > 0)
           )
         }
         val classLoader = classloaderCache.get(key.combinedCompilerClasspath)
@@ -586,7 +589,8 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
       scalaVersion: String,
       scalaOrganization: String,
       compilerClasspath: Seq[os.Path],
-      compilerBridgeProvider: ZincCompilerBridgeProvider
+      compilerBridgeProvider: ZincCompilerBridgeProvider,
+      forkJavaRelease: Option[Int]
   ): os.Path = {
     val workingDir = compilerBridgeProvider.workspace / s"zinc-${Versions.zinc}" / scalaVersion
 
@@ -619,6 +623,11 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
         acquired match {
           case AcquireResult.Compiled(bridgeJar) => bridgeJar
           case AcquireResult.NotCompiled(bridgeClasspath, bridgeSourcesJar) =>
+            // When targeting a JDK older than the one we run on, the user code gets
+            // compiled with `-release`, and so must the bridge: older Scala versions
+            // can't read the class files of the newer JDK we run on otherwise
+            val releaseOptions =
+              forkJavaRelease.toSeq.flatMap(major => Seq("-release", major.toString))
             ZincCompilerBridgeProvider.compile(
               compilerBridgeProvider.logInfo,
               workingDir,
@@ -626,7 +635,8 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
               scalaVersion,
               compilerClasspath,
               bridgeClasspath,
-              bridgeSourcesJar
+              bridgeSourcesJar,
+              scalacOptions = releaseOptions
             )
             os.write(doneFile, "")
             compiledDest

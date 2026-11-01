@@ -108,6 +108,7 @@ object `package` extends Module {
     object `out-dir` extends Cross[ExampleCrossModule](build.listCross)
     object libraries extends Cross[ExampleCrossModule](build.listCross)
     object javahome extends Cross[ExampleCrossModule](build.listCross)
+    object yaml extends Cross[ExampleCrossModule](build.listCross)
   }
 
   object depth extends Module {
