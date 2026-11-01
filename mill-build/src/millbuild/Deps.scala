@@ -279,7 +279,7 @@ object Deps {
   val coursierJvmIndexVersion = "0.0.5"
   val gradleApi_api = mvn"dev.gradleplugins:gradle-api:8.11.1" // scala-steward:off
 
-  val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
+  val androidTools = mvn"com.android.tools.build:gradle:8.9.3"
   val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:9.5.0"
   val androidDataBindingCompilerCommon =
     mvn"androidx.databinding:databinding-compiler-common:9.5.0"
