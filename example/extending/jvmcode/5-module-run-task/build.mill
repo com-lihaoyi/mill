@@ -54,7 +54,7 @@ Foo.value: HELLO
 // trait Runner{
 //   def run(args: os.Shellable,
 //           mainClass: String = null,
-//           forkArgs: Seq[String] = null,
+//           forkArgs: SeqString] = null,
 //           forkEnv: Map[String, String] = null,
 //           workingDir: os.Path = null,
 //           useCpPassingJar: java.lang.Boolean = null)

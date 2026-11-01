@@ -2,6 +2,7 @@ package build
 
 import mill.*
 import kotlinlib.*
+import mill.api.opt.*
 
 trait BaseModule extends KotlinModule {
   // BTAPI incremental compilation requires Kotlin >= 2.3.0, so we pin a concrete
@@ -21,5 +22,5 @@ object consumer extends BaseModule {
 // argument changes across incremental compilations.
 object options extends BaseModule {
   def kotlinVersion = "2.4.0"
-  def kotlincOptions = Task { super.kotlincOptions() ++ Seq[String]() }
+  def kotlincOptions = Task { super.kotlincOptions() ++ Opts( /* opts-placeholder */ ) }
 }

@@ -4,8 +4,7 @@ import mill.api.PathRef
 import mill.javalib.{Dep, DepSyntax, JavaModule}
 import mill.util.Version
 import mill.{T, Task}
-
-import java.io.File
+import mill.api.opt.*
 
 /**
  * Integrated Error Prone into a [[JavaModule]].
@@ -79,31 +78,37 @@ trait ErrorProneModule extends JavaModule {
   }
 
   // Avoid duplicate -processorpath
-  override def annotationProcessorsJavacOptions: T[Seq[String]] = Task {
-    Seq.empty
+  override def annotationProcessorsJavacOptions: Task.Simple[Opts] = Task {
+    Opts()
   }
 
   /**
    * Options used to enable and configure the `error-prone` plugin in the Java compiler.
    */
-  def errorProneJavacEnableOptions: T[Seq[String]] = Task {
+  def errorProneJavacEnableOptions: T[Opts] = Task {
     // ErrorProne 2.36.0+ requires explicit --should-stop policy
     // See https://github.com/com-lihaoyi/mill/issues/4926
-    val errorProne236Options = Option.when(
-      Version.isAtLeast(errorProneVersion(), "2.36.0")(using Version.IgnoreQualifierOrdering)
-    )(Seq("--should-stop=ifError=FLOW")).toSeq.flatten
-    val processorPath = errorProneClasspath().map(_.path).mkString(File.pathSeparator)
-    val enableOpts = Seq(
+    val errorProne236Options =
+      Opts.when(Version.isAtLeast(errorProneVersion(), "2.36.0")(using
+        Version.IgnoreQualifierOrdering
+      ))("--should-stop=ifError=FLOW")
+
+    val processorPath = Opt.mkPlatformPath(errorProneClasspath().map(_.path))
+
+    val enableOpts = Opts(
       "-XDcompilePolicy=simple",
-      "-processorpath",
-      processorPath,
+      OptGroup(
+        "-processorpath",
+        processorPath
+      ),
+      // -Xplugin expects all params as a single arg, space-separated
       (Seq("-Xplugin:ErrorProne") ++ errorProneOptions()).mkString(" ")
     )
     errorProne236Options ++ enableOpts
   }
 
-  private def errorProneJvmOptions: T[Seq[String]] = Task {
-    Option.when(scala.util.Properties.isJavaAtLeast(16))(Seq(
+  private def errorProneJvmOptions: T[Opts] = Task {
+    Opts.when(scala.util.Properties.isJavaAtLeast(16))(
       "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
       "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
       "--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
@@ -114,13 +119,13 @@ trait ErrorProneModule extends JavaModule {
       "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
       "--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
       "--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"
-    )).toSeq.flatten
+    )
   }
 
   /**
    * JVM options used by the Java compiler worker when running ErrorProne.
    */
-  private[mill] override def javaCompilerRuntimeOptions: T[Seq[String]] = Task {
+  private[mill] override def javaCompilerRuntimeOptions: T[Opts] = Task {
     jvmOptions() ++ errorProneJvmOptions()
   }
 
@@ -134,7 +139,7 @@ trait ErrorProneModule extends JavaModule {
   /**
    * Appends the [[errorProneJavacEnableOptions]] to the Java compiler options.
    */
-  override def mandatoryJavacOptions: T[Seq[String]] = Task {
+  override def mandatoryJavacOptions: Task.Simple[Opts] = Task {
     super.mandatoryJavacOptions() ++ errorProneJavacEnableOptions()
   }
 }

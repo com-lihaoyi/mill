@@ -74,16 +74,16 @@ object ErrorProneTests extends TestSuite {
       test("compileWarn") {
         UnitTester(errorProneCustom, testModuleSourcesPath).scoped { eval =>
           val Right(opts) = eval(errorProneCustom.mandatoryJavacOptions).runtimeChecked
-          assert(opts.value.exists(_.contains("-XepAllErrorsAsWarnings")))
+          assert(opts.value.toStringSeq.exists(_.contains("-XepAllErrorsAsWarnings")))
           if (Properties.isJavaAtLeast(16)) {
-            assert(!opts.value.exists(opt =>
+            assert(!opts.value.toStringSeq.exists(opt =>
               opt.startsWith("--add-exports") || opt.startsWith("--add-opens")
             ))
           }
           val Right(jvmOptions) = eval(errorProneCustom.javaCompilerRuntimeOptions).runtimeChecked
           if (Properties.isJavaAtLeast(16)) {
             assert(
-              jvmOptions.value.exists(opt =>
+              jvmOptions.value.toStringSeq.exists(opt =>
                 opt.startsWith("--add-exports") || opt.startsWith("--add-opens")
               )
             )
@@ -97,7 +97,7 @@ object ErrorProneTests extends TestSuite {
         // See https://github.com/com-lihaoyi/mill/issues/4926
         UnitTester(errorProne236, testModuleSourcesPath).scoped { eval =>
           val Right(opts) = eval(errorProne236.mandatoryJavacOptions).runtimeChecked
-          assert(opts.value.contains("--should-stop=ifError=FLOW"))
+          assert(opts.value.toStringSeq.contains("--should-stop=ifError=FLOW"))
           val res = eval(errorProne236.compile)
           assert(res.isRight)
         }

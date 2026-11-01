@@ -1,5 +1,7 @@
 package mill.javalib.api.internal
 
+import mill.api.daemon.internal.OptsApi
+
 object JavaCompilerOptions {
 
   /**
@@ -13,4 +15,7 @@ object JavaCompilerOptions {
     val runtimeOptions = runtimeOptions0.map(_.drop(prefix.length))
     (runtimeOptions, compilerOptions)
   }
+
+  def split(options: OptsApi): (runtime: Seq[String], compiler: Seq[String]) =
+    split(options.toStringSeq)
 }

@@ -1,10 +1,12 @@
 package mill.javalib.spring.boot
 
 import mainargs.Flag
+import mill.api.opt.Opts
 import mill.{T, Task}
 import mill.api.{ModuleRef, PathRef}
 import mill.javalib.repackage.RepackageModule
 import mill.javalib.{Dep, DepSyntax, JavaModule, NativeImageModule}
+import mill.api.opt.*
 
 /**
  * A module that can be used to configure Spring Boot projects and provides functionality
@@ -33,8 +35,8 @@ trait SpringBootModule extends JavaModule, RepackageModule {
   /**
    * Spring boot relies a lot on reflection, so enabling parameter names is a good default.
    */
-  override def mandatoryJavacOptions: Task.Simple[Seq[String]] = Task {
-    super.mandatoryJavacOptions() ++ Seq(
+  override def mandatoryJavacOptions: T[Opts] = Task {
+    super.mandatoryJavacOptions() ++ Opts(
       "-parameters"
     )
   }
@@ -170,7 +172,7 @@ trait SpringBootModule extends JavaModule, RepackageModule {
     /**
      * Enables AOT for running the application under this module
      */
-    override def forkArgs = super.forkArgs() ++ Seq("-Dspring.aot.enabled=true")
+    override def forkArgs: T[Opts] = super.forkArgs() ++ Opts("-Dspring.aot.enabled=true")
 
     override def generatedSources: Task.Simple[Seq[PathRef]] = Task {
       val aotGeneratedSources = Seq(PathRef(outer.springBootProcessAOT().path / "sources"))
@@ -199,11 +201,13 @@ trait SpringBootModule extends JavaModule, RepackageModule {
      * Uses the configuration path from both [[outer.springBootProcessAOT]] and
      * [[nativeMvnDepsMetadata]]
      */
-    override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
+    override def nativeImageOptions: Task.Simple[Opts] = Task {
       val configurationsPath = outer.springBootProcessAOT().path / "resources/META-INF"
-      super.nativeImageOptions() ++ Seq(
-        "--configurations-path",
-        configurationsPath.toString
+      super.nativeImageOptions() ++ Opts(
+        OptGroup(
+          "--configurations-path",
+          configurationsPath
+        )
       )
     }
   }

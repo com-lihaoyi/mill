@@ -1,12 +1,13 @@
 package millbuild
 
 import mill.*
+import mill.api.opt.*
 import mill.javalib.*
 import mill.javalib.publish.*
 
 trait ProjectBaseModule extends MavenModule, PublishModule {
 
-  def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+  def javacOptions = Opts("-source", "1.6", "-target", "1.6")
 
   trait ProjectBaseTests extends MavenTests, TestModule.Junit4 {
 

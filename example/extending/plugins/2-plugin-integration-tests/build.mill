@@ -5,7 +5,9 @@
 // command. Integration tests require further build configuration, which is shown below:
 
 package build
+
 import mill.*, scalalib.*, publish.*
+import mill.api.opt.*
 
 object myplugin extends ScalaModule, PublishModule {
   def millVersion = "1.0.6"
@@ -26,8 +28,8 @@ object myplugin extends ScalaModule, PublishModule {
     def forkEnv = Task {
       val repos = Seq(publishLocalTestRepo().path.toNIO.toUri.toASCIIString) ++
         Seq(Task.env.getOrElse("COURSIER_REPOSITORIES", "ivy2Local|central"))
-      Map(
-        "MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString,
+      OptMap(
+        "MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path,
         "COURSIER_REPOSITORIES" -> repos.mkString("|")
       )
     }

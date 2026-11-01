@@ -5,7 +5,7 @@ import mill.javascriptlib.*
 
 object foo extends TypeScriptModule {
   def compilerOptions =
-    super.compilerOptions() + (
+    super.compilerOptions() ++ Map(
       "skipLibCheck" -> ujson.True,
       "module" -> ujson.Str("commonjs"),
       "target" -> ujson.Str("es6")

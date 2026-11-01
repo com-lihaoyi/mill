@@ -8,6 +8,7 @@ import mill.kotlinlib.ksp2.{KspWorker, KspWorkerArgs}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
 import mill.util.{Jvm, Version}
+import mill.api.opt.*
 
 import java.io.File
 
@@ -103,8 +104,8 @@ trait KspModule extends KotlinModule { outer =>
   /**
    * Processor options to be passed to KSP.
    */
-  def kspProcessorOptions: T[Map[String, String]] = Task {
-    Map.empty[String, String]
+  def kspProcessorOptions: T[OptMap] = Task {
+    OptMap()
   }
 
   /**
@@ -150,16 +151,18 @@ trait KspModule extends KotlinModule { outer =>
    *
    * @return
    */
-  def ksp1KotlincOptions: T[Seq[String]] = Task {
+  def ksp1KotlincOptions: T[Opts] = Task {
     if (!kspLanguageVersion().startsWith("1.")) {
       throw RuntimeException("KSP needs a compatible language version <= 1.9 to be set!")
     }
-    kotlincOptions() ++ Seq(
+    kotlincOptions() ++ Opts(
       "-Xallow-unstable-dependencies",
       "-no-reflect",
       "-no-stdlib",
-      "-language-version",
-      kspLanguageVersion()
+      OptGroup(
+        "-language-version",
+        kspLanguageVersion()
+      )
     )
   }
 
@@ -236,7 +239,7 @@ trait KspModule extends KotlinModule { outer =>
     ) ++ kspPluginParameters.map(p => s"$pluginOpt:$p")
 
     val kspCompilerArgs =
-      ksp1KotlincOptions() ++ Seq(xPluginArg) ++ Seq("-P", pluginConfigs.mkString(","))
+      ksp1KotlincOptions().toStringSeq ++ Seq(xPluginArg) ++ Seq("-P", pluginConfigs.mkString(","))
 
     Task.log.info(
       s"Running Kotlin Symbol Processing for ${sourceFiles.size} Kotlin sources to ${kspOutputDir} ..."

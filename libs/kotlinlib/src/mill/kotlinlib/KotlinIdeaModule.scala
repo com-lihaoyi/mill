@@ -26,7 +26,7 @@ trait KotlinIdeaModule extends KotlinModule {
     lazy val redirectedCompilerOptions = {
       val options = scala.collection.mutable.Buffer.empty[String]
 
-      options ++= allKotlincOptions().filterNot {
+      options ++= allKotlincOptions().toStringSeq.filterNot {
         case FriendPathsPattern(_) => true
         case _ => false
       }

@@ -4,16 +4,18 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import mill.*
 import mill.api.Discover
+import mill.api.daemon.internal.{OptsApi, TaskApi}
 import mill.testkit.TestRootModule
 import mill.testkit.UnitTester
 import mill.util.TokenReaders.*
 import utest.*
+import mill.api.opt.{*, given}
 
 object JavaCompileErrorFormattingTests extends TestSuite {
 
   object JavaCompileErrorFormatting extends TestRootModule {
     object core extends JavaModule {
-      def javacOptions = Seq("-Xlint:unchecked", "-Werror")
+      def javacOptions: Task.Simple[Opts] = Opts("-Xlint:unchecked", "-Werror")
     }
     lazy val millDiscover = Discover[this.type]
   }
