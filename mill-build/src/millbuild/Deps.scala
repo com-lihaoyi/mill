@@ -134,12 +134,12 @@ object Deps {
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = mvn"org.flywaydb:flyway-core:11.20.3"
   // compile-time only: at runtime the Vaadin plugin uses the Flow version of the user's application
-  val vaadinFlowPluginBase = mvn"com.vaadin:flow-plugin-base:25.2.0"
+  val vaadinFlowPluginBase_api = mvn"com.vaadin:flow-plugin-base:25.2.0" // scala-steward:off
   val jibCore = mvn"com.google.cloud.tools:jib-core:0.27.3"
   val graphvizJava = Seq(
     mvn"guru.nidi:graphviz-java-min-deps:0.18.1",
     mvn"org.webjars.npm:viz.js-graphviz-java:2.1.3",
-    mvn"org.apache.xmlgraphics:batik-rasterizer:1.19"
+    mvn"org.apache.xmlgraphics:batik-rasterizer:1.20"
   )
   val graphvizWithExcludes = mvn"guru.nidi:graphviz-java-min-deps:0.18.1"
     // We only need the in-memory library for some stuff, and don't
@@ -283,7 +283,7 @@ object Deps {
   val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:9.5.0"
   val androidDataBindingCompilerCommon =
     mvn"androidx.databinding:databinding-compiler-common:9.5.0"
-  val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
+  val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.60.1"
 
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10" // scala-steward:off
   val mimaCore_api = mvn"com.typesafe::mima-core:1.2.1" // scala-steward:off
@@ -303,7 +303,7 @@ object Deps {
     val dokkaBase_runtime = mvn"org.jetbrains.dokka:dokka-base:$dokkaVersion_runtime"
     val dokkaCli_runtime = mvn"org.jetbrains.dokka:dokka-cli:$dokkaVersion_runtime"
     val errorProneCore_runtime = mvn"com.google.errorprone:error_prone_core:2.51.0"
-    val freemarker_runtime = mvn"org.freemarker:freemarker:2.3.34"
+    val freemarker_runtime = mvn"org.freemarker:freemarker:2.3.35"
     val jupiterInterface_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
     val jupiterInterface6_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.19.0"
     val kotestJvm_runtime =
@@ -315,7 +315,7 @@ object Deps {
     val ktlint_runtime = mvn"com.pinterest.ktlint:ktlint-core:0.49.1"
     val owaspDependencyCheckCli_runtime = mvn"org.owasp:dependency-check-cli:13.0.0"
     val palantirFormat_runtime = mvn"com.palantir.javaformat:palantir-java-format:2.103.0"
-    val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.24.0"
+    val pmdDist_runtime = mvn"net.sourceforge.pmd:pmd-dist:7.29.0"
     val proguard_runtime = mvn"com.guardsquare:proguard-base:7.10.0"
     val revApi_runtime = mvn"org.revapi:revapi-standalone:0.12.1"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
