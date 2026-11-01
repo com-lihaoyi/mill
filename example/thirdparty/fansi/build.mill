@@ -80,7 +80,6 @@ fansi.native.3_3_6.compile
 fansi.native.3_3_6.test.compile
 
 > ./mill fansi.jvm.2_12_20.compile
-compiling 1 Scala source...
 ...
 
 > ./mill fansi.js.2_13_16.test

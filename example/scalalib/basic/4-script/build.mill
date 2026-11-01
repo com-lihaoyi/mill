@@ -49,7 +49,6 @@
 //// SNIPPET:CMD
 /** Usage
 > ./mill Foo.scala --text hello
-compiling 1 Scala source to...
 <h1>hello</h1>
 */
 

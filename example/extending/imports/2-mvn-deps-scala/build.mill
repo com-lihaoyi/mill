@@ -27,7 +27,6 @@ object bar extends ScalaModule {
 /** Usage
 
 > ./mill bar.compile
-compiling 1 Scala source...
 ...
 
 > ./mill bar.run

@@ -72,7 +72,7 @@ object SbtLoggerUtils {
         case _ => ""
       }
 
-      if(!skipMsg) logAction(severityPrefix + message)
+      if (!skipMsg) logAction(severityPrefix + message)
     }
   }
 }

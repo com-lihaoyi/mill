@@ -5,7 +5,6 @@
 //// SNIPPET:CMD
 /** Usage
 > ./mill Foo.groovy bar
-Compiling 1 Groovy sources to...
 Hello bar
 */
 //// SNIPPET:END
