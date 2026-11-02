@@ -33,10 +33,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         // We passed in `--color=true` so we should expect colored output
         List(
           "(Y)mill jar(X)",
-          "(B)build.mill-<digits>] compile(X) compiling 1 Scala source to out/mill-build/compile.dest/classes ...",
-          "(B)build.mill-<digits>](X) done compiling",
-          "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(X):(R)36(X):(R)54(X)",
+          "(B)<digits>] compile(X) [(R)error(X)] (R)src/foo/Foo.java(X):(R)36(X):(R)54(X)",
           "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)void(X) bar(){ (Y)final(X) String x = \"omg",
           "(B)<digits>](X)                                                      (R)^(X)",
           "(B)<digits>](X) unclosed string literal",
@@ -76,8 +73,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         // We passed in `--color=true` so we should expect colored output
         List(
           "(Y)mill jar(X)",
-          "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(X):(R)36(X):(R)52(X)",
+          "(B)<digits>] compile(X) [(R)error(X)] (R)src/foo/Foo.java(X):(R)36(X):(R)52(X)",
           "(B)<digits>](X) (Y)class(X) (C)Bar(X) { (B)/*comment*/(X) (Y)void(X) (C)bar(X)(){ (Y)final(X) java.lang.Strin (C)x(X) = (G)\"omg\"(X);}}",
           "(B)<digits>](X)                                                    (R)^^^^^^(X)",
           "(B)<digits>](X) cannot find symbol",
@@ -102,8 +98,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         // We passed in `--color=true` so we should expect colored output
         List(
           "(Y)mill jar(X)",
-          "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(X):(R)2(X):(R)54(X)",
+          "(B)<digits>] compile(X) [(R)error(X)] (R)src/foo/Foo.scala(X):(R)2(X):(R)54(X)",
           "(B)<digits>](X) (Y)class(X) (C)Bar(X) { (B)/*comment*/(X) (Y)def(X) (C)bar(X) = { (Y)val(X) (C)x(X): java.lang.(G)Strig(X) =  (G)\"omg\"(X)}}",
           "(B)<digits>](X)                                                      (R)^^^^^(X)",
           "(B)<digits>](X) type Strig is not a member of java.lang - did you mean lang.String?",
@@ -127,8 +122,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         normalize(res2.result.err.text()),
         List(
           "mill jar",
-          "build.mill-<digits>] compile compiling 1 Scala source to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] [error] build.mill:76:1",
+          "build.mill-<digits>] compile [error] build.mill:76:1",
           "build.mill-<digits>] ?",
           "build.mill-<digits>] ^",
           "build.mill-<digits>] Illegal start of toplevel definition",
@@ -177,8 +171,6 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         normalize(res.result.out.text()),
         List(
           "(Y)mill exception(X)",
-          "(B)build.mill-<digits>] compile(X) compiling 1 Scala source to out/mill-build/compile.dest/classes ...",
-          "(B)build.mill-<digits>](X) done compiling",
           ".../..., (R)1 FAILED(X)] mill exception",
           "(R)<digits>] (X)[(R)error(X)] exception",
           "(R)java.lang.Exception(X): boom",
@@ -215,16 +207,12 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         ),
         List(
           "mill {brokenN,brokenN}.compile",
-          "build.mill-<digits>] compile compiling 1 Scala source to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] done compiling",
-          "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
-          "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
-          "<digits>] [error] broken/src/Foo.java:1:1",
+          "<digits>] brokenN.compile [error] broken/src/Foo.java:1:1",
           "<digits>] ?",
           "<digits>] ^",
           "<digits>] class, interface, annotation type, enum, record, method or field expected",
           "<digits>] ",
-          "<digits>] [error] broken/src/Foo.java:1:1",
+          "<digits>] brokenN.compile [error] broken/src/Foo.java:1:1",
           "<digits>] ?",
           "<digits>] ^",
           "<digits>] class, interface, annotation type, enum, record, method or field expected",
@@ -238,7 +226,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalize(os.read(workspacePath / "out/broken1/compile.log")),
         List(
-          "compiling 1 Java source to out/broken1/compile.dest/classes ...",
+          "Compiling 1 Java source",
           "[error] broken/src/Foo.java:1:1",
           "?",
           "^",
@@ -249,7 +237,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalize(os.read(workspacePath / "out/broken2/compile.log")),
         List(
-          "compiling 1 Java source to out/broken2/compile.dest/classes ...",
+          "Compiling 1 Java source",
           "[error] broken/src/Foo.java:1:1",
           "?",
           "^",

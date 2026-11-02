@@ -4,7 +4,6 @@
 //// SNIPPET:CMD
 /** Usage
 > ./mill Foo.java --text hello
-compiling 1 Java source to...
 <h1>hello</h1>
 */
 

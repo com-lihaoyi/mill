@@ -102,7 +102,6 @@ object app extends AndroidAppModule {
 
 // This command runs unit tests on your local environment.
 > ./mill show app.test
-...compiling 2 Java sources to out/app/test/compile.dest/classes...
 ...
 {
   "msg": "",
