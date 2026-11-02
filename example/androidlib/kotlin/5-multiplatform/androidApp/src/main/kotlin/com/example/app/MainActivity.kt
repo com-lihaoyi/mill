@@ -15,9 +15,11 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         val title = getString(R.string.shared_title)
         val message = Message(Greeting().greet(), getPlatform().name)
-        setContentView(TextView(this).apply {
-            text = "$title: ${message.toJson()}"
-            gravity = Gravity.CENTER
-        })
+        setContentView(
+            TextView(this).apply {
+                text = "$title: ${message.toJson()}"
+                gravity = Gravity.CENTER
+            },
+        )
     }
 }
