@@ -6,12 +6,12 @@ package build
 import mill.*, androidlib.*, androidlib.multiplatform.*, kotlinlib.*
 
 object androidSdkModule0 extends AndroidSdkModule {
-  def buildToolsVersion = "36.0.0"
+  def buildToolsVersion = "35.0.0"
 }
 
 trait AndroidSettings extends AndroidModule {
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
-  def androidCompileSdk = 36
+  def androidCompileSdk = 35
   def androidMinSdk = 24
 }
 
