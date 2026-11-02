@@ -23,44 +23,62 @@ object HelloWorldTests extends TestSuite {
 
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = scala212Version
+
     override def semanticDbVersion: T[String] = Task {
       // The latest semanticDB release for Scala 2.12.6
       "4.1.9"
     }
   }
+
   trait SemanticModule extends scalalib.ScalaModule {
     def scalaVersion = scala213Version
   }
+
   trait HelloWorldModuleWithMain extends HelloWorldModule {
     override def mainClass: T[Option[String]] = Some("Main")
   }
 
   object HelloWorld extends TestRootModule {
     object core extends HelloWorldModule
+
     lazy val millDiscover = Discover[this.type]
   }
+  object HelloWorldScala3 extends TestRootModule {
+    override val moduleDir = HelloWorld.moduleDir
+    object core extends HelloWorldModule {
+      def scalaVersion = scala33Version
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
+
   object HelloWorldNonPrecompiledBridge extends TestRootModule {
     object core extends HelloWorldModule {
       def jvmVersion = "17"
+
       override def scalaVersion = "2.12.1"
     }
+
     lazy val millDiscover = Discover[this.type]
 
   }
+
   object CrossHelloWorld extends TestRootModule {
     object core extends Cross[HelloWorldCross](
           scala2123Version,
           scala212Version,
           scala213Version
         )
+
     trait HelloWorldCross extends CrossScalaModule {
       def jvmVersion = "17"
     }
+
     lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldDefaultMain extends TestRootModule {
     object core extends HelloWorldModule
+
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -68,18 +86,23 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModule {
       override def mainClass = None
     }
+
     lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldWithMain extends TestRootModule {
     object core extends HelloWorldModuleWithMain
+
     lazy val millDiscover = Discover[this.type]
   }
 
   object HelloWorldFatalWarnings extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalacOptions = Task { Seq("-Ywarn-unused", "-Xfatal-warnings") }
+      override def scalacOptions = Task {
+        Seq("-Ywarn-unused", "-Xfatal-warnings")
+      }
     }
+
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -87,6 +110,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModule {
       override def scalaVersion: T[String] = scala213Version
     }
+
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -118,6 +142,17 @@ object HelloWorldTests extends TestSuite {
     os.rel / "Main$delayedInit$body.class",
     os.rel / "Person.class",
     os.rel / "Person$.class"
+  )
+  def compileScala3Files: Seq[os.RelPath] = Seq(
+    os.rel / "Main.class",
+    os.rel / "Main$.class",
+    os.rel / "Main0.class",
+    os.rel / "Main0$.class",
+    os.rel / "Person.class",
+    os.rel / "Person$.class",
+    os.rel / "Main.tasty",
+    os.rel / "Main0.tasty",
+    os.rel / "Person.tasty"
   )
 
   def tests: Tests = Tests {
@@ -172,7 +207,7 @@ object HelloWorldTests extends TestSuite {
           result.value.classes.path == classesPath,
           os.exists(analysisFile),
           outputFiles.nonEmpty,
-          outputFiles.forall(expectedClassfiles.contains),
+          expectedClassfiles.filterNot(outputFiles.contains) == Seq(),
           result.evalCount > 0
         )
 
@@ -187,6 +222,34 @@ object HelloWorldTests extends TestSuite {
           eval.outPath / "mill/scalalib/JvmWorkerModule/internalWorker.dest" / s"zinc-${zincVersion}"
         ))
       }
+
+      test("compile-scala3-tasty-files") -
+        UnitTester(HelloWorldScala3, sourceRoot = resourcePath).scoped { eval =>
+          val Right(result) = eval.apply(HelloWorldScala3.core.compile).runtimeChecked
+
+          val classesPath = eval.outPath / "core/compile.dest/classes"
+          val analysisFile = result.value.analysisFile
+          val outputFiles = os.walk(result.value.classes.path)
+          val expectedClassfiles = compileScala3Files.map(classesPath / _)
+          assert(
+            result.value.classes.path == classesPath,
+            os.exists(analysisFile),
+            outputFiles.nonEmpty,
+            expectedClassfiles.filterNot(outputFiles.contains) == Seq(),
+            result.evalCount > 0
+          )
+
+          // ensure, we don't leak absolute paths in generated files (e.g. TASTy)
+          // see https://github.com/com-lihaoyi/mill/issues/7754
+          assert(
+            outputFiles.forall(!os.read(_).contains(resourcePath))
+          )
+
+          // don't recompile if nothing changed
+          val Right(result2) = eval.apply(HelloWorldScala3.core.compile).runtimeChecked
+
+          assert(result2.evalCount == 0)
+        }
 
       test("nonPreCompiledBridge") - UnitTester(
         HelloWorldNonPrecompiledBridge,
@@ -228,28 +291,34 @@ object HelloWorldTests extends TestSuite {
         val Right(result2) = eval.apply(HelloWorld.core.compile).runtimeChecked
         assert(result2.evalCount > 0, result2.evalCount < result.evalCount)
       }
-      test("failOnError") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
-        os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "val x: ")
+      test("failOnError") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped {
+        eval =>
+          if (scala.util.Properties.isJavaAtLeast(21))
+            "Skipping on Java 21+ due to too old Scala version"
+          else {
+            os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "val x: ")
 
-        val Left(ExecResult.Failure(msg = "Compilation failed")) =
-          eval.apply(HelloWorld.core.compile).runtimeChecked
+            val Left(ExecResult.Failure(msg = "Compilation failed")) =
+              eval.apply(HelloWorld.core.compile).runtimeChecked
 
-        val paths = ExecutionPaths.resolve(eval.outPath, HelloWorld.core.compile)
+            val paths = ExecutionPaths.resolve(eval.outPath, HelloWorld.core.compile)
 
-        assert(
-          os.walk(paths.dest / "classes").isEmpty,
-          !os.exists(paths.meta)
-        )
-        // Works when fixed
-        os.write.over(
-          HelloWorld.moduleDir / "core/src/Main.scala",
-          os.read(HelloWorld.moduleDir / "core/src/Main.scala").dropRight(
-            "val x: ".length
-          )
-        )
+            assert(
+              os.walk(paths.dest / "classes").isEmpty,
+              !os.exists(paths.meta)
+            )
+            // Works when fixed
+            os.write.over(
+              HelloWorld.moduleDir / "core/src/Main.scala",
+              os.read(HelloWorld.moduleDir / "core/src/Main.scala").dropRight(
+                "val x: ".length
+              )
+            )
 
-        val Right(_) = eval.apply(HelloWorld.core.compile).runtimeChecked
+            val Right(_) = eval.apply(HelloWorld.core.compile).runtimeChecked
+          }
       }
+
       test("passScalacOptions") - UnitTester(
         HelloWorldFatalWarnings,
         sourceRoot = resourcePath
@@ -287,21 +356,41 @@ object HelloWorldTests extends TestSuite {
           val expectedFiles = (compileClassfiles.map(_.toString()) ++ otherFiles).sorted
 
           assert(
-            entries.nonEmpty,
-            entries == expectedFiles
+            os.exists(result.value.path),
+            result.evalCount > 0
           )
 
-          val mainClass = jarMainClass(jarFile)
-          assert(mainClass.contains("Main"))
+          Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
+            val entries = jarFile.entries().asScala.map(_.getName).toSeq.sorted
+
+            val otherFiles = Seq(
+              "META-INF/",
+              "META-INF/MANIFEST.MF",
+              "reference.conf"
+            )
+            val expectedFiles = (compileClassfiles.map(_.toString()) ++ otherFiles).sorted
+
+            assert(
+              entries.nonEmpty,
+              entries == expectedFiles
+            )
+
+            val mainClass = jarMainClass(jarFile)
+            assert(mainClass.contains("Main"))
+          }
         }
       }
 
       test("logOutputToFile") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
-        val outPath = eval.outPath
-        eval.apply(HelloWorld.core.compile)
+        if (scala.util.Properties.isJavaAtLeast(21))
+          "Skipping on Java 21+ due to too old Scala version"
+        else {
+          val outPath = eval.outPath
+          eval.apply(HelloWorld.core.compile)
 
-        val logFile = outPath / "core/compile.log"
-        assert(os.exists(logFile))
+          val logFile = outPath / "core/compile.log"
+          assert(os.exists(logFile))
+        }
       }
     }
   }

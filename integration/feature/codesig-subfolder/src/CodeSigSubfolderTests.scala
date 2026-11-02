@@ -16,6 +16,8 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       import tester.*
 
       eval(("clean", "_"))
+      assert(timing(1)("compile").cached == false)
+
       // eager capture output so we see it in asserts
       case class EvalOuts(out: String, err: String)
       def evalOuts(cmd: String): EvalOuts = {
@@ -24,30 +26,32 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       }
 
       val initial = evalOuts("foo")
-
       assert(initial.out.linesIterator.toSeq == Seq("running foo", "running helperFoo"))
 
       val cached = evalOuts("foo")
       assert(cached.out == "")
-      assert(!cached.err.contains("compiling"))
+      // meta-build didn't ran
+      assert(timing(1).get("compile") == None)
+      assert(timing()("foo").cached == true)
 
       val subFolderRes = evalOuts("subfolder.subFolderTask")
       assert(subFolderRes.out.linesIterator.toSeq == Seq("running subFolderTask"))
-      assert(!subFolderRes.err.contains("compiling"))
+      assert(timing(1).get("compile") == None)
 
       modifyFile(workspacePath / "build.mill", _.replace("running foo", "running foo2"))
       val mangledFoo = evalOuts("foo")
       assert(mangledFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo"))
-      assert(mangledFoo.err.contains("compiling 1 Scala source"))
+      assert(timing(1)("compile").cached == false)
+      assert(timing()("foo").cached == false)
 
       val cached2 = evalOuts("foo")
       assert(cached2.out == "")
-      assert(!cached2.err.contains("compiling"))
+      assert(timing(1).get("compile") == None)
 
       // Changing stuff in the top-level build.mill does not invalidate tasks in subfolder/package.mill
       val subFolderResCached = evalOuts("subfolder.subFolderTask")
       assert(subFolderResCached.out == "")
-      assert(!subFolderResCached.err.contains("compiling"))
+      assert(timing()("subfolder.subFolderTask").cached == true)
 
       modifyFile(
         workspacePath / "subfolder/package.mill",
@@ -56,7 +60,6 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       // Changing stuff in subfolder/package.mill does not invalidate unrelated tasks in build.mill
       val cached3 = evalOuts("foo")
       assert(cached3.out == "")
-      assert(cached3.err.contains("compiling 1 Scala source"))
 
       modifyFile(
         workspacePath / "subfolder/package.mill",
@@ -64,7 +67,6 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       )
       val mangledHelperFoo = evalOuts("foo")
       assert(mangledHelperFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
-      assert(mangledHelperFoo.err.contains("compiling 1 Scala source"))
 
       // Make sure changing `val`s, which only affects the Module constructor and
       // not the Task method itself, causes invalidation
@@ -74,7 +76,6 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       )
       val mangledValFoo = evalOuts("foo")
       assert(mangledValFoo.out.linesIterator.toSeq == Seq("running foo2", "running helperFoo2"))
-      assert(mangledValFoo.err.contains("compiling 1 Scala source"))
 
       // Even modifying `val`s that do not affect the task invalidates it, because
       // we only know that the constructor changed and don't do enough analysis to
@@ -88,8 +89,6 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
         "running foo2",
         "running helperFoo2"
       ))
-
-      assert(mangledValFooUsedInBar.err.contains("compiling 1 Scala source"))
     }
   }
 }

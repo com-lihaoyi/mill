@@ -1,6 +1,6 @@
 package mill.contrib.scalapblib
 
-import coursier.core.Version
+import coursier.core.{VariantSelector, Version}
 import mill.api.{PathRef, Task}
 import mill.scalalib.*
 import mill.T
@@ -195,7 +195,9 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBProtoClasspath: T[Seq[PathRef]] = Task {
     millResolver().classpath(
       Seq(
-        coursierDependencyTask().withConfiguration(coursier.core.Configuration.provided),
+        coursierDependencyTask().copy(variantSelector =
+          VariantSelector.ConfigurationBased(coursier.core.Configuration.provided)
+        ),
         coursierDependencyTask()
       )
     )

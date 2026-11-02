@@ -106,6 +106,10 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ),
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.kotlinlib.KotlinModule#KotlinTests0.mill$kotlinlib$KotlinModule$KotlinTests0$$super$kotlinFriendModules"
+    ),
+    // new override calling super, with default impl: adds the Scala.js test bridge to the dependencies
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalajslib.TestScalaJSModule.mill$scalajslib$TestScalaJSModule$$super$mandatoryMvnDeps"
     )
   )
 

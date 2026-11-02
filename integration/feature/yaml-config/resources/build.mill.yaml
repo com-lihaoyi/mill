@@ -4,6 +4,7 @@ forkEnv:
   NULL2: Null
   NULL3: NULL
   NULL4: ~
+  NULL5: "null"
   TRUE1: y
   TRUE2: Y
   TRUE3: yes

@@ -48,7 +48,9 @@ case class MillCliConfig(
     threadCountRaw: Option[String] = None,
     @arg(
       name = "import",
-      doc = """Additional ivy dependencies to load into mill, e.g. plugins."""
+      doc = """Additional Maven runtime dependencies to load into Mill, e.g. plugins.
+               Format is the same as 'mvnDeps' ('group:artifact:version').
+               A 'mvn:' or 'ivy:' prefix is also accepted."""
     )
     imports: Seq[String] = Nil,
     @arg(

@@ -8,7 +8,7 @@ import mill.api.{BuildCtx, ModuleRef, PathRef, Result, Task}
 import mill.util.BuildInfo
 import mill.util.Jvm
 import mill.javalib.api.{CompilationResult, Versions}
-import mill.javalib.api.JvmWorkerUtil.{scalaOrganization => scalaOrganization0, *}
+import mill.javalib.api.JvmWorkerUtil.{scalaOrganization as scalaOrganization0, *}
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
 import mill.api.daemon.internal.{ScalaModuleApi, ScalaPlatform, internal}
@@ -181,7 +181,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * Mandatory command-line options to pass to the Scala compiler
    * that shouldn't be removed by overriding `scalacOptions`
    */
-  protected def mandatoryScalacOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  protected def mandatoryScalacOptions: T[Seq[String]] = Task {
+    // `-sourceroot` so scalac stores TASTY source paths relative to it.
+    if (!util.Version.isAtLeast(scalaVersion(), "3")(using util.Version.MavenOrdering)) Seq()
+    else Seq("-sourceroot", BuildCtx.workspaceRoot.toString())
+  }
 
   /**
    * Scalac options to activate the compiler plugins.
@@ -665,7 +669,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
   override def semanticDbScalaVersion: T[String] = scalaVersion()
 
-  override protected def semanticDbPluginClasspath = Task {
+  override protected def semanticDbPluginClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       scalacPluginMvnDeps() ++ semanticDbPluginMvnDeps()
     )
@@ -676,7 +680,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       val sv = scalaVersion()
 
       val additionalScalacOptions = if (isScala3(sv)) {
-        Seq("-Xsemanticdb", s"-sourceroot:${BuildCtx.workspaceRoot}")
+        Seq("-Xsemanticdb")
       } else {
         Seq("-Yrangepos", s"-P:semanticdb:sourceroot:${BuildCtx.workspaceRoot}")
       }

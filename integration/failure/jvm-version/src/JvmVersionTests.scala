@@ -11,8 +11,10 @@ object JvmVersionTests extends UtestIntegrationTestSuite {
       val res = tester.eval(("resolve", "_"))
       assert(!res.isSuccess)
       assert(
+        // split the message to leave the exact version out
+        res.err.contains("""Invalid java.version 11."""),
         res.err.contains(
-          """Invalid java.version 11.0.30. Mill requires Java 17 and above to run the build tool itself. """ +
+          """Mill requires Java 17 and above to run the build tool itself. """ +
             """Individual `JavaModule` can be set to lower Java versions via `def jvmVersion = "11"`"""
         )
       )

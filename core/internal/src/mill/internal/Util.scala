@@ -1,13 +1,13 @@
 package mill.internal
 
-import scala.reflect.NameTransformer.encode
-import mill.api.Result
-import mill.api.Logger
-import mill.api.ExecResult
+import mill.api.{ExecResult, Logger, Result}
 import mill.api.Result.Failure.ExceptionInfo
-import mill.api.internal.HeaderData
 import mill.api.daemon.internal.ExecutionResultsApi
+import mill.api.internal.Appendable.{AppendMarkerKey, AppendYamlTag}
+import mill.api.internal.HeaderData
+
 import scala.collection.mutable
+import scala.reflect.NameTransformer.encode
 
 object Util {
 
@@ -183,9 +183,10 @@ object Util {
         upickle.core.TraceVisitor.withTrace(true, visitor0) { visitor =>
           import org.snakeyaml.engine.v2.api.LoadSettings
           import org.snakeyaml.engine.v2.composer.Composer
+          import org.snakeyaml.engine.v2.nodes.*
           import org.snakeyaml.engine.v2.parser.ParserImpl
           import org.snakeyaml.engine.v2.scanner.StreamReader
-          import org.snakeyaml.engine.v2.nodes.*
+
           import scala.jdk.CollectionConverters.*
 
           val settings = LoadSettings.builder().build()
@@ -203,26 +204,42 @@ object Util {
                     case _ => v.visitString(scalar.getValue, index)
                   }
                 case mapping: MappingNode =>
-                  val objVisitor =
-                    v.visitObject(mapping.getValue.size(), jsonableKeys = true, index)
-                      .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
-                  for (tuple <- mapping.getValue.asScala) {
-                    val keyNode = tuple.getKeyNode
-                    val valueNode = tuple.getValueNode
-                    val keyIndex = keyNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                    val key = keyNode match {
-                      case s: ScalarNode => s.getValue
-                      case _ => keyNode.toString
+                  def visitObject[T](visitor: upickle.core.Visitor[?, T]): T = {
+                    val objVisitor =
+                      visitor.visitObject(mapping.getValue.size(), jsonableKeys = true, index)
+                        .asInstanceOf[upickle.core.ObjVisitor[Any, T]]
+                    for (tuple <- mapping.getValue.asScala) {
+                      val keyNode = tuple.getKeyNode
+                      val valueNode = tuple.getValueNode
+                      val keyIndex = keyNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                      val key = keyNode match {
+                        case s: ScalarNode => s.getValue
+                        case _ => keyNode.toString
+                      }
+                      val keyVisitor = objVisitor.visitKey(keyIndex)
+                      objVisitor.visitKeyValue(keyVisitor.visitString(key, keyIndex))
+                      val valueResult = rec(valueNode, objVisitor.subVisitor)
+                      objVisitor.visitValue(
+                        valueResult,
+                        valueNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                      )
                     }
-                    val keyVisitor = objVisitor.visitKey(keyIndex)
-                    objVisitor.visitKeyValue(keyVisitor.visitString(key, keyIndex))
-                    val valueResult = rec(valueNode, objVisitor.subVisitor)
-                    objVisitor.visitValue(
-                      valueResult,
-                      valueNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                    )
+                    objVisitor.visitEnd(index)
                   }
-                  objVisitor.visitEnd(index)
+
+                  if (mapping.getTag.getValue == AppendYamlTag) {
+                    val objVisitor = v.visitObject(1, jsonableKeys = true, index)
+                      .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
+                    objVisitor.visitKeyValue(objVisitor.visitKey(index).visitString(
+                      AppendMarkerKey,
+                      index
+                    ))
+                    objVisitor.visitValue(visitObject(objVisitor.subVisitor), index)
+                    objVisitor.visitEnd(index)
+                  } else {
+                    visitObject(v)
+                  }
+
                 case sequence: SequenceNode =>
                   def visitSequence[T](visitor: upickle.core.Visitor[?, T]): T = {
                     val arrVisitor = visitor.visitArray(sequence.getValue.size(), index)
@@ -235,8 +252,7 @@ object Util {
                     }
                     arrVisitor.visitEnd(index)
                   }
-                  if (sequence.getTag.getValue == "!append") {
-                    import mill.api.internal.Appendable.AppendMarkerKey
+                  if (sequence.getTag.getValue == AppendYamlTag) {
                     val objVisitor = v.visitObject(1, jsonableKeys = true, index)
                       .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
                     objVisitor.visitKeyValue(objVisitor.visitKey(index).visitString(

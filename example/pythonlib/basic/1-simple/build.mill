@@ -86,7 +86,7 @@ OK
 ...
 
 > ./mill show foo.bundle # Creates Bundle for the python file
-".../out/foo/bundle.dest/bundle"
+"...$MILL_OUT/foo/bundle.dest/bundle"
 
 > out/foo/bundle.dest/bundle --text "Hello Mill" # running the self-contained bundle outside of Mill
 <h1>Hello Mill</h1>

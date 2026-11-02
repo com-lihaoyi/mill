@@ -8,13 +8,14 @@ import mill.api.daemon.internal.{
   RootModuleApi,
   TaskApi
 }
-import mill.api.{BuildCtx, Logger, PathRef, Result, SelectMode, SystemStreams, Val}
+import mill.api.{BuildCtx, Logger, MappedRoots, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
 import mill.constants.OutFiles.OutFiles
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
 import mill.internal.{LockUpgrade, PrefixLogger, PromptWaitReporter, Util}
+import mill.constants.PathVars
 import mill.meta.{BootstrapRootModule, MillBuildRootModule}
 import mill.api.daemon.internal.{CliImports, LauncherLocking, LauncherOutFiles}
 import mill.internal.BuildFileDiscovery.findRootBuildFiles
@@ -89,11 +90,13 @@ class MillBuildBootstrap(
     val runnerLauncherState = evaluateRec(0)
     try {
       def write(depth: Int, logged: RunnerLauncherState.Logged): Unit =
-        os.write.over(
-          recOut(output, depth) / millRunnerState,
-          upickle.write(logged, indent = 4),
-          createFolders = true
-        )
+        MappedRoots.withMillDefaults(outPath = output) {
+          os.write.over(
+            recOut(output, depth) / millRunnerState,
+            upickle.write(logged, indent = 4),
+            createFolders = true
+          )
+        }
       for (frame <- runnerLauncherState.metaFrames)
         write(frame.depth, RunnerLauncherState.Logged.fromMetaFrame(frame))
       for (frame <- runnerLauncherState.finalFrame)
@@ -110,6 +113,9 @@ class MillBuildBootstrap(
 
   def evaluateRec(depth: Int): RunnerLauncherState =
     logger.withChromeProfile(s"meta-level $depth") {
+      // We need relocatable PathRef for meta-builds for a stable classpathSig
+      MappedRoots.requireMappedPaths(PathVars.WORKSPACE, PathVars.HOME, PathVars.MILL_OUT)
+
       val currentRoot = recRoot(topLevelProjectRoot, depth)
 
       val nestedState =

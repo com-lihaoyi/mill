@@ -201,8 +201,8 @@ ${expectedSnippets.mkString("\n")}
       validateEval(expectedSnippets, result, check, debugCommandStr)
     } catch {
       case NonFatal(e) =>
-        Console.err.println("Failure:")
-        Console.err.println(debugCommandStr + "\n")
+        Console.err.println(fansi.Color.Red("Failure:"))
+        Console.err.println(fansi.Color.Red(debugCommandStr).toString + "\n")
         throw e
     }
 
@@ -303,11 +303,11 @@ ${expectedSnippets.mkString("\n")}
     for (expectedLine <- unwrappedExpected.linesIterator) {
       Predef.assert(
         filteredOut.linesIterator.exists(globMatches(expectedLine, _)),
-        (if (command == "") "" else s"==== command:\n$command\n") +
+        fansi.Color.Red((if (command == "") "" else s"==== command:\n$command\n") +
           s"""==== filteredOut:
 $filteredOut
 ==== Missing expectedLine:
-$expectedLine"""
+$expectedLine""")
       )
     }
   }
@@ -330,7 +330,14 @@ $expectedLine"""
     val usageComment = parsed.collect { case Chunk.Usage(lines) =>
       lines.mkString("\n")
     }.mkString("\n\n")
-    val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
+
+    val commandOverride = sys.env.get("MILL_EXAMPLE_COMMAND_OVERRIDE")
+
+    val finalUsageComment = commandOverride.filter(_.nonEmpty).getOrElse(usageComment)
+
+    val commandBlocks = {
+      ("\n" + finalUsageComment.trim).split("\n> ").filter(_.nonEmpty)
+    }
 
     try {
       initWorkspace()

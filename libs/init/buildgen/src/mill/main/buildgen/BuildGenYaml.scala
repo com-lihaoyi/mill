@@ -258,6 +258,20 @@ object BuildGenYaml extends BuildGen {
     lines ++= renderYamlStringMap("micronautAotConfigProperties", micronautAotConfigProperties)
 
     renderYamlStringValue(
+      "androidApplicationNamespace",
+      androidApplicationNamespace
+    ).foreach(lines += _)
+    renderYamlStringValue("androidNamespace", androidNamespace).foreach(lines += _)
+    renderYamlStringValue("androidApplicationId", androidApplicationId).foreach(lines += _)
+    renderYamlIntValue("androidCompileSdk", androidCompileSdk).foreach(lines += _)
+    renderYamlIntValue("androidMinSdk", androidMinSdk).foreach(lines += _)
+    renderYamlIntValue("androidTargetSdk", androidTargetSdk).foreach(lines += _)
+    renderYamlIntValue("androidVersionCode", androidVersionCode).foreach(lines += _)
+    renderYamlStringValue("androidVersionName", androidVersionName).foreach(lines += _)
+    renderYamlStringValue("buildToolsVersion", androidBuildToolsVersion).foreach(lines += _)
+    renderYamlModuleDepValue("androidSdkModule", androidSdkModuleDep).foreach(lines += _)
+
+    renderYamlStringValue(
       "artifactGroupId",
       artifactGroupId
     ).foreach(lines += _)
@@ -363,7 +377,10 @@ object BuildGenYaml extends BuildGen {
     "SpringBootModule" -> "spring.boot.SpringBootModule",
     "QuarkusModule" -> "quarkus.QuarkusModule",
     "MicronautAotModule" -> "mill.javalib.micronaut.MicronautAotModule",
-    "ProjectBaseModule" -> "millbuild.ProjectBaseModule"
+    "ProjectBaseModule" -> "millbuild.ProjectBaseModule",
+    "AndroidAppKotlinModule" -> "mill.androidlib.AndroidAppKotlinModule",
+    "AndroidKotlinModule" -> "mill.androidlib.AndroidKotlinModule",
+    "AndroidSdkModule" -> "mill.androidlib.AndroidSdkModule"
   )
 
   private def fullyQualifyType(typeName: String): String = {
@@ -386,8 +403,13 @@ object BuildGenYaml extends BuildGen {
     val base = dep.segments.mkString(".")
     // Filter out empty parentheses "()" which are invalid in YAML
     val crossPart = dep.crossSuffix.filterNot(_ == "()").getOrElse("")
-    val suffix = crossPart + dep.childSegment.fold("")("." + _)
-    base + suffix
+    val withCross = base + crossPart
+    // avoid a leading dot when referencing a root-level module
+    dep.childSegment match {
+      case Some(child) if withCross.isEmpty => child
+      case Some(child) => s"$withCross.$child"
+      case None => withCross
+    }
   }
 
   private def renderYamlMvnDep(dep: MvnDep): String = {
@@ -418,6 +440,14 @@ object BuildGenYaml extends BuildGen {
 
   private def renderYamlStringValue(name: String, value: Value[String]): Option[String] = {
     value.base.map(v => s"$name: ${yamlEscapeString(v)}")
+  }
+
+  private def renderYamlIntValue(name: String, value: Value[Int]): Option[String] = {
+    value.base.map(v => s"$name: $v")
+  }
+
+  private def renderYamlModuleDepValue(name: String, value: Value[ModuleDep]): Option[String] = {
+    value.base.map(dep => s"$name: ${renderYamlModuleDep(dep)}")
   }
 
   private def renderYamlStringMap(name: String, value: Value[Map[String, String]]): Seq[String] = {

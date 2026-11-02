@@ -6,7 +6,7 @@
 
 > ./mill init
 
-> ./mill {getting-started-reactive,kafka-avro-schema-quickstart}.compile
+> ./mill "{getting-started-reactive,kafka-avro-schema-quickstart}.compile"
 
 > ./mill __.compile # scheduled linux
 
