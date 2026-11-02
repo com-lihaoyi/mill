@@ -30,3 +30,14 @@ object extra extends ScalaModule with ScoverageModule {
     // some customizations
   }
 }
+
+object withBom extends ScalaModule with ScoverageModule {
+  def scoverageVersion = "2.5.2"
+  def scalaVersion = "2.13.18"
+  // Manage a transitive dependency's version via a BOM
+  def bomMvnDeps = Seq(mvn"io.netty:netty-bom:4.2.19.Final")
+  // A version-less dependency whose version is supplied by the BOM
+  def mvnDeps = Seq(
+    mvn"io.netty:netty-transport-native-io_uring;classifier=linux-x86_64"
+  )
+}

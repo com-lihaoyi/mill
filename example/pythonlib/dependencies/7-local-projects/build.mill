@@ -34,7 +34,7 @@ Hello from a raw uv project!
 ...OK...
 
 > ./mill show bundle
-".../out/bundle.dest/bundle"
+"...$MILL_OUT/bundle.dest/bundle"
 
 > out/bundle.dest/bundle
 Hello from a raw uv project!

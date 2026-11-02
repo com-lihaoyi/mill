@@ -1,0 +1,17 @@
+extends: mill.androidlib.AndroidAppKotlinModule
+kotlinVersion: 2.0.20
+androidApplicationNamespace: com.helloworld.gradle8
+androidApplicationId: com.helloworld.gradle8
+androidCompileSdk: 34
+androidMinSdk: 21
+androidTargetSdk: 34
+androidVersionCode: 1
+androidVersionName: 1.0
+androidSdkModule: androidSdkModule0
+
+object test:
+  extends: [AndroidAppKotlinTests, TestModule.Junit4]
+  mvnDeps:
+  - junit:junit:4.13.2
+  testParallelism: false
+  testSandboxWorkingDir: false

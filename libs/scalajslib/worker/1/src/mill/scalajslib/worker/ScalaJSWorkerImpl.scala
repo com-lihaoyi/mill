@@ -244,6 +244,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
   override def close(): Unit = ScalaJSLinker.close()
 
   private def fromSjs(moduleKind: sjs.ModuleKind): workerApi.ModuleKind = moduleKind match {
+    case mk if ScalaJSConfig.isWasmComponent(mk) => workerApi.ModuleKind.WasmComponent
     case sjs.ModuleKind.NoModule => workerApi.ModuleKind.NoModule
     case sjs.ModuleKind.ESModule => workerApi.ModuleKind.ESModule
     case sjs.ModuleKind.CommonJSModule => workerApi.ModuleKind.CommonJSModule
@@ -311,6 +312,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
     case workerApi.ModuleKind.NoModule => api0.ModuleKind.NoModule
     case workerApi.ModuleKind.ESModule => api0.ModuleKind.ESModule
     case workerApi.ModuleKind.CommonJSModule => api0.ModuleKind.CommonJSModule
+    case workerApi.ModuleKind.WasmComponent => api0.ModuleKind.WasmComponent
   }
 
   private def fromWorkerApi(report: workerApi.Report): api0.Report = {

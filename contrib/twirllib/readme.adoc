@@ -10,7 +10,7 @@ Also note that twirl templates get compiled into scala code, so you also need to
 .`build.mill`
 [source,scala]
 ----
-//| mvnDeps: ["com.lihaoyi::mill-contrib-twirl:$MILL_VERSION"]
+//| mvnDeps: ["com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION"]
 package build
 
 import mill.scalalib.*
@@ -49,7 +49,7 @@ directory. This directory must be added to the generated sources of the module t
 .`build.mill`
 [source,scala]
 ----
-//| mvnDeps: ["com.lihaoyi::mill-contrib-twirl:$MILL_VERSION"]
+//| mvnDeps: ["com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION"]
 package build
 
 import mill.scalalib.*
