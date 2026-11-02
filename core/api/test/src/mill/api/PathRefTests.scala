@@ -95,14 +95,12 @@ object PathRefTests extends TestSuite {
         val pr = PathRef(file, quick)
         val prFile = pr.path.toString().replace("\\", "\\\\")
         val json = upickle.write(pr)
-        if (quick) {
-          assert(json.startsWith(""""qref:v0:"""))
-          assert(json.endsWith(s""":${prFile}""""))
-        } else {
-          val hash = if (Properties.isWin) "86df6a6a" else "4c7ef487"
-          val expected = s""""ref:v0:${hash}:${prFile}""""
-          assert(json == expected)
-        }
+        val quickSig = "9d979d2b"
+        val fullSig = if (Properties.isWin) "86df6a6a" else "4c7ef487"
+        val expected =
+          if (quick) s""""qref:v0:${quickSig}::${prFile}""""
+          else s""""ref:v0:${quickSig}:${fullSig}:${prFile}""""
+        assert(json == expected)
         val pr1 = upickle.read[PathRef](json)
         assert(pr == pr1)
 

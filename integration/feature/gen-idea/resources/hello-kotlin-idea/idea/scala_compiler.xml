@@ -1,6 +1,10 @@
 <project version="4">
     <component name="ScalaCompilerConfiguration">
-        <profile name="mill 1" modules="">
+        <profile name="mill 1" modules="depkotlin,hellokotlin,hellokotlin.test">
+            <parameters></parameters>
+            <plugins></plugins>
+        </profile>
+        <profile name="mill 2" modules="mill-build">
             <parameters>
                 <parameter value="-sourceroot"/>
                 <parameter value=".../out/integration/sharedOutFolder.dest/<version>/shared-0/out"/>
@@ -24,10 +28,6 @@
                 <plugin path=".../org/scala-sbt/compiler-interface/<version>/compiler-interface-<version>.jar"/>
                 <plugin path=".../org/scala-sbt/util-interface/<version>/util-interface-<version>.jar"/>
             </plugins>
-        </profile>
-        <profile name="mill 2" modules="depkotlin,hellokotlin,hellokotlin.test">
-            <parameters></parameters>
-            <plugins></plugins>
         </profile>
     </component>
 </project>
