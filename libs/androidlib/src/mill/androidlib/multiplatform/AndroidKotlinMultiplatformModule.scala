@@ -14,6 +14,10 @@ trait AndroidKotlinMultiplatformModule extends KotlinMultiplatformModule { outer
   /** Compiles `androidMain` and `commonMain`, with an optional `AndroidManifest.xml` */
   trait AndroidPlatformModule extends AndroidKotlinModule, PlatformModule {
 
+    override def androidResources = Task.Sources(kmpSourceSetDir(kmpFragments.head, "res"))
+
+    override def androidAssets = Task.Sources(kmpSourceSetDir(kmpFragments.head, "assets"))
+
     private def androidMainManifest = Task.Source(
       outer.moduleDir / "src" / kmpFragments.head / "AndroidManifest.xml"
     )
