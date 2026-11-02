@@ -130,12 +130,12 @@ object Deps {
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
 
   val cask = mvn"com.lihaoyi::cask:0.11.3"
-  val castor = mvn"com.lihaoyi::castor:0.3.0"
+  val castor = mvn"com.lihaoyi::castor:0.3.2"
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = mvn"org.flywaydb:flyway-core:11.20.3"
   // compile-time only: at runtime the Vaadin plugin uses the Flow version of the user's application
   val vaadinFlowPluginBase_api = mvn"com.vaadin:flow-plugin-base:25.2.0" // scala-steward:off
-  val jibCore = mvn"com.google.cloud.tools:jib-core:0.27.3"
+  val jibCore = mvn"com.google.cloud.tools:jib-core:0.28.2"
   val graphvizJava = Seq(
     mvn"guru.nidi:graphviz-java-min-deps:0.18.1",
     mvn"org.webjars.npm:viz.js-graphviz-java:2.1.3",
@@ -254,7 +254,7 @@ object Deps {
   val kotlinStdlib = mvn"org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
   val groovyVersion_lowerBound = "4.0.28"
   val groovyCompiler_lowerBound = mvn"org.apache.groovy:groovy:$groovyVersion_lowerBound"
-  val groovyVersion = "5.1.1"
+  val groovyVersion = "5.1.3"
   val groovyCompiler_runtime = mvn"org.apache.groovy:groovy:$groovyVersion"
 
   /** Used for the `mill init` from a Maven project. */
@@ -352,7 +352,7 @@ object Deps {
     mvn"org.apache.ant:ant:1.10.17",
     Deps.commonsIo,
     Deps.gson,
-    mvn"com.google.protobuf:protobuf-java:4.33.6",
+    mvn"com.google.protobuf:protobuf-java:4.36.2",
     mvn"com.google.guava:guava:33.7.2-jre",
     mvn"org.yaml:snakeyaml:2.7",
     mvn"org.apache.commons:commons-compress:1.28.0"
@@ -378,7 +378,7 @@ object Deps {
     val bundleTool = mvn"com.android.tools.build:bundletool:1.18.3"
     val ndkVersion = "27.0.12077973"
     val cmakeVersion = "3.22.1"
-    val layoutLibVersion = "15.1.2"
+    val layoutLibVersion = "15.1.4"
     val layoutLibRenderer = mvn"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
     val layoutLibRuntime = mvn"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
     val composePreviewRenderer =
