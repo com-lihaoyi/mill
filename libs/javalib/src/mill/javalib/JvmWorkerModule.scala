@@ -161,7 +161,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
 
     val zincCompilerBridge = ZincCompilerBridgeProvider(
       workspace = ctx.dest,
-      logInfo = ctx.log.info,
+      logTicker = ctx.log.ticker,
       acquire = (scalaVersion, scalaOrganization) =>
         scalaCompilerBridgeJarV2(scalaVersion, scalaOrganization, defaultResolver()).map(_.path)
     )

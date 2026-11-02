@@ -630,7 +630,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
             val releaseOptions =
               forkJavaRelease.toSeq.flatMap(major => Seq("-release", major.toString))
             ZincCompilerBridgeProvider.compile(
-              compilerBridgeProvider.logInfo,
+              compilerBridgeProvider.logTicker,
               workingDir,
               compiledDest,
               scalaVersion,
