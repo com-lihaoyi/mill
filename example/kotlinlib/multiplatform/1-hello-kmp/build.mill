@@ -1,0 +1,64 @@
+// This example shows a minimal Kotlin Multiplatform module `foo`, compiled
+// for the JVM and for Kotlin/JS running on Node.js.
+
+package build
+import mill.*, kotlinlib.*, kotlinlib.js.*, kotlinlib.multiplatform.*
+
+object foo extends KotlinMultiplatformModule {
+  def kotlinVersion = "2.2.20"
+
+  object jvm extends PlatformModule {
+    def mainClass = Some("foo.MainKt")
+
+    object test extends PlatformTests, TestModule.Junit4 {
+      def mvnDeps = Seq(mvn"org.jetbrains.kotlin:kotlin-test-junit:${this.kotlinVersion()}")
+    }
+  }
+
+  object js extends PlatformModule, KotlinJsModule {
+    def kotlinJsModuleKind = ModuleKind.ESModule
+    def kotlinJsRunTarget = Some(RunTarget.Node)
+
+    object test extends PlatformTests, KotlinTestPackageTests
+  }
+}
+
+// A `KotlinMultiplatformModule` contains one `PlatformModule` per target
+// platform. Its sources are laid out by source set, as in the Kotlin Gradle
+// plugin:
+//
+// ----
+// foo/src/
+//   commonMain/kotlin/   shared by all platforms
+//   jvmMain/kotlin/      only for `foo.jvm`
+//   jvmMain/java/        Java sources, only for `foo.jvm`
+//   jsMain/kotlin/       only for `foo.js`
+//   commonTest/kotlin/   tests shared by all platforms
+//   jvmTest/kotlin/      tests only for `foo.jvm.test`
+// ----
+//
+// Each platform module compiles its own source set together with
+// `commonMain`, so `expect` declarations in `commonMain` can be implemented
+// by `actual` declarations in `jvmMain` and `jsMain`. The source set used by
+// a platform module is named after it, e.g. `object jvm` reads `jvmMain`,
+// while the compiler is chosen by the traits it extends, e.g. `KotlinJsModule`
+// for Kotlin/JS.
+
+/** Usage
+
+> ./mill foo.jvm.run
+Hello from JVM
+
+> ./mill foo.js.run
+Hello from JS
+
+> ./mill foo.jvm.test
+...foo.GreetingTest...greetingMentionsPlatform...
+...foo.JvmPlatformTest...platformIsJvm...
+
+> ./mill foo.js.test
+
+> cat out/foo/js/test/testForked.dest/test-report.xml
+...name="Mocha Tests" tests="1" failures="0" errors="0"...
+
+*/

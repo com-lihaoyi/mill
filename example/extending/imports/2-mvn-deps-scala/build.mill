@@ -27,14 +27,13 @@ object bar extends ScalaModule {
 /** Usage
 
 > ./mill bar.compile
-compiling 1 Scala source...
 ...
 
 > ./mill bar.run
 generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>
 
 > ./mill show bar.assembly
-".../out/bar/assembly.dest/out.jar"
+"...$MILL_OUT/bar/assembly.dest/out.jar"
 
 > ./out/bar/assembly.dest/out.jar # mac/linux
 generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>

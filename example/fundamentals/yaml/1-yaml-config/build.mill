@@ -1,0 +1,73 @@
+/** Usage
+
+> mill show configSeq
+[
+  "A"
+]
+
+> mill show configClass
+{
+  "value": [
+    "M"
+  ]
+}
+
+> mill show configMap
+{
+  "default": {
+    "value": [
+      "X"
+    ]
+  }
+}
+
+> mill show foo.configSeq
+[
+  "B"
+]
+
+> mill show foo.configClass
+{
+  "value": [
+    "N"
+  ]
+}
+
+> mill show foo.configMap
+{
+  "new": {
+    "value": [
+      "Y"
+    ]
+  }
+}
+
+> mill show bar.configSeq
+[
+  "A",
+  "B"
+]
+
+> mill show bar.configClass
+{
+  "value": [
+    "M",
+    "N"
+  ]
+}
+
+> mill show bar.configMap
+{
+  "default": {
+    "value": [
+      "X"
+    ]
+  }
+  "new": {
+    "value": [
+      "Y"
+    ]
+  }
+}
+
+*/

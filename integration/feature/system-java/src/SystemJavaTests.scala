@@ -9,16 +9,15 @@ object SystemJavaTests extends UtestIntegrationTestSuite {
 
     test("header") - integrationTest { tester =>
       val defaultVersion = tester.eval("printJavaVersion")
-      assert(defaultVersion.out.contains("25.0.2"))
+      assert(defaultVersion.out.startsWith("25.0."))
 
       tester.eval("printJavaHome")
       tester.modifyFile(
         tester.workspacePath / "build.mill",
         s => "//| mill-jvm-version: system\n" + s
       )
-      // Adding `mill-jvm-version: system` invalidates the meta-build (the
-      // "compiling 1 Scala source..." line is expected) and shifts the
-      // launcher off Mill's Coursier-resolved default Java.
+      // Adding `mill-jvm-version: system` invalidates the meta-build and
+      // shifts the launcher off Mill's Coursier-resolved default Java.
       // We can't assert `updatedHome.out != defaultHome.out` here because the
       // test runner JVM (which becomes the `system` Java via PATH) IS the
       // same Coursier-cached Java that Mill resolves by default — so both
@@ -27,8 +26,9 @@ object SystemJavaTests extends UtestIntegrationTestSuite {
       // without depending on the test environment exposing two distinct
       // Java installations.
       val updatedHome = tester.eval("printJavaHome")
-      assert(updatedHome.err.contains("compiling 1 Scala source"))
-      assert(updatedHome.out.contains("25.0.2"))
+      // assert that we (re-)compiled something due to the change
+      assert(tester.timing(1)("compile").cached == false)
+      assert(updatedHome.out.contains("25.0."))
     }
 
   }

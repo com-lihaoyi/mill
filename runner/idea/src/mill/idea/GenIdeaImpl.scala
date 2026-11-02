@@ -331,12 +331,10 @@ class GenIdeaImpl(
         .map(toResolvedJar)
         .collect { case Some(r) => r }
 
-    val compilerSettings = resolvedModules
-      .foldLeft(Map[(Seq[os.Path], Seq[String]), Vector[JavaModuleApi]]()) {
-        (r, q) =>
-          val key = (q.pluginClasspath.map(os.Path(_)), q.scalaOptions)
-          r + (key -> (r.getOrElse(key, Vector()) :+ q.module))
-      }
+    val compilerSettings: Map[(Seq[os.Path], Seq[String]), Seq[String]] =
+      resolvedModules.groupMap(m => (m.pluginClasspath.map(os.Path(_)), m.scalaOptions))(m =>
+        IdeUtils.moduleName(m.segments).getOrElse("")
+      )
 
     // Get bspScriptIgnore rules (same as BSP integration)
     val bspScriptIgnore: Seq[String] = MillBuildRootModuleApi.bspScriptIgnore(evaluators)
@@ -599,7 +597,7 @@ class GenIdeaImpl(
 
     // Generate module files for script files
     val scriptModuleFiles: Seq[(os.SubPath, Elem)] = scriptFiles.map { scriptPath =>
-      val moduleXml = scriptModuleXmlTemplate(scriptPath)
+      val moduleXml = scriptModuleXmlTemplate(scriptPath, outDir)
       val moduleFile = Tuple2(
         os.sub / "mill_modules" / s"${scriptModuleName(scriptPath)}.iml",
         moduleXml
@@ -875,13 +873,10 @@ class GenIdeaImpl(
   }
 
   def scalaCompilerTemplate(
-      settings: Map[(Seq[os.Path], Seq[String]), Vector[JavaModuleApi]]
+      settings: Map[(Seq[os.Path], Seq[String]), Seq[String]]
   ) = {
-    def modulesString(mods: Seq[ModuleApi]) =
-      mods.map(m => IdeUtils.moduleName(m.moduleSegments).getOrElse("")).mkString(",")
-
     val orderedSettings = settings.toSeq.map {
-      case ((plugins, params), mods) => ((plugins, params), modulesString(mods))
+      case ((plugins, params), names) => ((plugins, params), names.sorted.mkString(","))
     }.sortBy(_._2).zipWithIndex
 
     <project version={"" + ideaConfigVersion}>
@@ -899,22 +894,28 @@ class GenIdeaImpl(
 
   /**
    * Generate module name for a script file.
+   *
+   * Scripts in different folders can share a file name (e.g. `a/Foo.scala` and
+   * `b/Foo.scala`), so the name includes the script's folder relative to the
+   * workspace, e.g. `script-a.foo`. Scripts at the workspace root keep `script-foo`.
    */
   def scriptModuleName(scriptPath: os.Path): String = {
-    s"script-${scriptPath.baseName}".toLowerCase()
+    val rel = scriptPath.relativeTo(workDir)
+    (rel.segments.init :+ rel.baseName).mkString("script-", ".", "").toLowerCase()
   }
 
   /**
    * Generate IntelliJ module XML for a script file.
-   * The source root is the path of the file itself.
+   * The source root is the path of the file itself, and the output folder is the
+   * script's `compile.dest` under `outDir` (e.g. `out/a/Foo.scala/compile.dest`).
    */
-  def scriptModuleXmlTemplate(scriptPath: os.Path): Elem = {
+  def scriptModuleXmlTemplate(scriptPath: os.Path, outDir: os.Path): Elem = {
     val relUrl = "file://$MODULE_DIR$/" + relify(scriptPath)
 
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
         <output url={
-      s"file://$$MODULE_DIR$$/../../out/script/${scriptPath.baseName}/compile.dest"
+      "file://$MODULE_DIR$/" + relify(outDir / scriptPath.relativeTo(workDir) / "compile.dest")
     }/>
         <exclude-output />
         <content url={relUrl}>

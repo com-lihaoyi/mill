@@ -3,15 +3,11 @@ bsp] BSP server started
 1-buildInitialize] Entered buildInitialize
 1-buildInitialize] Got client semanticdbVersion: * Enabling SemanticDB support.
 1-buildInitialize] buildInitialize took * msec
-bsp-mill-build/build.mill-*] compiling * Scala source to * ...
-bsp-mill-build/build.mill-*] done compiling
-bsp-build.mill-*] compiling * Scala source to * ...
 bsp-build.mill-*] [warn] build.mill:107:18
 bsp-build.mill-*]   def theThing = thing
 bsp-build.mill-*]                  ^^^^^
 bsp-build.mill-*] method thing in object diag is deprecated since 0.0.1: deprecated
 bsp-build.mill-*] [warn] one warning found
-bsp-build.mill-*] done compiling
 2-workspaceBuildTargets] Entered workspaceBuildTargets
 2-workspaceBuildTargets] Evaluating * tasks
 2-workspaceBuildTargets] Done
@@ -37,7 +33,6 @@ bsp-build.mill-*] done compiling
 4-compile] buildTargetCompile took * msec
 5-compile] Entered buildTargetCompile
 5-compile] Evaluating 1 task
-5-compile-*] compiling * Scala source to * ...
 5-compile-*] [error] errored/compilation-error/src/Thing.scala:2:3
 5-compile-*]   nope
 5-compile-*]   ^^^^

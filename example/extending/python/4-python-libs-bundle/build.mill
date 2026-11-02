@@ -155,7 +155,7 @@ object qux extends PythonModule {
 Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
 
 > ./mill show qux.bundle
-".../out/qux/bundle.dest/bundle"
+"...$MILL_OUT/qux/bundle.dest/bundle"
 
 > out/qux/bundle.dest/bundle # running the bundle outside of Mill
 Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50

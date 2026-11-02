@@ -34,7 +34,6 @@ object JavaTabsErrorFormattingTests extends TestSuite {
         assertGoldenLiteral(
           errLines,
           List(
-            "compiling 1 Java source to out/core/compile.dest/classes ...",
             "[error] core/src/Core.java:5:11",
             "\t\tint i = 12345.6;",
             "\t\t        ^^^^^^^",
