@@ -4,11 +4,15 @@
 
 This page contains examples of using Mill to build
 https://kotlinlang.org/docs/multiplatform.html[Kotlin Multiplatform] projects,
-sharing code between platforms such as the JVM and Kotlin/JS.
+sharing code between platforms such as the JVM, Kotlin/JS and Android.
 
-NOTE: Kotlin Multiplatform support is experimental. It currently supports JVM
-and Kotlin/JS platforms, and requires Kotlin 2.0 or later.
+NOTE: Kotlin Multiplatform support is experimental. It currently supports JVM,
+Kotlin/JS and Android platforms, and requires Kotlin 2.0 or later.
 
 == Hello Kotlin Multiplatform
 
 include::partial$example/kotlinlib/multiplatform/1-hello-kmp.adoc[]
+
+== Android
+
+include::partial$example/androidlib/kotlin/5-multiplatform.adoc[]

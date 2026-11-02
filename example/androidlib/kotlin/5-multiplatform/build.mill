@@ -48,6 +48,31 @@ object androidApp extends AndroidAppKotlinModule, AndroidSettings {
   def moduleDeps = Seq(shared.android)
 }
 
+// An `AndroidKotlinMultiplatformModule` can contain an `AndroidPlatformModule`,
+// which compiles `androidMain` and `commonMain` against the Android SDK.
+//
+// ----
+// shared/src/
+//   commonMain/kotlin/        shared by all platforms
+//   jvmMain/kotlin/           only for `shared.jvm`
+//   androidMain/kotlin/       only for `shared.android`
+//   androidMain/res/          Android resources of `shared.android`
+//   commonTest/kotlin/        tests shared by all platforms
+//   jvmTest/kotlin/           tests only for `shared.jvm.test`
+//   androidHostTest/kotlin/   tests only for `shared.android.test`
+// androidApp/src/main/
+//   AndroidManifest.xml
+//   kotlin/
+//   res/
+// ----
+//
+// The `AndroidManifest.xml` of `shared.android` is optional, and generated from
+// its `androidNamespace` unless `src/androidMain/AndroidManifest.xml` exists.
+// Its `PlatformHostTests` run `androidHostTest` and `commonTest` on the JVM.
+//
+// Dependencies of all platforms, like `kotlinx-serialization-json` here, go in
+// a trait extended by every platform module, `SharedPlatformModule`.
+
 /** Usage
 
 > ./mill shared.jvm.test
