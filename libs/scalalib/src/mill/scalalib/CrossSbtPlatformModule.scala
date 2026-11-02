@@ -5,7 +5,7 @@ package mill.scalalib
  * version specific folders like
  *  - `src/main/scala-2`
  *  - `src/main/scala-2.12`
- *  - `src/main/scala-2.12.20`
+ *  - `src/main/scala-2.12.21`
  *  - `src/main/scala-3`
  *
  * Mix in [[CrossScalaVersionRanges]] for version range support.

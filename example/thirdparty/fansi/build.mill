@@ -5,7 +5,7 @@ import mill.javalib.api.JvmWorkerUtil.isScala3
 
 val dottyCommunityBuildVersion = sys.props.get("dottyVersion")
 
-val scalaVersions = Seq("2.12.20", "2.13.16", "3.3.6") ++ dottyCommunityBuildVersion
+val scalaVersions = Seq("2.12.21", "2.13.16", "3.3.6") ++ dottyCommunityBuildVersion
 
 trait FansiModule extends PublishModule with CrossScalaModule with PlatformScalaModule {
   def artifactName = "fansi"
@@ -60,26 +60,26 @@ object fansi extends Module {
 /** Usage
 
 > ./mill resolve __.compile
-fansi.js.2_12_20.compile
-fansi.js.2_12_20.test.compile
+fansi.js.2_12_21.compile
+fansi.js.2_12_21.test.compile
 fansi.js.2_13_16.compile
 fansi.js.2_13_16.test.compile
 fansi.js.3_3_6.compile
 fansi.js.3_3_6.test.compile
-fansi.jvm.2_12_20.compile
-fansi.jvm.2_12_20.test.compile
+fansi.jvm.2_12_21.compile
+fansi.jvm.2_12_21.test.compile
 fansi.jvm.2_13_16.compile
 fansi.jvm.2_13_16.test.compile
 fansi.jvm.3_3_6.compile
 fansi.jvm.3_3_6.test.compile
-fansi.native.2_12_20.compile
-fansi.native.2_12_20.test.compile
+fansi.native.2_12_21.compile
+fansi.native.2_12_21.test.compile
 fansi.native.2_13_16.compile
 fansi.native.2_13_16.test.compile
 fansi.native.3_3_6.compile
 fansi.native.3_3_6.test.compile
 
-> ./mill fansi.jvm.2_12_20.compile
+> ./mill fansi.jvm.2_12_21.compile
 compiling 1 Scala source...
 ...
 
