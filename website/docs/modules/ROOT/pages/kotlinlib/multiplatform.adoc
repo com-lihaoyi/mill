@@ -13,6 +13,26 @@ Kotlin/JS and Android platforms, and requires Kotlin 2.0 or later.
 
 include::partial$example/kotlinlib/multiplatform/1-hello-kmp.adoc[]
 
+=== Renamed targets
+
+The source sets of a platform module are named after it, while the compiler
+depends on its traits. So a JVM platform named `desktop`, like `jvm("desktop")`
+in the Kotlin Gradle plugin, compiles `src/desktopMain` and `src/commonMain`:
+
+[source,scala]
+----
+object desktop extends PlatformModule
+----
+
+To use source sets named differently from the module, override `kmpPlatform`:
+
+[source,scala]
+----
+object app extends PlatformModule {
+  def kmpPlatform = "desktop" // compiles `src/desktopMain`, not `src/appMain`
+}
+----
+
 == Android
 
 include::partial$example/androidlib/kotlin/5-multiplatform.adoc[]

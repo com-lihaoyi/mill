@@ -77,6 +77,8 @@ trait KotlinMultiplatformModule extends Module { kmp =>
         ))*
     )
 
+    override def resources = Task.Sources(kmpFragments.map(kmpSourceSetDir(_, "resources"))*)
+
     /**
      * The fragment options the Kotlin Gradle plugin passes to the K2 compiler,
      * needed to match `expect` and `actual` declarations across source sets.
