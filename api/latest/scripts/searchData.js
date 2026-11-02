@@ -6028,4 +6028,4 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"sbt/mill.html#","e":false,"i":"","n":"sbt.mill","t":"sbt.mill","d":"","k":"package","x":""},
 {"l":"sbt/mill/SbtLoggerUtils$.html#","e":false,"i":"","n":"SbtLoggerUtils","t":"SbtLoggerUtils","d":"sbt.mill","k":"object","x":""},
 {"l":"sbt/mill/SbtLoggerUtils$.html#createLogger-799","e":false,"i":"","n":"createLogger","t":"createLogger(name: String, appender: Appender, level: Value): ManagedLogger","d":"sbt.mill.SbtLoggerUtils","k":"def","x":""},
-{"l":"sbt/mill/SbtLoggerUtils$$ConciseLevelConsoleAppender.html#","e":false,"i":"","n":"ConciseLevelConsoleAppender","t":"ConciseLevelConsoleAppender(name: String, log: String => Unit, ansiCodesSupported0: Boolean) extends ConsoleAppender","d":"sbt.mill.SbtLoggerUtils","k":"class","x":""}];
+{"l":"sbt/mill/SbtLoggerUtils$$ConciseLevelConsoleAppender.html#","e":false,"i":"","n":"ConciseLevelConsoleAppender","t":"ConciseLevelConsoleAppender(name: String, logInfo: String => Unit, logTicker: String => Unit, ansiCodesSupported0: Boolean) extends ConsoleAppender","d":"sbt.mill.SbtLoggerUtils","k":"class","x":""}];
