@@ -40,7 +40,6 @@ object foo extends JavaModule {
 /** Usage
 
 > ./mill foo.compile
-compiling 1 Java source...
 ...
 
 > ./mill foo.run

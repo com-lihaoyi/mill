@@ -400,7 +400,8 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     val consoleAppender = SbtLoggerUtils.ConciseLevelConsoleAppender(
       name = "ZincLogAppender",
-      log = s => processConfig.log.info(s),
+      logInfo = s => processConfig.log.info(s),
+      logTicker = s => processConfig.log.ticker(s),
       ansiCodesSupported0 = localConfig.logPromptColored
     )
     val loggerId = Thread.currentThread().getId.toString
@@ -629,7 +630,7 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
             val releaseOptions =
               forkJavaRelease.toSeq.flatMap(major => Seq("-release", major.toString))
             ZincCompilerBridgeProvider.compile(
-              compilerBridgeProvider.logInfo,
+              compilerBridgeProvider.logTicker,
               workingDir,
               compiledDest,
               scalaVersion,

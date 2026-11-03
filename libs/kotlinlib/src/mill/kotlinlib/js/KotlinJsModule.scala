@@ -239,7 +239,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
           kotlinVersion = kotlinVersion(),
           destinationRoot = Task.dest,
           artifactId = artifactId(),
-          extraKotlinArgs = allKotlincOptions(),
+          // linking takes no sources, so multiplatform fragment options don't apply
+          extraKotlinArgs = allKotlincOptions().filterNot(_.startsWith("-Xfragment")),
           worker = kotlinWorker,
           useBtApi = kotlincUseBtApi()
         )
@@ -399,11 +400,11 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     val compileDestination = os.Path(outputArgs.last)
     if (irClasspath.isEmpty) {
-      Task.log.info(
-        s"Compiling ${allKotlinSourceFiles.size} Kotlin sources to $compileDestination ..."
+      Task.log.ticker(
+        s"Compiling ${allKotlinSourceFiles.size} Kotlin sources"
       )
     } else {
-      Task.log.info(s"Linking IR to $compileDestination")
+      Task.log.ticker("Linking IR")
     }
     val workerResult = worker.compile(
       target = KotlinWorkerTarget.Js,

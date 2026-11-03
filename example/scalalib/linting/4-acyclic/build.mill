@@ -45,6 +45,5 @@ symbol: object Bar
 > sed -i.bak 's/Foo/Bar/g' src/Bar.scala
 
 > ./mill compile
-done compiling
 
 */

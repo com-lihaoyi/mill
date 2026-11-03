@@ -35,6 +35,7 @@
 ** xref:kotlinlib/publishing.adoc[]
 // ** xref:kotlinlib/build-examples.adoc[]
 ** xref:kotlinlib/web-examples.adoc[]
+** xref:kotlinlib/multiplatform.adoc[]
 ** xref:kotlinlib/script.adoc[]
 * Why Mill?
 ** xref:comparisons/maven.adoc[]
