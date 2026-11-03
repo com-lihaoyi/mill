@@ -353,7 +353,7 @@ object Deps {
     Deps.commonsIo,
     Deps.gson,
     mvn"com.google.protobuf:protobuf-java:4.36.2",
-    mvn"com.google.guava:guava:33.7.2-jre",
+    mvn"com.google.guava:guava:33.8.0-jre",
     mvn"org.yaml:snakeyaml:2.7",
     mvn"org.apache.commons:commons-compress:1.28.0"
   )
