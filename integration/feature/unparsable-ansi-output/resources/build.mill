@@ -1,0 +1,7 @@
+package build
+
+import mill.*, scalalib.*
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.18"
+}
