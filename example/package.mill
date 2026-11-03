@@ -133,6 +133,10 @@ object `package` extends Module {
     object typescript extends Cross[ExampleCrossModule](build.listCross)
   }
 
+  object reproduce extends Module {
+    object issue extends Cross[ExampleCrossModule](build.listCross)
+  }
+
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
     override def selectiveInputs = Seq(sources) ++ build.libs.kotlinlib.kotlinSelectiveInputs
 
