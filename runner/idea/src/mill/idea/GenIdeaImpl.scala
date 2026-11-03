@@ -24,6 +24,7 @@ import mill.util.BuildInfo
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath
 
+import java.util.concurrent.atomic.AtomicInteger
 import scala.annotation.nowarn
 import scala.jdk.CollectionConverters.*
 
@@ -333,7 +334,7 @@ class GenIdeaImpl(
 
     val compilerSettings: Map[(Seq[os.Path], Seq[String]), Seq[String]] =
       resolvedModules.groupMap(m => (m.pluginClasspath.map(os.Path(_)), m.scalaOptions))(m =>
-        IdeUtils.moduleName(m.segments).getOrElse("")
+        moduleName(m.segments)
       )
 
     // Get bspScriptIgnore rules (same as BSP integration)
@@ -407,7 +408,7 @@ class GenIdeaImpl(
         os.sub / "modules.xml",
         allModulesXmlTemplate(
           (modules.map { case (segments = segments) =>
-            IdeUtils.moduleName(segments).getOrElse("")
+            moduleName(segments)
           } ++
             scriptFiles.map(scriptModuleName)).sorted
         )
@@ -519,7 +520,7 @@ class GenIdeaImpl(
           .from(recursive.map((_, None)) ++
             provided.map((_, Some("PROVIDED"))))
           .filter(!_._1.skipIdea)
-          .map { case (v, s) => ScopedOrd(IdeUtils.moduleName(moduleLabels(v)).getOrElse(""), s) }
+          .map { case (v, s) => ScopedOrd(moduleName(moduleLabels(v)), s) }
           .iterator
           .toSeq
           .distinct
@@ -549,7 +550,7 @@ class GenIdeaImpl(
       )
 
       val moduleFile = Tuple2(
-        os.sub / "mill_modules" / s"${IdeUtils.moduleName(resolvedModule.segments).getOrElse("")}.iml",
+        os.sub / "mill_modules" / s"${moduleName(resolvedModule.segments)}.iml",
         moduleXml
       )
 
@@ -900,8 +901,8 @@ class GenIdeaImpl(
    * workspace, e.g. `script-a.foo`. Scripts at the workspace root keep `script-foo`.
    */
   def scriptModuleName(scriptPath: os.Path): String = {
-    val rel = scriptPath.relativeTo(workDir)
-    (rel.segments.init :+ rel.baseName).mkString("script-", ".", "").toLowerCase()
+    val rel = scriptPath.relativeTo(workDir).segments
+    "script-" + moduleName(Segments.labels(rel*))
   }
 
   /**
@@ -926,6 +927,34 @@ class GenIdeaImpl(
       </component>
     </module>
   }
+
+  private object nextGenericModuleName {
+    val nr = AtomicInteger(0)
+    def apply(): String = {
+      s"module_${nr.addAndGet(1)}"
+    }
+  }
+
+  /** Cached module names. */
+  private val moduleNameMap: mutable.Map[Segments, String] = mutable.Map()
+
+  def moduleName(p: Segments): String = moduleNameMap.getOrElse(
+    p, {
+      val name = IdeUtils.moduleName(p) match {
+        // shorten the name
+        case Some(name) if name.length > ModuleNameLenghtLimit =>
+          nextGenericModuleName() + {
+            if (p.value.nonEmpty) "." + p.last.value
+            else ""
+          }
+        case Some(name) => name
+        case None => nextGenericModuleName()
+      }
+      moduleNameMap.update(p, name)
+      name
+    }
+  )
+
 }
 
 object GenIdeaImpl {
@@ -970,4 +999,6 @@ object GenIdeaImpl {
 
   case class GenIdeaException(msg: String) extends RuntimeException(msg)
 
+  /** ModuleNames longer than this limit will use a generic module name */
+  val ModuleNameLenghtLimit: Int = 100
 }
