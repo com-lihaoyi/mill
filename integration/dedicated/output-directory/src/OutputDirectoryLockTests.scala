@@ -1,6 +1,7 @@
 package mill.integration
 
-import mill.constants.{DaemonFiles, OutFiles}
+import mill.constants.DaemonFiles
+import mill.constants.OutFiles.OutFiles
 import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 import utest.asserts.{RetryInterval, RetryMax}

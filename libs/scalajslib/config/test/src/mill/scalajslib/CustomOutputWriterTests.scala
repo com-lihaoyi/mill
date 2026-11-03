@@ -66,7 +66,7 @@ object InMemTests extends TestSuite {
             }
             assert(res.isRight)
             // As the files are not actually written to disk, this folder should be empty...
-            assert(os.list(res.right.get.value.dest.path).isEmpty)
+            assert(os.list(res.get.value.dest.path).isEmpty)
             // but the in memory filesystem, should not be.
             val inMemFiles =
               HelloJSWorld.build(scalaVersion, false).customLinkerOutputDir.get.fileNames()
@@ -83,7 +83,7 @@ object InMemTests extends TestSuite {
               HelloJSWorld.build(scalaVersion, true).fullLinkJS
             }
             assert(res.isRight)
-            assert(os.list(res.right.get.value.dest.path).isEmpty)
+            assert(os.list(res.get.value.dest.path).isEmpty)
             val inMemFiles =
               HelloJSWorld.build(scalaVersion, false).customLinkerOutputDir.get.fileNames()
             assert(!inMemFiles.isEmpty)

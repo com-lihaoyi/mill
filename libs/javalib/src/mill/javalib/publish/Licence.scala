@@ -438,7 +438,7 @@ object License {
 
   val json = String(Files.readAllBytes(Paths.get("data.json")))
 
-  val licences = decode[Data](json).right.get.licenses
+  val licences = decode[Data](json).get.licenses
 
   val identPadding = licences.map(_.licenseId.size + 2).max
   val namePadding = licences.map(_.name.size).max

@@ -10,7 +10,7 @@ public class OutFiles {
   public static final OutFiles1 OutFiles = new OutFiles1();
 
   public static class OutFiles1 {
-    // Using static final fiels is prone to Compiler inlining of stale values,
+    // Using static final fields is prone to Compiler inlining of stale values,
     // hence, we use a static instance with non-static field.
     private OutFiles1() {}
 

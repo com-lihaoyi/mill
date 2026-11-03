@@ -525,7 +525,7 @@ object BomTests extends TestSuite {
   def compileClasspathFileNames(module: JavaModule)(using
       eval: UnitTester
   ): Seq[String] =
-    eval(module.compileClasspath).right.get.value
+    eval(module.compileClasspath).get.value
       .toSeq.map(_.path.last)
 
   def compileClasspathContains(
@@ -544,7 +544,7 @@ object BomTests extends TestSuite {
   def runtimeClasspathFileNames(module: JavaModule)(using
       eval: UnitTester
   ): Seq[String] =
-    eval(module.runClasspath).right.get.value
+    eval(module.runClasspath).get.value
       .toSeq.map(_.path.last)
 
   def runtimeClasspathContains(
@@ -567,11 +567,11 @@ object BomTests extends TestSuite {
       fetchRuntime: Boolean
   )(using eval: UnitTester): Seq[os.Path] = {
     val localIvyRepo = eval.evaluator.workspace / "ivy2Local"
-    eval(module.publishLocal(localIvyRepo.toString)).right.get
+    eval(module.publishLocal(localIvyRepo.toString)).get
     for (dependencyModule <- dependencyModules)
-      eval(dependencyModule.publishLocal(localIvyRepo.toString)).right.get
+      eval(dependencyModule.publishLocal(localIvyRepo.toString)).get
 
-    val moduleString = eval(module.artifactName).right.get.value
+    val moduleString = eval(module.artifactName).get.value
 
     coursierapi.Fetch.create()
       .addDependencies(
@@ -603,11 +603,11 @@ object BomTests extends TestSuite {
       scalaSuffix: String
   )(using eval: UnitTester): Seq[os.Path] = {
     val localM2Repo = eval.evaluator.workspace / "m2Local"
-    eval(module.publishM2Local(localM2Repo.toString)).right.get
+    eval(module.publishM2Local(localM2Repo.toString)).get
     for (dependencyModule <- dependencyModules)
-      eval(dependencyModule.publishM2Local(localM2Repo.toString)).right.get
+      eval(dependencyModule.publishM2Local(localM2Repo.toString)).get
 
-    val moduleString = eval(module.artifactName).right.get.value
+    val moduleString = eval(module.artifactName).get.value
 
     coursierapi.Fetch.create()
       .addDependencies(

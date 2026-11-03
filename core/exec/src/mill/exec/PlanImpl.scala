@@ -147,6 +147,6 @@ object PlanImpl {
 
     val sortedClusters = mill.internal.Tarjans(numberedEdges)
     assert(sortedClusters.count(_.length > 1) == 0, sortedClusters.filter(_.length > 1))
-    TopoSorted(sortedClusters.map(_(0)).map(indexed))
+    TopoSorted(sortedClusters.map(_(0)).map(indexed).toIndexedSeq)
   }
 }
