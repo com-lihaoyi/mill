@@ -27,12 +27,12 @@ object GenIdeaScriptTests extends UtestIntegrationTestSuite {
       }
 
       def contentOf(name: String) = os.read(modulesDir / name)
-      val aFoo = contentOf("script-a.foo.iml")
+      val aFoo = contentOf("script-a.foo.scala.iml")
       assert(aFoo.contains("file://$MODULE_DIR$/../../a/Foo.scala"))
       assert(aFoo.contains("file://$MODULE_DIR$/../../out/a/Foo.scala/compile.dest"))
       assert(!aFoo.contains("b/Foo.scala"))
 
-      val bFoo = contentOf("script-b.foo.iml")
+      val bFoo = contentOf("script-b.foo.scala.iml")
       assert(bFoo.contains("file://$MODULE_DIR$/../../b/Foo.scala"))
       assert(bFoo.contains("file://$MODULE_DIR$/../../out/b/Foo.scala/compile.dest"))
       assert(!bFoo.contains("a/Foo.scala"))
