@@ -15,7 +15,11 @@ object GenIdeaScriptTests extends UtestIntegrationTestSuite {
 
       val modulesDir = workspacePath / ".idea" / "mill_modules"
       val scriptModules = os.list(modulesDir).map(_.last).filter(_.startsWith("script-")).sorted
-      assert(scriptModules == Seq("script-a.foo.iml", "script-b.foo.iml", "script-qux.iml"))
+      assert(scriptModules == Seq(
+        "script-a.foo.scala.iml",
+        "script-b.foo.scala.iml",
+        "script-qux.scala.iml"
+      ))
 
       val modulesXml = os.read(workspacePath / ".idea" / "modules.xml")
       for (name <- scriptModules) {
@@ -23,12 +27,12 @@ object GenIdeaScriptTests extends UtestIntegrationTestSuite {
       }
 
       def contentOf(name: String) = os.read(modulesDir / name)
-      val aFoo = contentOf("script-a.foo.iml")
+      val aFoo = contentOf("script-a.foo.scala.iml")
       assert(aFoo.contains("file://$MODULE_DIR$/../../a/Foo.scala"))
       assert(aFoo.contains("file://$MODULE_DIR$/../../out/a/Foo.scala/compile.dest"))
       assert(!aFoo.contains("b/Foo.scala"))
 
-      val bFoo = contentOf("script-b.foo.iml")
+      val bFoo = contentOf("script-b.foo.scala.iml")
       assert(bFoo.contains("file://$MODULE_DIR$/../../b/Foo.scala"))
       assert(bFoo.contains("file://$MODULE_DIR$/../../out/b/Foo.scala/compile.dest"))
       assert(!bFoo.contains("a/Foo.scala"))
