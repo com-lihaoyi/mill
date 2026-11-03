@@ -409,7 +409,7 @@ class GenIdeaImpl(
         allModulesXmlTemplate(
           (modules.map { case (segments = segments) =>
             moduleName(segments)
-          } ++
+          }.sorted ++
             scriptFiles.map(scriptModuleName)).sorted
         )
       ),
@@ -898,7 +898,7 @@ class GenIdeaImpl(
    *
    * Scripts in different folders can share a file name (e.g. `a/Foo.scala` and
    * `b/Foo.scala`), so the name includes the script's folder relative to the
-   * workspace, e.g. `script-a.foo`. Scripts at the workspace root keep `script-foo`.
+   * workspace, e.g. `script-a.foo.scala`. Scripts at the workspace root keep `script-foo.scala`.
    */
   def scriptModuleName(scriptPath: os.Path): String = {
     val rel = scriptPath.relativeTo(workDir).segments

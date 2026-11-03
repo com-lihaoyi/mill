@@ -15,7 +15,7 @@ object GenIdeaScriptTests extends UtestIntegrationTestSuite {
 
       val modulesDir = workspacePath / ".idea" / "mill_modules"
       val scriptModules = os.list(modulesDir).map(_.last).filter(_.startsWith("script-")).sorted
-      assert(scriptModules == Seq("script-a.foo.iml", "script-b.foo.iml", "script-qux.iml"))
+      assert(scriptModules == Seq("script-a.foo.scala.iml", "script-b.foo.scala.iml", "script-qux.scala.iml"))
 
       val modulesXml = os.read(workspacePath / ".idea" / "modules.xml")
       for (name <- scriptModules) {
