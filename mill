@@ -1,13 +1,13 @@
 #!/usr/bin/env sh
 
 # Mill Build Tool: https://github.com/com-lihaoyi/mill
-# Download: https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M1-28-54ecba/mill-dist-1.4.0-M1-28-54ecba-mill.sh
+# Download: https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M2/mill-dist-1.4.0-M2-mill.sh
 # Documentation: https://mill-build.org/mill/cli/installation-ide.html#_bootstrap_scripts
-# Script Version: 1.4.0-M1-28-54ecba
+# Script Version: 1.4.0-M2
 
 set -e
 
-if [ -z "${DEFAULT_MILL_VERSION}" ] ; then DEFAULT_MILL_VERSION="1.4.0-M1-28-54ecba"; fi
+if [ -z "${DEFAULT_MILL_VERSION}" ] ; then DEFAULT_MILL_VERSION="1.4.0-M2"; fi
 
 if [ -z "${GITHUB_RELEASE_CDN}" ] ; then GITHUB_RELEASE_CDN=""; fi
 
