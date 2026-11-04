@@ -249,6 +249,8 @@ class PromptLogger(
                 } catch {
                   case ex: IllegalStateException if ex.getMessage() == "No match found" =>
                     // Fall back to sanitizing the string
+                    // work around upstream regex parse issue
+                    // see https://github.com/com-lihaoyi/mill/issues/7847
                     fansi.Str(str, fansi.ErrorMode.Sanitize).render.getBytes("UTF-8")
                 }
               }
