@@ -69,7 +69,7 @@ object IntegrationTester {
       try {
         fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText.trim()
       } catch {
-        case ex: IllegalStateException =>
+        case _: IllegalStateException =>
           // work around upstream regex parse issue
           // see https://github.com/com-lihaoyi/mill/issues/7847
           fansi.Str(s, errorMode = fansi.ErrorMode.Sanitize).plainText.trim()
