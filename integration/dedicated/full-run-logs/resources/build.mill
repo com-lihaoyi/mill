@@ -22,6 +22,10 @@ object `package` extends ScalaModule {
   object broken2 extends JavaModule {
     def moduleDir = build.moduleDir / "broken"
   }
+  object unparseableEscape extends JavaModule {
+    def moduleDir = build.moduleDir / "unparseable-escape"
+    object test extends JavaTests with TestModule.Junit4
+  }
   object exclusives extends Module {
 
     def printingA() = Task.Command(exclusive = true) {

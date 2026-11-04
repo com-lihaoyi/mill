@@ -122,7 +122,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         normalize(res2.result.err.text()),
         List(
           "mill jar",
-          "build.mill-<digits>] compile [error] build.mill:76:1",
+          "build.mill-<digits>] compile [error] build.mill:80:1",
           "build.mill-<digits>] ?",
           "build.mill-<digits>] ^",
           "build.mill-<digits>] Illegal start of toplevel definition",
