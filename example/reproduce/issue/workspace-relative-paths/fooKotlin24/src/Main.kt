@@ -1,6 +1,5 @@
 @Deprecated("Don't use")
-class DeprecatedClass()
-
+class DeprecatedClass
 
 object Main {
     fun main(args: Array<String>) {
