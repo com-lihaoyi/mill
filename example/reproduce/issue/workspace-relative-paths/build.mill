@@ -1,0 +1,16 @@
+/** Usage
+
+> mill fooKotlin19.compile
+fooKotlin19/src/Main.kt:6:14: warning: parameter 'args' is never used
+    fun main(args: Array<String>) {
+             ^
+fooKotlin19/src/Main.kt:7:9: warning: 'DeprecatedClass' is deprecated. Don't use
+        DeprecatedClass()
+        ^
+
+> mill fooKotlin24.compile
+fooKotlin24/src/Main.kt:7:9: warning: 'constructor(): DeprecatedClass' is deprecated. Don't use.
+        DeprecatedClass()
+        ^^^^^^^^^^^^^^^
+
+*/
