@@ -128,6 +128,7 @@ or dev environment.
 
 
 If you wish to use your system `java` installation, you can set `mill-jvm-version: system`.
+Or use system's `java` installation if available, otherwise download a fallback JDK with: `system|temurin:21`.
 Note that this is not recommended as it means your codebase may use different JVM versions
 on different developer, CI, and production machines, potentially resulting in hard-to-debug
 crashes and errors.
