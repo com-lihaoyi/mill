@@ -382,14 +382,14 @@ object Deps {
     val bundleTool = mvn"com.android.tools.build:bundletool:1.18.3"
     val ndkVersion = "27.0.12077973"
     val cmakeVersion = "3.22.1"
-    val layoutLibVersion = "15.2.3"
+    val layoutLibVersion = "16.1.0"
     val layoutLibRenderer = mvn"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
     val layoutLibRuntime = mvn"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
     val composePreviewRenderer =
-      mvn"com.android.tools.compose:compose-preview-renderer-model:0.0.1-alpha11"
+      mvn"com.android.tools.compose:compose-preview-renderer:0.0.1-alpha17"
     val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
     val screenshotValidationJunitEngine =
-      mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
+      mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha17"
     // https://dl.google.com/android/repository/commandlinetools-linux-16111833_latest.zip
     // https://developer.android.com/studio?hl=de#command-tools
     val cmdlineToolsVersion = "23.0"
