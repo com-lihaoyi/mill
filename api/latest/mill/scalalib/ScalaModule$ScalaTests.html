@@ -4485,8 +4485,14 @@ node45 -> node0;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The JVM to use in for this module. Supports coursier JVM specifier, see: https://mill-build.org/mill/cli/build-header.html#_mill_jvm_version</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>The JVM to use in for this module. Supports coursier JVM specifier, see: <a href="https://mill-build.org/mill/cli/build-header.html#_mill_jvm_version">https://mill-build.org/mill/cli/build-header.html#_mill_jvm_version</a></p>
+              <p>Example values: "21" -&gt; Downloads and uses JDK 21 "temurin:21" -&gt; Downloads and uses the Temurin JDK 21 distribution "system" -&gt; Uses the system provided JDK "system|21" -&gt; Uses the system JDK. If no system JDK is found, download and use JDK 21</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">Definition Classes</dt>
