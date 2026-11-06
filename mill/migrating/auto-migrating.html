@@ -282,6 +282,10 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/multiplatform.html">Kotlin Multiplatform</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
   </li>
 </ul>
@@ -705,7 +709,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.3.1</span>
+    <span class="version">1.4.0-M2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -715,7 +719,10 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.3.1</a>
+          <a href="../index.html">1.4.0-M2</a>
+        </li>
+        <li class="version">
+          <a href="../1.3.x/index.html">1.3.1</a>
         </li>
         <li class="version">
           <a href="../1.1.x/index.html">1.1.10</a>
@@ -792,10 +799,6 @@ converting Maven build
 init completed, run "mill resolve _" to list available tasks
 
 &gt; ./mill __.compile
-compiling 9 Java sources to ...geo...
-compiling 2 Java sources to ...geo-mem...
-compiling 10 Java sources to ...geo...test...
-compiling 1 Java source to ...geo-mem...test...
 
 &gt; ./mill __.test # all tests pass immediately
 Test run com.github.davidmoten.geo.GeoHashTest finished: 0 failed, 0 ignored, 66 total, ...
@@ -818,10 +821,6 @@ converting Gradle build
 init completed, run "mill resolve _" to list available tasks
 
 &gt; ./mill __.compile
-compiling 9 Java sources to ...fluency-aws-s3...
-compiling 6 Java sources to ...fluency-aws-s3...test...
-compiling 27 Java sources to ...fluency-core...
-compiling 8 Java sources to ...fluency-core...test...
 
 &gt; ./mill fluency-core.test # mac/linux
 Test org.komamitsu.fluency.flusher.FlusherTest finished, ...
@@ -844,7 +843,6 @@ converting sbt build
 init completed, run "mill resolve _" to list available tasks
 
 &gt; ./mill compile
-compiling 13 Scala sources to ...
 
 &gt; ./mill test
 MySuite:
@@ -916,7 +914,6 @@ converting sbt build
 init completed, run "mill resolve _" to list available tasks
 
 &gt; ./mill modules.core.jvm.2_12_20.compile # source roots for custom version ranges need tweaking
-compiling 22 Scala sources to ...
 error: ...object boolean is not a member of package eu.timepit.refined</code></pre>
 </div>
 </div>
@@ -936,7 +933,7 @@ compiling, and passing all tests in Mill:</p>
 
 &gt; ./mill init --mill-jvm-id 21 # Repo needs Java &gt;=21 to build and test
 
-&gt; ./mill {acyclic-visitor,service-to-worker,update-method}.compile
+&gt; ./mill "{acyclic-visitor,service-to-worker,update-method}.compile"
 
 &gt; ./mill acyclic-visitor.test # run a subproject's tests
 ...
@@ -947,7 +944,7 @@ Test com.iluwatar.acyclicvisitor.ZoomTest finished, took ...
 
 &gt; ./mill __.compile # scheduled compile all subprojects
 
-&gt; ./mill {singleton,builder,decorator,proxy,strategy,observer,producer-consumer}.__.test # scheduled run some subprojects' tests</code></pre>
+&gt; ./mill "{singleton,builder,decorator,proxy,strategy,observer,producer-consumer}.__.test" # scheduled run some subprojects' tests</code></pre>
 </div>
 </div>
 </div>
