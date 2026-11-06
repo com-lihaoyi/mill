@@ -56,14 +56,18 @@ trait KotlinMultiplatformModule extends Module { kmp =>
       .collect { case l: mill.api.Segment.Label => l.value }
       .last
 
-    /** Source set suffix of this compilation, e.g. `Main` or `Test` */
-    def kmpCompilation: String = "Main"
+    /** Source set suffix of the refined `common*` source set, e.g. `Main` or `Test` */
+    def kmpSourceSetTree: String = "Main"
+
+    /** Source set suffix of this compilation, e.g. `Main`, `Test` or `HostTest` */
+    def kmpCompilation: String = kmpSourceSetTree
 
     /**
      * Fragment names, from the most specific to `common*`. Not a task, as
      * they define the folders watched by [[sources]].
      */
-    def kmpFragments: Seq[String] = Seq(kmpPlatform, "common").map(_ + kmpCompilation)
+    def kmpFragments: Seq[String] =
+      Seq(kmpPlatform + kmpCompilation, "common" + kmpSourceSetTree)
 
     override def sources = Task.Sources(
       (kmpFragments.map(kmpSourceSetDir(_)) ++
@@ -72,6 +76,8 @@ trait KotlinMultiplatformModule extends Module { kmp =>
           kmpSourceSetDir(kmpFragments.head, "java")
         ))*
     )
+
+    override def resources = Task.Sources(kmpFragments.map(kmpSourceSetDir(_, "resources"))*)
 
     /**
      * The fragment options the Kotlin Gradle plugin passes to the K2 compiler,
@@ -107,7 +113,7 @@ trait KotlinMultiplatformModule extends Module { kmp =>
      */
     trait PlatformTests extends KotlinTests, PlatformModule {
       override def kmpPlatform = platform.kmpPlatform
-      override def kmpCompilation = "Test"
+      override def kmpSourceSetTree = "Test"
     }
   }
 }

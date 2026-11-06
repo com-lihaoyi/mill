@@ -29,12 +29,13 @@ object foo extends KotlinMultiplatformModule {
 //
 // ----
 // foo/src/
-//   commonMain/kotlin/   shared by all platforms
-//   jvmMain/kotlin/      only for `foo.jvm`
-//   jvmMain/java/        Java sources, only for `foo.jvm`
-//   jsMain/kotlin/       only for `foo.js`
-//   commonTest/kotlin/   tests shared by all platforms
-//   jvmTest/kotlin/      tests only for `foo.jvm.test`
+//   commonMain/kotlin/      shared by all platforms
+//   commonMain/resources/   resources shared by all platforms
+//   jvmMain/kotlin/         only for `foo.jvm`
+//   jvmMain/java/           Java sources, only for `foo.jvm`
+//   jsMain/kotlin/          only for `foo.js`
+//   commonTest/kotlin/      tests shared by all platforms
+//   jvmTest/kotlin/         tests only for `foo.jvm.test`
 // ----
 //
 // Each platform module compiles its own source set together with
