@@ -114,6 +114,7 @@ trait JavaModule
     override def javacOptions: T[Seq[String]] = outer.javacOptions()
     override def jvmWorker = outer.jvmWorker
 
+    @deprecated("Please use `jvmVersion` instead", "Mill after 1.1.0-RC3")
     def jvmId = outer.jvmId()
 
     def jvmVersion = outer.jvmVersion()
