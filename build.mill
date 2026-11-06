@@ -1,4 +1,4 @@
-//| mill-version: 1.4.0-M1
+//| mill-version: 1.4.0-M2
 //| mill-jvm-version: zulu:25.0.5
 //| mill-jvm-index-version: github
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
