@@ -1687,15 +1687,17 @@ trait JavaModule
       else Seq()
 
     Task.Command {
-      (
-        super.prepareOffline(all)() ++
-          resolvedMvnDeps() ++
-          classgraphWorkerModule().prepareOffline(all)() ++
-          // should be in WithJvmWorkerModule, but isn't due to bin-compat
-          jvmWorker().prepareOffline(all)() ++
-          resolvedRunMvnDeps() ++
-          Task.sequence(tasks)().flatten
-      ).distinct
+      Seq(
+        super.prepareOffline(all)(),
+        // Resolve JDK
+        javaHome(),
+        resolvedMvnDeps(),
+        classgraphWorkerModule().prepareOffline(all)(),
+        // should be in WithJvmWorkerModule, but isn't due to bin-compat
+        jvmWorker().prepareOffline(all)(),
+        resolvedRunMvnDeps(),
+        Task.sequence(tasks)().flatten
+      ).flatten.distinct
     }
   }
 
