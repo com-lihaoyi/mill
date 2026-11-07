@@ -574,7 +574,7 @@ trait JavaModule
     cs.Dependency(
       cs.Module(
         JavaModule.internalOrg,
-        coursier.core.ModuleName(moduleSegments.parts.mkString("-").replace('/', '-')),
+        coursier.core.ModuleName(moduleSegments.render),
         Map.empty
       ),
       VersionConstraint(JavaModule.internalVersion)
@@ -1575,7 +1575,11 @@ trait JavaModule
 
   protected def mvnDepsTree(args: MvnDepsTreeArgs): Task[String] = {
     val (invalidModules, modules) =
-      args.whatDependsOn.partitionMap(ModuleParser.javaOrScalaModule)
+      args.whatDependsOn.partitionMap(x =>
+        // If no colon, this could be a module, so prepend the internal group
+        if (x.indexOf(":") < 0) ModuleParser.javaOrScalaModule(s"mill-internal:${x}")
+        else ModuleParser.javaOrScalaModule(x)
+      )
 
     if (invalidModules.nonEmpty) {
       Task.Anon {
