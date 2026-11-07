@@ -428,14 +428,14 @@ object BspServerTests extends UtestIntegrationTestSuite {
             semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
             Map(
               "diag/many" -> List(),
-              "mill-build" -> List(),
+              "mill-build" -> ArraySeq("build.mill.semanticdb"),
               "hello-scala/test" -> ArraySeq("hello-scala/test/src/HelloTest.scala.semanticdb"),
               "scripts/folder1/script.scala" -> ArraySeq(),
               "errored/exception" -> List(),
               "hello-scala" -> ArraySeq("hello-scala/src/Hello.scala.semanticdb"),
               "diag" -> ArraySeq("diag/src/DiagCheck.scala.semanticdb"),
               "delayed" -> List(),
-              "mill-build/mill-build" -> List(),
+              "mill-build/mill-build" -> ArraySeq("mill-build/build.mill.semanticdb"),
               "errored/compilation-error" -> List(),
               "scripts/foldershared/script.scala" -> ArraySeq(),
               "sourcesNeedCompile" -> ArraySeq()
@@ -466,7 +466,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
             semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
             Map(
               "scripts/folder2/FooTest.java" -> ArraySeq("scripts/folder2/FooTest.java.semanticdb"),
-              "mill-build" -> List(),
+              "mill-build" -> ArraySeq("build.mill.semanticdb"),
               "hello-kotlin" -> ArraySeq(),
               "hello-java" -> ArraySeq(),
               "hello-java/test" -> ArraySeq("hello-java/test/src/HelloJavaTest.java.semanticdb"),
@@ -489,7 +489,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "scripts/foldershared/script.scala" -> ArraySeq(),
               "sourcesNeedCompile" -> ArraySeq(),
               "scripts" -> ArraySeq(),
-              "mill-build/mill-build" -> List()
+              "mill-build/mill-build" -> ArraySeq("mill-build/build.mill.semanticdb")
             )
           )
         }

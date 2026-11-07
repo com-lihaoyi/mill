@@ -15,6 +15,7 @@ import ch.epfl.scala.bsp4j.{
 }
 import mill.api.daemon.internal.{JavaModuleApi, ScalaModuleApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
+import mill.javalib.internal.GeneratedBuildSources
 
 import java.util.concurrent.CompletableFuture
 import scala.build.bsp.{
@@ -96,8 +97,6 @@ private trait EndpointsScala extends ScalaBuildServer with ScalaScriptBuildServe
       ScalaTestClassesResult(values)
     }
 
-  private val userCodeStartMarker = "//SOURCECODE_ORIGINAL_CODE_START_MARKER\n"
-
   override def buildTargetWrappedSources(params: WrappedSourcesParams)
       : CompletableFuture[WrappedSourcesResult] =
     handlerTasks(
@@ -110,18 +109,19 @@ private trait EndpointsScala extends ScalaBuildServer with ScalaScriptBuildServe
       val items = ctx.value.flatMap {
         case (original, generated) =>
           val generatedContent = os.read(os.Path(generated))
-          val idx = generatedContent.indexOf(userCodeStartMarker)
-          if (idx >= 0) {
-            val item = new WrappedSourceItem(
-              original.toUri.toASCIIString,
-              generated.toUri.toASCIIString
-            )
-            item.setTopWrapper(generatedContent.take(idx + userCodeStartMarker.length))
-            item.setBottomWrapper("\n}")
-            Seq(item)
-          } else {
-            logger.warn(s"User code start marker not found in $generated")
-            Nil
+          val originalLength = os.read(os.Path(original)).length
+          GeneratedBuildSources.wrappers(generatedContent, originalLength) match {
+            case Some(wrappers0) =>
+              val item = new WrappedSourceItem(
+                original.toUri.toASCIIString,
+                generated.toUri.toASCIIString
+              )
+              item.setTopWrapper(wrappers0.top)
+              item.setBottomWrapper(wrappers0.bottom)
+              Seq(item)
+            case None =>
+              logger.warn(s"User code start marker not found in $generated")
+              Nil
           }
       }
       WrappedSourcesItem(ctx.id, items.asJava)
