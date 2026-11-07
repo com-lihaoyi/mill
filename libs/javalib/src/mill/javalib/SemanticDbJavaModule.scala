@@ -11,6 +11,7 @@ import mill.{T, Task}
 import scala.jdk.CollectionConverters.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.javalib.api.internal.ZincOp
+import mill.javalib.internal.GeneratedBuildSources
 
 @experimental
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
@@ -262,8 +263,6 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
     )
   }
 
-  private val userCodeStartMarker = "//SOURCECODE_ORIGINAL_CODE_START_MARKER"
-
   private def postProcessed(
       generatedSourceSemdb: os.Path,
       sourceroot: os.Path,
@@ -279,14 +278,13 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
         subPath / os.up / subPath.last.stripSuffix(".semanticdb")
       }
       val generatedSource = sourceroot / generatedSourceSubPath
-      val generatedSourceLines = os.read.lines(generatedSource)
-      val source = generatedSourceLines
-        .collectFirst { case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => os.Path(rest.trim) }
+      val userCodeStart = GeneratedBuildSources.userCodeStart(os.read(generatedSource))
         .getOrElse {
           sys.error(s"Cannot get original source from generated source $generatedSource")
         }
-
-      val firstLineIdx = generatedSourceLines.indexWhere(_.startsWith(userCodeStartMarker)) + 1
+      val source = userCodeStart.originalSource
+      // The user code has the same lines as the original source
+      val firstLineIdx = userCodeStart.lineIdx
 
       val res = mill.util.Jvm.withClassLoader(
         workerClasspath,

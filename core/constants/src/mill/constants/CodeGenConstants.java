@@ -39,4 +39,12 @@ public class CodeGenConstants {
    * The user-facing name for the root of the module tree.
    */
   public static final String rootModuleAlias = "build";
+
+  /**
+   * Prefix of the line that precedes the user code in the sources generated
+   * out of build files. It's followed by the path of the original build file.
+   * The compiler is pointed at it via `-Ymagic-offset-header:SOURCE_CODE_START`,
+   * and it's used to map the generated sources back to the original ones.
+   */
+  public static final String userCodeStartMarker = "///SOURCE_CODE_START:";
 }

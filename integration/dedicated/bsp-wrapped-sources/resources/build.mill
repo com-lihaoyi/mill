@@ -1,0 +1,9 @@
+package build
+
+import mill.*
+import mill.javalib.*
+
+object foo extends JavaModule {
+  def moduleDeps = Seq(build.thing, build.other.nested)
+  def javacOptions = Seq(javacRelease)
+}
