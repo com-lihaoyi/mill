@@ -511,7 +511,7 @@ private[mill] object TestModuleUtil {
     handleResults(doneMsg, results, Some(ctx))
   }
 
-  private val FailedTestReportCount = 5
+  private val FailedTestReportCount = 100
   private val ErrorStatus = Status.Error.name()
   private val FailureStatus = Status.Failure.name()
   private val SkippedStates =
