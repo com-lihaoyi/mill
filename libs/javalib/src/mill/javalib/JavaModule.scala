@@ -574,7 +574,7 @@ trait JavaModule
     cs.Dependency(
       cs.Module(
         JavaModule.internalOrg,
-        coursier.core.ModuleName(moduleSegments.render),
+        coursier.core.ModuleName(moduleSegments.render.replace("/", ".")),
         Map.empty
       ),
       VersionConstraint(JavaModule.internalVersion)
