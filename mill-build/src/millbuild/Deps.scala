@@ -280,9 +280,9 @@ object Deps {
   val gradleApi_api = mvn"dev.gradleplugins:gradle-api:8.11.1" // scala-steward:off
 
   val androidTools = mvn"com.android.tools.build:gradle:9.5.1"
-  val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:9.5.0"
+  val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:9.5.1"
   val androidDataBindingCompilerCommon =
-    mvn"androidx.databinding:databinding-compiler-common:9.5.0"
+    mvn"androidx.databinding:databinding-compiler-common:9.5.1"
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.60.1"
 
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10" // scala-steward:off
