@@ -77,5 +77,5 @@ object Segments {
   def apply(items: Seq[Segment]): Segments = new Segments(items.toVector)
   def labels(values: String*): Segments = Segments(values.map(Segment.Label(_)).toVector)
   private val useSlashSyntax = sys.env.getOrElse("MILL_USE_SLASH_SYNTAX", "1") == "1"
-  def segmentSeparator: String = if(useSlashSyntax) "/" else "."
+  def segmentSeparator: String = if (useSlashSyntax) "/" else "."
 }
