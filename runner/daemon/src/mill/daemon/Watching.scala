@@ -7,7 +7,6 @@ import mill.internal.Colors
 
 import java.io.InputStream
 import java.nio.channels.ClosedChannelException
-import java.time.{Duration, Instant}
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
 import scala.util.Using
@@ -81,7 +80,7 @@ object Watching {
               prev.close()
               val msg =
                 s"""
-                   |Re-run ${count+=1; count}
+                   |Re-run ${count += 1; count}
                    |""".stripMargin
               System.err.println(msg)
             }
