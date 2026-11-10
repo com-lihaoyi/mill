@@ -157,14 +157,13 @@ class PromptLogger(
         promptLineState.setDetail(key, s)
       }
 
-    // Make sure we preserve the end-of-line ANSI colors every time we write out the buffer, and
-    // re-apply them after every line prefix. This helps ensure the line prefix color/resets does
+    // Make sure we preserve each task's end-of-line ANSI colors every time we write out the buffer,
+    // and re-apply them after every line prefix. This helps ensure the line prefix color/resets does
     // not muck up the rendering of color sequences that affect multiple lines in the terminal
-    private var endOfLastLineColor: Long = 0
+    private val endOfLastLineColors = collection.mutable.Map.empty[Seq[String], Long]
     // Track whether we last printed an incomplete line, because if we did then next
     // time a line is reported we shouldn't print the prefix
     private var incompleteLine = false
-    val resetBytes = fansi.Color.Reset.escape.getBytes
 
     override def logPrefixedLine(
         key: Seq[String],
@@ -193,7 +192,8 @@ class PromptLogger(
             }
 
             val continuationColoredLine =
-              fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes ++ lineNoEol
+              fansi.Attrs.emitAnsiCodes(0, endOfLastLineColors.getOrElse(key, 0L)).getBytes ++
+                lineNoEol
 
             // Make sure we add a suffix "x" to the `bufferString` before computing the last
             // color. This ensures that any trailing colors in the original `bufferString` do not
@@ -205,10 +205,15 @@ class PromptLogger(
 
             val endOfCurrentLineColor = extendedString.getColor(extendedString.length - 1)
 
-            endOfLastLineColor = endOfCurrentLineColor
-
-            if (endOfCurrentLineColor == 0) continuationColoredLine ++ eol
-            else continuationColoredLine ++ resetBytes ++ eol
+            if (endOfCurrentLineColor == 0) {
+              endOfLastLineColors.remove(key)
+              continuationColoredLine ++ eol
+            } else {
+              endOfLastLineColors(key) = endOfCurrentLineColor
+              continuationColoredLine ++
+                fansi.Attrs.emitAnsiCodes(endOfCurrentLineColor, 0).getBytes ++
+                eol
+            }
           }
 
           (lines, seenBefore, res)

@@ -306,6 +306,22 @@ object PromptLoggerTests extends TestSuite {
       } finally promptLogger.close()
     }
 
+    test("ansiStateDoesNotBleedAcrossTasks") {
+      val (baos, promptLogger, fooLogger) = setup(() => 0L, () => None)
+      val barLogger = PrefixLogger(promptLogger, Seq("2"))
+      promptLogger.prompt.setPromptLine(Seq("1"), "/2", "foo")
+      promptLogger.prompt.setPromptLine(Seq("2"), "/2", "bar")
+
+      fooLogger.streams.out.print("\u001b[1mfoo\n")
+      barLogger.streams.out.print("bar-1\nbar-2\n")
+      promptLogger.streamsAwaitPumperEmpty()
+
+      val output = ByteArrayOutputStream()
+      ProxyStream.Pumper(ByteArrayInputStream(baos.toByteArray), output, output).run()
+      assert(output.toString.endsWith("1] foo \u001b[1mfoo\u001b[0m\n2] bar bar-1\n2] bar-2\n"))
+      promptLogger.close()
+    }
+
     test("detail") {
       // Make sure that when we have multiple sequential tasks being run on different threads,
       // we still end up showing some kind of task in progress in the ticker, even though the
