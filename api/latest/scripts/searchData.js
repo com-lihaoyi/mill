@@ -715,6 +715,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/api/daemon/Segments$.html#apply-fffffc6f","e":false,"i":"","n":"apply","t":"apply(items: Seq[Segment]): Segments","d":"mill.api.daemon.Segments","k":"def","x":""},
 {"l":"mill/api/daemon/Segments$.html#labels-fffffc6f","e":false,"i":"","n":"labels","t":"labels(values: String*): Segments","d":"mill.api.daemon.Segments","k":"def","x":""},
 {"l":"mill/api/daemon/Segments$.html#ordering-0","e":false,"i":"","n":"ordering","t":"ordering: Ordering[Segments]","d":"mill.api.daemon.Segments","k":"def","x":""},
+{"l":"mill/api/daemon/Segments$.html#segmentSeparator-0","e":false,"i":"","n":"segmentSeparator","t":"segmentSeparator: String","d":"mill.api.daemon.Segments","k":"def","x":""},
 {"l":"mill/api/daemon/Segments.html#","e":false,"i":"","n":"Segments","t":"Segments","d":"mill.api.daemon","k":"class","x":""},
 {"l":"mill/api/daemon/Segments.html#++-553","e":false,"i":"","n":"++","t":"++(other: Segment): Segments","d":"mill.api.daemon.Segments","k":"def","x":""},
 {"l":"mill/api/daemon/Segments.html#++-fffffc6f","e":false,"i":"","n":"++","t":"++(other: Seq[Segment]): Segments","d":"mill.api.daemon.Segments","k":"def","x":""},
