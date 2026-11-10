@@ -7,6 +7,7 @@ import mill.internal.Colors
 
 import java.io.InputStream
 import java.nio.channels.ClosedChannelException
+import java.time.{Duration, Instant}
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
 import scala.util.Using
@@ -70,12 +71,20 @@ object Watching {
 
       case Some(watchArgs) =>
         var prevState: Option[T] = None
+        var count = 1
         var skipSelectiveExecution = true // Always skip selective execution for first run
 
         try {
           while (true) {
             val previousState = prevState
-            previousState.foreach(_.close())
+            previousState.foreach { prev =>
+              prev.close()
+              val msg =
+                s"""
+                   |Re-run ${count+=1; count}
+                   |""".stripMargin
+              System.err.println(msg)
+            }
             prevState = None
 
             val result = evaluate(skipSelectiveExecution, previousState)
@@ -85,11 +94,11 @@ object Watching {
             try {
               watchArgs.setIdle(true)
               skipSelectiveExecution = watchAndWait(
-                result.watched,
-                watchArgs,
-                () => Option.when(lookForEnterKey(streams.in))(()),
-                "  (Enter to re-run, Ctrl-C to exit)",
-                streams.err.println(_)
+                watched = result.watched,
+                watchArgs = watchArgs,
+                sideChannel = () => Option.when(lookForEnterKey(streams.in))(()),
+                extraMessage = "  (Enter to re-run, Ctrl-C to exit)",
+                log = streams.err.println(_)
               ).isDefined
             } finally {
               watchArgs.setIdle(false)
