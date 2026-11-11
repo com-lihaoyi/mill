@@ -574,7 +574,7 @@ trait JavaModule
     cs.Dependency(
       cs.Module(
         JavaModule.internalOrg,
-        moduleName(segments),
+        JavaModule.moduleName(segments),
         Map.empty
       ),
       VersionConstraint(JavaModule.internalVersion)
