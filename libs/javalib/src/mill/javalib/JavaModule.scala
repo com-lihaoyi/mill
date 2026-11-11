@@ -574,7 +574,7 @@ trait JavaModule
     cs.Dependency(
       cs.Module(
         JavaModule.internalOrg,
-        coursier.core.ModuleName(moduleSegments.render.replace("/", ".")),
+        moduleName(segments),
         Map.empty
       ),
       VersionConstraint(JavaModule.internalVersion)
@@ -640,8 +640,8 @@ trait JavaModule
         bomModuleDepsChecked.map { modDep =>
           val dep = coursier.core.Dependency(
             coursier.core.Module(
-              coursier.core.Organization("mill-internal"),
-              coursier.core.ModuleName(modDep.moduleSegments.parts.mkString("-")),
+              internalOrg,
+              moduleName(modDep.moduleSegments),
               Map.empty
             ),
             VersionConstraint("0+mill-internal")
@@ -1953,7 +1953,13 @@ object JavaModule {
   }
 
   private[mill] def internalOrg = coursier.core.Organization("mill-internal")
+  private def moduleName(segments: Segments): coursier.core.ModuleName =
+    coursier.core.ModuleName(moduleSegments.render
+      .replace("/", ".") // cross-values
+      .replace(":", ".") // scripts
+    )
   private[mill] def internalVersion = "0+mill-internal"
+
 
 }
 
