@@ -584,6 +584,10 @@ trait JavaModule
     )
 
   def coursierDependencyTask: Task[cs.Dependency] = Task.Anon {
+    cachedCoursierDependency()
+  }
+
+  private def cachedCoursierDependency: T[cs.Dependency] = Task {
     val bindDependency0 = bindDependency()
     val forceVersions = mvnDeps().filter(_.force).map(bindDependency0(_).dep).map { dep =>
       DependencyManagement.Key.from(dep) ->
@@ -601,6 +605,10 @@ trait JavaModule
    * we provide details about this module to coursier.
    */
   def coursierProject: Task[cs.Project] = Task.Anon {
+    cachedCoursierProject()
+  }
+
+  private def cachedCoursierProject: T[cs.Project] = Task {
     coursierProject0()
   }
 
@@ -794,7 +802,11 @@ trait JavaModule
    *
    * Doesn't include the coursier project of the current module, see [[coursierProject]] for that.
    */
-  def transitiveCoursierProjects: Task[Seq[cs.Project]] = {
+  def transitiveCoursierProjects: Task[Seq[cs.Project]] = Task.Anon {
+    cachedTransitiveCoursierProjects()
+  }
+
+  private def cachedTransitiveCoursierProjects: T[Seq[cs.Project]] = {
     val allModuleDeps =
       (compileModuleDepsChecked ++ moduleDepsChecked ++ runModuleDepsChecked ++ bomModuleDepsChecked).distinct
     Task {
