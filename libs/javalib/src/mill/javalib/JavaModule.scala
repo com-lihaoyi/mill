@@ -13,6 +13,7 @@ import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
+import mill.api.daemon.Segments
 import mill.api.{
   BuildCtx,
   DefaultTaskModule,
@@ -574,7 +575,7 @@ trait JavaModule
     cs.Dependency(
       cs.Module(
         JavaModule.internalOrg,
-        coursier.core.ModuleName(moduleSegments.parts.mkString("-").replace('/', '-')),
+        JavaModule.moduleName(moduleSegments),
         Map.empty
       ),
       VersionConstraint(JavaModule.internalVersion)
@@ -640,8 +641,8 @@ trait JavaModule
         bomModuleDepsChecked.map { modDep =>
           val dep = coursier.core.Dependency(
             coursier.core.Module(
-              coursier.core.Organization("mill-internal"),
-              coursier.core.ModuleName(modDep.moduleSegments.parts.mkString("-")),
+              JavaModule.internalOrg,
+              JavaModule.moduleName(modDep.moduleSegments),
               Map.empty
             ),
             VersionConstraint("0+mill-internal")
@@ -1575,7 +1576,11 @@ trait JavaModule
 
   protected def mvnDepsTree(args: MvnDepsTreeArgs): Task[String] = {
     val (invalidModules, modules) =
-      args.whatDependsOn.partitionMap(ModuleParser.javaOrScalaModule)
+      args.whatDependsOn.partitionMap(x =>
+        // If no colon, this could be a module, so prepend the internal group
+        if (x.indexOf(":") < 0) ModuleParser.javaOrScalaModule(s"mill-internal:${x}")
+        else ModuleParser.javaOrScalaModule(x)
+      )
 
     if (invalidModules.nonEmpty) {
       Task.Anon {
@@ -1949,6 +1954,11 @@ object JavaModule {
   }
 
   private[mill] def internalOrg = coursier.core.Organization("mill-internal")
+  private def moduleName(segments: Segments): coursier.core.ModuleName =
+    coursier.core.ModuleName(segments.render
+      .replace("/", ".") // cross-values
+      .replace(":", ".") // scripts
+    )
   private[mill] def internalVersion = "0+mill-internal"
 
 }
