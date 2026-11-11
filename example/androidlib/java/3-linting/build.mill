@@ -77,7 +77,7 @@ AndroidManifest.xml:2: ...Error: Avoid hardcoding the debug mode; leaving it out
 > ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Check the content of report again
-../../lint-baseline.xml: Information: 1 errors/warnings were listed in the baseline file (../../lint-baseline.xml) but not found in the project; perhaps they have been fixed? Unmatched issue types: HardcodedDebugMode [LintBaselineFixed]
+../../lint-baseline.xml: Hint: 1 errors/warnings were listed in the baseline file (../../lint-baseline.xml) but not found in the project; perhaps they have been fixed? Unmatched issue types: HardcodedDebugMode [LintBaselineFixed]
 
 */
 
@@ -110,7 +110,7 @@ res/values/strings.xml:5: ...Warning: The resource R.string.unused_string appear
 > ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Output the report content
-0 errors, 0 warnings
+No errors or warnings
 
 > sed -i.bak '/<lint>/a \    <issue id="SyntheticAccessor" severity="error" />' app/lint.xml # Enable SyntheticAccessor issue cause it's disabled by default
 
@@ -135,13 +135,13 @@ java/com/helloworld/app/MainActivity.java:46: ...Error: Access to private field 
 > ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Output the report content
-0 errors, 0 warnings
+No errors or warnings
 
 > sed -i.bak -e '/import android.annotation.SuppressLint;/d' -e '/class SyntheticAccessorViolation {/,/^}/d' app/src/main/java/com/helloworld/app/MainActivity.java # Remove the SyntheticAccessor issue from code
 
 > ./mill app.androidLintRun # Rerun it for new changes to reflect
 
 > cat out/app/androidLintRun.dest/report.txt # Output the report content
-0 errors, 0 warnings
+No errors or warnings
 
 */
