@@ -13,6 +13,7 @@ import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
+import mill.api.daemon.Segments
 import mill.api.{
   BuildCtx,
   DefaultTaskModule,
@@ -574,7 +575,7 @@ trait JavaModule
     cs.Dependency(
       cs.Module(
         JavaModule.internalOrg,
-        JavaModule.moduleName(segments),
+        JavaModule.moduleName(moduleSegments),
         Map.empty
       ),
       VersionConstraint(JavaModule.internalVersion)
@@ -640,8 +641,8 @@ trait JavaModule
         bomModuleDepsChecked.map { modDep =>
           val dep = coursier.core.Dependency(
             coursier.core.Module(
-              internalOrg,
-              moduleName(modDep.moduleSegments),
+              JavaModule.internalOrg,
+              JavaModule.moduleName(modDep.moduleSegments),
               Map.empty
             ),
             VersionConstraint("0+mill-internal")
@@ -1954,12 +1955,11 @@ object JavaModule {
 
   private[mill] def internalOrg = coursier.core.Organization("mill-internal")
   private def moduleName(segments: Segments): coursier.core.ModuleName =
-    coursier.core.ModuleName(moduleSegments.render
+    coursier.core.ModuleName(segments.render
       .replace("/", ".") // cross-values
       .replace(":", ".") // scripts
     )
   private[mill] def internalVersion = "0+mill-internal"
-
 
 }
 
