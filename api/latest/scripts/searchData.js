@@ -2581,7 +2581,6 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/internal/PromptLogger$prompt$.html#infoColor-fffff2ca","e":false,"i":"","n":"infoColor","t":"infoColor(s: String): String","d":"mill.internal.PromptLogger.prompt","k":"def","x":""},
 {"l":"mill/internal/PromptLogger$prompt$.html#logLock-fffff7d2","e":false,"i":"","n":"logLock","t":"logLock[T](block: => T): T","d":"mill.internal.PromptLogger.prompt","k":"def","x":""},
 {"l":"mill/internal/PromptLogger$prompt$.html#logLockObject-0","e":false,"i":"","n":"logLockObject","t":"logLockObject: Object","d":"mill.internal.PromptLogger.prompt","k":"val","x":""},
-{"l":"mill/internal/PromptLogger$prompt$.html#resetBytes-0","e":false,"i":"","n":"resetBytes","t":"resetBytes: Array[Byte]","d":"mill.internal.PromptLogger.prompt","k":"val","x":""},
 {"l":"mill/internal/PromptLogger$prompt$.html#successColor-fffff2ca","e":false,"i":"","n":"successColor","t":"successColor(s: String): String","d":"mill.internal.PromptLogger.prompt","k":"def","x":""},
 {"l":"mill/internal/PromptLogger$prompt$.html#threadNumberer-0","e":false,"i":"","n":"threadNumberer","t":"threadNumberer: ThreadNumberer","d":"mill.internal.PromptLogger.prompt","k":"val","x":""},
 {"l":"mill/internal/PromptLogger$prompt$.html#warnColor-fffff2ca","e":false,"i":"","n":"warnColor","t":"warnColor(s: String): String","d":"mill.internal.PromptLogger.prompt","k":"def","x":""},
