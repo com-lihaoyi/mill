@@ -24,6 +24,8 @@ class MillServerLauncher(
 ) {
   private val serverInitWaitMillis = 10000
 
+  @volatile var forwardedStdin = false
+
   def run(daemonDir: os.Path, javaHome: Option[os.Path], log: String => Unit): Int = {
     os.makeDir.all(daemonDir)
     val locks = Locks.forDirectory(daemonDir.toString, useFileLocks)
@@ -107,7 +109,12 @@ class MillServerLauncher(
         clientToServer = socketOut,
         stdout = stdoutHandler,
         stderr = stderrHandler,
-        runSubprocess = DaemonRpc.defaultRunSubprocessWithStreams(streamsOpt)
+        runSubprocess = DaemonRpc.defaultRunSubprocessWithStreams(streamsOpt),
+        pollStdin = req => {
+          val result = DaemonRpc.defaultPollStdin(req)
+          if (result.bytes.nonEmpty) forwardedStdin = true
+          result
+        }
       )
 
       // For testing: run command in background while main thread throws after delay

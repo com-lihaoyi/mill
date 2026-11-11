@@ -68,5 +68,23 @@ object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
       ))
       assertEventually(launcher2.containsLines("Found file2.txt containing Hello cow"))
     }
+
+    test("interrupt-active-after-stdin") - integrationTest { tester =>
+      import tester.*
+      assert(tester.daemonMode)
+      val launcher1 = spawn(("waitForExists", "--fileName", "file1.txt"))
+      assertEventually(launcher1.containsLines("Waiting on file1.txt"))
+
+      val launcher2 = spawn(("readLineThenWaitForExists", "--fileName", "file2.txt"))
+      launcher2.process.stdin.writeLine("Hello cow")
+      launcher2.process.stdin.flush()
+      assertEventually(launcher2.containsLines("Read Hello cow"))
+
+      launcher1.process.destroy(recursive = false)
+      // launcher2 already handed its stdin to the old daemon. A retry can't
+      // replay that input, so launcher2 must exit instead of re-running the command.
+      assertEventually(!launcher2.process.isAlive())
+      assert(launcher2.err.text().contains("exiting instead of retrying"))
+    }
   }
 }

@@ -7,6 +7,11 @@ def waitForExists(fileName: os.Path) = Task.Command {
   println("Found " + relativeFileName + " containing " + os.read(fileName))
 }
 
+def readLineThenWaitForExists(fileName: os.Path) = Task.Command {
+  println("Read " + scala.io.StdIn.readLine())
+  while (!os.exists(fileName)) Thread.sleep(1)
+}
+
 def runNow(text: String) = Task.Command {
   println("Hello " + text)
 }
