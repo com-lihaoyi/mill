@@ -80,21 +80,19 @@ private[mill] object ParseArgs {
     }
     separated(Seq() /* start value */, scriptArgs)
   }
+
   def apply(scriptArgs: Seq[String], selectMode: SelectMode): Seq[Result[TasksWithParams]] = {
     separate(scriptArgs).map(extractAndValidate(_, selectMode == SelectMode.Multi))
   }
 
-  def extractAndValidate(
-      scriptArgs: Seq[String],
-      multiSelect: Boolean
-  ): Result[TasksWithParams] = {
+  def extractAndValidate(scriptArgs: Seq[String], multiSelect: Boolean): Result[TasksWithParams] = {
     val (selectors, args) = extractSelsAndArgs(scriptArgs, multiSelect)
     for {
       _ <- validateSelectors(selectors)
       expandedSelectors <- Result
         .sequence(selectors.map(ExpandBraces.expandBraces))
         .map(_.flatten)
-      selectors <- Result.sequence(expandedSelectors.map(extractSegments))
+      selectors <- Result.sequence(expandedSelectors.map(s => extractSegments(s)))
     } yield (selectors.iterator.toList, args)
   }
 
@@ -122,14 +120,31 @@ private[mill] object ParseArgs {
     } else Result.Success(())
   }
 
-  def extractSegments(selectorString: String)
-      : Result[(String, Segments)] =
-    parse(selectorString, selector(using _)) match {
+  def extractSegments(selectorString: String): Result[(String, Segments)] = {
+
+    val dot = selectorString.indexOf(".")
+    val slash = selectorString.indexOf("/")
+    // println(s"selectorString: ${selectorString} (${dot}, ${slash})")
+
+    val sel = (dot, slash) match {
+      // there are no dots, default to the new selector
+      case (-1, _) => slashSelector(using _)
+      // a dot without a slash is old syntax
+      case (_, -1) => nonSlashSelector(using _)
+      // We see a slash before a dot
+      // un-matched corner case: an external module without a dot, but I never saw this, so we accept this
+      case (d, s) if s < d => slashSelector(using _)
+      // other cases, dot before slash
+      case _ => nonSlashSelector(using _)
+    }
+
+    parse(selectorString, sel) match {
       case f: Parsed.Failure => Result.Failure(s"Parsing exception ${f.msg}")
       case Parsed.Success(selector, _) => Result.Success(selector)
     }
+  }
 
-  private def selector[_p: P]: P[(String, Segments)] = {
+  private def nonSlashSelector[_p: P]: P[(String, Segments)] = {
     def wildcard = P("__" | "_")
     def label = P(CharsWhileIn("a-zA-Z0-9_\\-")).!
     // Match "foo.super" as a single label to support super task invocation
@@ -159,6 +174,45 @@ private[mill] object ParseArgs {
     P(simpleQuery ~ (("/" | ":").! ~ simpleQuery.?).? ~ End).map {
       case (q, None) => ("", q)
       case (q, Some((sep, q2))) => (q.render + sep, q2.getOrElse(Segments()))
+    }
+  }
+
+  private def slashSelector[_p: P]: P[(String, Segments)] = {
+    def wildcard = P("__" | "_")
+
+    // Can't start with a dot (.) or an underscore (_)
+    def label = P(CharIn("a-zA-Z0-9\\-") ~~ CharsWhileIn("a-zA-Z0-9_\\-.")).!
+    // Match "foo.super" as a single label to support super task invocation
+    def labelWithSuper = P(label ~~ ".super").!
+
+    def typeQualifier(simple: Boolean) = {
+      val maxSegments = if (simple) 0 else Int.MaxValue
+      P(("^" | "!").? ~~ label ~~ ("/" ~~ label).rep(max = maxSegments)).!
+    }
+
+    def typePattern(simple: Boolean) = P(wildcard ~~ (":" ~~ typeQualifier(simple)).rep(1)).!
+
+    def segment0(simple: Boolean) =
+      P(typePattern(simple) | wildcard.! | labelWithSuper | label).map(Segment.Label(_))
+    def segment = P("(" ~ segment0(false) ~ ")" | segment0(true))
+
+//    def identCross = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!
+//    def crossSegment = P("[" ~ identCross.rep(1, sep = ",") ~ "]").map(Segment.Cross(_))
+    def defaultCrossSegment = P("/").map(_ => Segment.Cross(Seq()))
+
+    def simpleQuery = P(
+      (segment | defaultCrossSegment) ~ ("/" ~ segment | defaultCrossSegment).rep
+    ).map {
+      case (h, rest) => Segments(h +: rest)
+    }
+
+    def externalSegment = P("/" ~/ label).map(l => Left(Segment.Label(l)))
+    def scriptSegment = P(label ~ ":").map(l => Right(Segment.Label(l + ":")))
+
+    P((externalSegment ~ "/".? | scriptSegment).? ~ simpleQuery.? ~ End).map {
+      case (None, q) => ("", q.getOrElse(Segments()))
+      case (Some(Left(ext)), q) => (ext.value, q.getOrElse(Segments()))
+      case (Some(Right(script)), q) => (script.value, q.getOrElse(Segments()))
     }
   }
 }

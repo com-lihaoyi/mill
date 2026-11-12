@@ -33,7 +33,10 @@ final case class Segments private (value: Seq[Segment]) {
   def render: String = {
     // Replace `.`, `/`, and `:` with `_` since they have special meaning in Mill selectors
     def renderCross(cross: Segment.Cross): Seq[String] =
-      cross.value.map(_.replace('.', '_').replace('/', '_').replace(':', '_'))
+      cross.value.map {
+        case x if Segments.useSlashSyntax => x.replace('/', '_')
+        case x => x.replace("/", "_").replace('.', '_').replace(':', '_')
+      }
 
     def renderValue(valueList: List[Segment]): String = valueList match {
       case Nil => ""
@@ -73,5 +76,6 @@ object Segments {
   def apply(): Segments = new Segments(Vector())
   def apply(items: Seq[Segment]): Segments = new Segments(items.toVector)
   def labels(values: String*): Segments = Segments(values.map(Segment.Label(_)).toVector)
-  def segmentSeparator: String = "."
+  private val useSlashSyntax = sys.env.getOrElse("MILL_USE_SLASH_SYNTAX", "1") == "1"
+  def segmentSeparator: String = if (useSlashSyntax) "/" else "."
 }
