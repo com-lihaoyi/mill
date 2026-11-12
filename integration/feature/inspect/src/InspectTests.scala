@@ -141,6 +141,18 @@ object InspectTests extends UtestIntegrationTestSuite {
           |
           |Inherited Modules:
           |    mill.javalib.JavaModule
+          |    mill.javalib.TestModule$JavaModuleBase
+          |    mill.javalib.bsp.BspModule
+          |    mill.api.DefaultTaskModule
+          |    mill.javalib.RunModule
+          |    mill.javalib.WithJvmWorkerModule
+          |    mill.javalib.JavaHomeModule
+          |    mill.javalib.CoursierModule
+          |    mill.javalib.GenIdeaModule
+          |    mill.javalib.SemanticDbJavaModule
+          |    mill.javalib.AssemblyModule
+          |    mill.javalib.OfflineSupportModule
+          |    mill.util.JdkCommandsModule
           |
           |Sub-Modules:
           |    core.test
@@ -160,6 +172,18 @@ object InspectTests extends UtestIntegrationTestSuite {
           |
           |Inherited Modules:
           |    mill.javalib.JavaModule
+          |    mill.javalib.TestModule$JavaModuleBase
+          |    mill.javalib.bsp.BspModule
+          |    mill.api.DefaultTaskModule
+          |    mill.javalib.RunModule
+          |    mill.javalib.WithJvmWorkerModule
+          |    mill.javalib.JavaHomeModule
+          |    mill.javalib.CoursierModule
+          |    mill.javalib.GenIdeaModule
+          |    mill.javalib.SemanticDbJavaModule
+          |    mill.javalib.AssemblyModule
+          |    mill.javalib.OfflineSupportModule
+          |    mill.util.JdkCommandsModule
           |
           |Module Dependencies:
           |    core
@@ -182,7 +206,19 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    Subfolder Module Scaladoc
           |
           |Inherited Modules:
-          |    build_.core3.package_
+          |    mill.javalib.JavaModule
+          |    mill.javalib.TestModule$JavaModuleBase
+          |    mill.javalib.bsp.BspModule
+          |    mill.api.DefaultTaskModule
+          |    mill.javalib.RunModule
+          |    mill.javalib.WithJvmWorkerModule
+          |    mill.javalib.JavaHomeModule
+          |    mill.javalib.CoursierModule
+          |    mill.javalib.GenIdeaModule
+          |    mill.javalib.SemanticDbJavaModule
+          |    mill.javalib.AssemblyModule
+          |    mill.javalib.OfflineSupportModule
+          |    mill.util.JdkCommandsModule
           |
           |Default Task: core3.run
           |""".stripMargin

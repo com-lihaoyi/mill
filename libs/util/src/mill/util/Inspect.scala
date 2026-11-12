@@ -203,7 +203,9 @@ private[mill] object Inspect {
         !(parent.getPackage().getName() == "mill.api.internal") &&
         // Some generated class
         !(parent.getName().startsWith("build_.") && parent.getName().endsWith(".package_")) &&
-        !(parent.getSimpleName() == "_MillR")
+        !(parent.getSimpleName() == "_MillR") &&
+        !(parent.getSimpleName() == "_MillRootM")
+
       }
 
       // the direct parents
