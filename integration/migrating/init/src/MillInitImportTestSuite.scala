@@ -1,6 +1,6 @@
 package mill.integration
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
-import utest.{assert, assertGoldenFile, assertGoldenLiteral}
+import utest.{assert, assertGoldenFile}
 trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
   def checkImport(
       repoName: String,
@@ -97,9 +97,9 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
       }
 
       val passingTasks0 = passingTasks.filter(eval(_).isSuccess)
-      assertGoldenLiteral(passingTasks0, passingTasks)
+      assert(passingTasks0 == passingTasks)
       val failingTasks0 = failingTasks.filterNot(eval(_).isSuccess)
-      assertGoldenLiteral(failingTasks0, failingTasks)
+      assert(failingTasks0 == failingTasks)
     } finally tester.close()
   }
 }

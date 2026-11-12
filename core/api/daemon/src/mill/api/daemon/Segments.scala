@@ -45,7 +45,7 @@ final case class Segments private (value: Seq[Segment]) {
           case Segment.Label(s) => Seq(s)
           case c: Segment.Cross => renderCross(c)
         }
-        (headSegments ++ restSegments).mkString(".")
+        (headSegments ++ restSegments).mkString(Segments.segmentSeparator)
     }
 
     value.toList match {
@@ -62,7 +62,7 @@ final case class Segments private (value: Seq[Segment]) {
    * Used for tab completion when the user has started typing with bracket syntax.
    */
   def renderBracketSyntax: String = value.map {
-    case Segment.Label(s) => "." + s
+    case Segment.Label(s) => Segments.segmentSeparator + s
     case Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
   }.mkString.drop(1)
   override lazy val hashCode: Int = value.hashCode()
@@ -73,4 +73,5 @@ object Segments {
   def apply(): Segments = new Segments(Vector())
   def apply(items: Seq[Segment]): Segments = new Segments(items.toVector)
   def labels(values: String*): Segments = Segments(values.map(Segment.Label(_)).toVector)
+  def segmentSeparator: String = "."
 }

@@ -1,0 +1,8 @@
+package build
+// Issue https://github.com/com-lihaoyi/mill/issues/1901
+import mill.*
+import mill.scalalib.*
+
+object `package` extends ScalaModule {
+  def scalaVersion = "3.9.0"
+}

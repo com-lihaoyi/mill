@@ -1,4 +1,4 @@
-# Uncommment this to replace the rest of the file when you want to debug stuff in CI
+# Uncomment this to replace the rest of the file when you want to debug stuff in CI
 
 
 #name: Run Debug
@@ -188,6 +188,9 @@ jobs:
             install-sbt: true
 
           - millargs: "integration.failure._"
+
+            # Reproduce previously reported issue and their fixes
+          - millargs: "example.reproduce._._"
 
     uses: ./.github/workflows/post-build-selective.yml
     with:

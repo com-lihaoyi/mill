@@ -1,7 +1,6 @@
 package mill.javalib
 
-import mill.api.{PathRef, TaskCtx}
-import mill.api.Result
+import mill.api.{MappedRoots, PathRef, Result, TaskCtx}
 import mill.api.daemon.internal.TestReporter
 import mill.util.Jvm
 import mill.api.internal.Util
@@ -147,7 +146,10 @@ final class TestModuleUtil(
 
     val argsFile = baseFolder / "testargs"
     val sandbox = baseFolder / "sandbox"
-    os.write(argsFile, upickle.write(testArgs), createFolders = true)
+    MappedRoots.withMapping(Seq()) {
+      // Don't use placeholders, so we only have local absolute paths
+      os.write(argsFile, upickle.write(testArgs), createFolders = true)
+    }
 
     os.makeDir.all(sandbox)
 
@@ -509,7 +511,7 @@ private[mill] object TestModuleUtil {
     handleResults(doneMsg, results, Some(ctx))
   }
 
-  private val FailedTestReportCount = 5
+  private val FailedTestReportCount = 100
   private val ErrorStatus = Status.Error.name()
   private val FailureStatus = Status.Failure.name()
   private val SkippedStates =

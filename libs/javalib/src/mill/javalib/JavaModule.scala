@@ -1,12 +1,19 @@
 package mill
 package javalib
 
-import coursier.{Repository, Type, core as cs}
-import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}
+import coursier.{Repository, Type, VersionConstraint, core as cs}
+import coursier.core.{
+  BomDependency,
+  Configuration,
+  DependencyManagement,
+  Resolution,
+  VariantSelector
+}
 import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
+import mill.api.daemon.Segments
 import mill.api.{
   BuildCtx,
   DefaultTaskModule,
@@ -108,6 +115,7 @@ trait JavaModule
     override def javacOptions: T[Seq[String]] = outer.javacOptions()
     override def jvmWorker = outer.jvmWorker
 
+    @deprecated("Please use `jvmVersion` instead", "Mill after 1.1.0-RC3")
     def jvmId = outer.jvmId()
 
     def jvmVersion = outer.jvmVersion()
@@ -203,7 +211,8 @@ trait JavaModule
   def allBomDeps: Task[Seq[BomDependency]] = Task.Anon {
     val modVerOrMalformed =
       allBomMvnDeps().map(bindDependency()).map { bomDep =>
-        val fromModVer = coursier.core.Dependency(bomDep.dep.module, bomDep.version)
+        val fromModVer =
+          coursier.core.Dependency(bomDep.dep.module, bomDep.dep.versionConstraint)
         if (fromModVer == bomDep.dep)
           Right(bomDep.dep.asBomDependency)
         else
@@ -253,14 +262,16 @@ trait JavaModule
     val keyValuesOrErrors =
       deps.map { depMgmt =>
         val fromUsedValues = coursier.core.Dependency(depMgmt.module, depMgmt.versionConstraint)
-          .withPublication(coursier.core.Publication(
-            "",
-            depMgmt.publication.`type`,
-            coursier.core.Extension.empty,
-            depMgmt.publication.classifier
-          ))
-          .withMinimizedExclusions(depMgmt.minimizedExclusions)
-          .copy(optional0 = depMgmt.optional0)
+          .copy(
+            publication = coursier.core.Publication(
+              "",
+              depMgmt.publication.`type`,
+              coursier.core.Extension.empty,
+              depMgmt.publication.classifier
+            ),
+            minimizedExclusions = depMgmt.minimizedExclusions,
+            optional0 = depMgmt.optional0
+          )
         if (fromUsedValues == depMgmt) {
           val key = DependencyManagement.Key(
             depMgmt.module.organization,
@@ -564,13 +575,19 @@ trait JavaModule
     cs.Dependency(
       cs.Module(
         JavaModule.internalOrg,
-        coursier.core.ModuleName(moduleSegments.parts.mkString("-").replace('/', '-')),
+        JavaModule.moduleName(moduleSegments),
         Map.empty
       ),
-      JavaModule.internalVersion
-    ).withConfiguration(cs.Configuration.compile)
+      VersionConstraint(JavaModule.internalVersion)
+    ).copy(
+      variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.compile)
+    )
 
   def coursierDependencyTask: Task[cs.Dependency] = Task.Anon {
+    cachedCoursierDependency()
+  }
+
+  private def cachedCoursierDependency: T[cs.Dependency] = Task {
     val bindDependency0 = bindDependency()
     val forceVersions = mvnDeps().filter(_.force).map(bindDependency0(_).dep).map { dep =>
       DependencyManagement.Key.from(dep) ->
@@ -588,6 +605,10 @@ trait JavaModule
    * we provide details about this module to coursier.
    */
   def coursierProject: Task[cs.Project] = Task.Anon {
+    cachedCoursierProject()
+  }
+
+  private def cachedCoursierProject: T[cs.Project] = Task {
     coursierProject0()
   }
 
@@ -628,11 +649,11 @@ trait JavaModule
         bomModuleDepsChecked.map { modDep =>
           val dep = coursier.core.Dependency(
             coursier.core.Module(
-              coursier.core.Organization("mill-internal"),
-              coursier.core.ModuleName(modDep.moduleSegments.parts.mkString("-")),
+              JavaModule.internalOrg,
+              JavaModule.moduleName(modDep.moduleSegments),
               Map.empty
             ),
-            "0+mill-internal"
+            VersionConstraint("0+mill-internal")
           )
           (coursier.core.Configuration.`import`, dep)
         } ++
@@ -643,11 +664,15 @@ trait JavaModule
             Seq(
               (
                 cs.Configuration.compile,
-                modDep.withConfiguration(cs.Configuration.compile)
+                modDep.copy(
+                  variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.compile)
+                )
               ),
               (
                 cs.Configuration.runtime,
-                modDep.withConfiguration(cs.Configuration.runtime)
+                modDep.copy(
+                  variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.runtime)
+                )
               )
             )
           } ++
@@ -656,7 +681,9 @@ trait JavaModule
             // We pull their compile scope when our provided scope is asked (see scopes above)
             (
               cs.Configuration.provided,
-              modDep.withConfiguration(cs.Configuration.compile)
+              modDep.copy(
+                variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.compile)
+              )
             )
           } ++
           runModuleDepsChecked0().map { modDep =>
@@ -664,7 +691,9 @@ trait JavaModule
             // We pull their runtime scope when our runtime scope is pulled
             (
               cs.Configuration.runtime,
-              modDep.withConfiguration(cs.Configuration.runtime)
+              modDep.copy(
+                variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.runtime)
+              )
             )
           }
 
@@ -681,8 +710,18 @@ trait JavaModule
               )
             else
               Seq(
-                (cs.Configuration.compile, dep.withConfiguration(cs.Configuration.compile)),
-                (cs.Configuration.runtime, dep.withConfiguration(cs.Configuration.runtime))
+                (
+                  cs.Configuration.compile,
+                  dep.copy(
+                    variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.compile)
+                  )
+                ),
+                (
+                  cs.Configuration.runtime,
+                  dep.copy(
+                    variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.runtime)
+                  )
+                )
               )
         } ++
           compileMvnDeps().map(bindDependency()).map(_.dep).map { dep =>
@@ -691,7 +730,12 @@ trait JavaModule
             if (dep.isVariantAttributesBased)
               (cs.Configuration.provided, dep)
             else
-              (cs.Configuration.provided, dep.withConfiguration(cs.Configuration.compile))
+              (
+                cs.Configuration.provided,
+                dep.copy(
+                  variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.compile)
+                )
+              )
           } ++
           runMvnDeps().map(bindDependency()).map(_.dep).map { dep =>
             // Runtime dependencies, like above
@@ -704,14 +748,21 @@ trait JavaModule
             else
               (
                 cs.Configuration.runtime,
-                dep.withConfiguration(cs.Configuration.runtime)
+                dep.copy(
+                  variantSelector = VariantSelector.ConfigurationBased(cs.Configuration.runtime)
+                )
               )
           } ++
           allBomDeps().map { bomDep =>
             // BOM dependencies
             // Maven has a special scope for those: "import"
             val dep =
-              cs.Dependency(bomDep.module, bomDep.version).withConfiguration(bomDep.config)
+              cs.Dependency(
+                bomDep.module,
+                bomDep.versionConstraint
+              ).copy(
+                variantSelector = VariantSelector.ConfigurationBased(bomDep.config)
+              )
             (cs.Configuration.`import`, dep)
           }
 
@@ -728,7 +779,7 @@ trait JavaModule
 
       cs.Project(
         module = coursierDependencyTask().module,
-        version = coursierDependencyTask().version,
+        version = coursierDependencyTask().versionConstraint.asString,
         dependencies = internalDependencies ++ dependencies,
         configurations = scopes,
         parent = None,
@@ -751,7 +802,11 @@ trait JavaModule
    *
    * Doesn't include the coursier project of the current module, see [[coursierProject]] for that.
    */
-  def transitiveCoursierProjects: Task[Seq[cs.Project]] = {
+  def transitiveCoursierProjects: Task[Seq[cs.Project]] = Task.Anon {
+    cachedTransitiveCoursierProjects()
+  }
+
+  private def cachedTransitiveCoursierProjects: T[Seq[cs.Project]] = {
     val allModuleDeps =
       (compileModuleDepsChecked ++ moduleDepsChecked ++ runModuleDepsChecked ++ bomModuleDepsChecked).distinct
     Task {
@@ -784,10 +839,10 @@ trait JavaModule
     val project = coursierProject()
     // Mark optional direct dependencies as non-optional, so that these are included in the
     // class paths of this module
-    val project0 = project.withDependencies0(
-      project.dependencies0.map {
-        case (conf, dep) if dep.optional =>
-          (conf, dep.withOptional(false))
+    val project0 = project.copy(
+      dependencies0 = project.dependencies0.map {
+        case (conf, dep) if dep.optional0.getOrElse(false) =>
+          (conf, dep.copy(optional0 = Some(false)))
         case other =>
           other
       }
@@ -1533,7 +1588,11 @@ trait JavaModule
 
   protected def mvnDepsTree(args: MvnDepsTreeArgs): Task[String] = {
     val (invalidModules, modules) =
-      args.whatDependsOn.partitionMap(ModuleParser.javaOrScalaModule)
+      args.whatDependsOn.partitionMap(x =>
+        // If no colon, this could be a module, so prepend the internal group
+        if (x.indexOf(":") < 0) ModuleParser.javaOrScalaModule(s"mill-internal:${x}")
+        else ModuleParser.javaOrScalaModule(x)
+      )
 
     if (invalidModules.nonEmpty) {
       Task.Anon {
@@ -1645,15 +1704,17 @@ trait JavaModule
       else Seq()
 
     Task.Command {
-      (
-        super.prepareOffline(all)() ++
-          resolvedMvnDeps() ++
-          classgraphWorkerModule().prepareOffline(all)() ++
-          // should be in WithJvmWorkerModule, but isn't due to bin-compat
-          jvmWorker().prepareOffline(all)() ++
-          resolvedRunMvnDeps() ++
-          Task.sequence(tasks)().flatten
-      ).distinct
+      Seq(
+        super.prepareOffline(all)(),
+        // Resolve JDK
+        javaHome(),
+        resolvedMvnDeps(),
+        classgraphWorkerModule().prepareOffline(all)(),
+        // should be in WithJvmWorkerModule, but isn't due to bin-compat
+        jvmWorker().prepareOffline(all)(),
+        resolvedRunMvnDeps(),
+        Task.sequence(tasks)().flatten
+      ).flatten.distinct
     }
   }
 
@@ -1664,13 +1725,32 @@ trait JavaModule
     canRun = true
   )
 
+  private def javaHomeFromCurrentRuntime: Task[os.Path] = Task.Input {
+    // This one is always defined at Java runtime and points to the current one
+    os.Path(sys.props("java.home"))
+  }
+
+  private def javaVersionFromCurrentRuntime: Task[String] = Task.Input {
+    sys.props("java.version")
+  }
+
   @internal
   private[mill] def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {
+    // `None` here means the module asked for no JDK of its own, and so is built against the one
+    // Mill itself runs on - which is what both fields then fall back to.
+    val pinnedJavaHome = javaHome().map(_.path)
     JvmBuildTarget(
-      javaHome = javaHome()
-        .map(p => BspUri(p.path.toNIO))
-        .orElse(Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p).toNIO))),
-      javaVersion = Option(System.getProperty("java.version"))
+      javaHome = pinnedJavaHome
+        .orElse(Option(javaHomeFromCurrentRuntime()))
+        .map(p => BspUri(p.toNIO)),
+      // Deliberately not `System.getProperty("java.version")`: for a module that pins its own JDK
+      // that would be the version of the JVM Mill runs on, contradicting the `javaHome` reported
+      // right beside it.
+      javaVersion = pinnedJavaHome match {
+        case None => Option(javaVersionFromCurrentRuntime())
+        case Some(home) => Jvm.javaVersionFromReleaseFile(home)
+            .orElse(Jvm.javaVersionFromCommand(home))
+      }
     )
   }
 
@@ -1886,6 +1966,11 @@ object JavaModule {
   }
 
   private[mill] def internalOrg = coursier.core.Organization("mill-internal")
+  private def moduleName(segments: Segments): coursier.core.ModuleName =
+    coursier.core.ModuleName(segments.render
+      .replace("/", ".") // cross-values
+      .replace(":", ".") // scripts
+    )
   private[mill] def internalVersion = "0+mill-internal"
 
 }

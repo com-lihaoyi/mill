@@ -11,12 +11,12 @@ import scala.util.Properties.isWin
  * Allows you to retrieve or compile the Scala compiler bridge.
  *
  * @param workspace Workspace for the compiler bridge.
- * @param logInfo  logs a message at INFO level.
+ * @param logTicker logs a message to the ticker
  */
 @internal
 case class ZincCompilerBridgeProvider(
     workspace: os.Path,
-    logInfo: String => Unit,
+    logTicker: String => Unit,
     acquire: ZincCompilerBridgeProvider.Acquire
 )
 @internal
@@ -57,15 +57,21 @@ object ZincCompilerBridgeProvider {
     }
   }
 
-  /** Compile the `sbt`/Zinc compiler bridge in the `compileDest` directory */
+  /**
+   * Compile the `sbt`/Zinc compiler bridge in the `compileDest` directory
+   *
+   * @param scalacOptions extra options passed to scalac, e.g. `-release` when the bridge
+   *                      is compiled on a JVM newer than the one the Scala version supports
+   */
   def compile(
-      logInfo: String => Unit,
+      logTicker: String => Unit,
       workingDir: os.Path,
       compileDest: os.Path,
       scalaVersion: String,
       compilerClasspath: Seq[os.Path],
       compilerBridgeClasspath: Seq[os.Path],
-      compilerBridgeSourcesJar: os.Path
+      compilerBridgeSourcesJar: os.Path,
+      scalacOptions: Seq[String] = Nil
   ): Unit = {
     if (scalaVersion == "2.12.0") {
       // The Scala 2.10.0 compiler fails on compiling the compiler bridge
@@ -75,7 +81,7 @@ object ZincCompilerBridgeProvider {
       )
     }
 
-    logInfo("Compiling compiler interface...")
+    logTicker(s"Compiling compiler interface for Scala ${scalaVersion}")
 
     os.makeDir.all(workingDir)
     os.makeDir.all(compileDest)
@@ -116,9 +122,20 @@ object ZincCompilerBridgeProvider {
           if (JvmWorkerUtil.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
           else "scala.tools.nsc.Main"
         )
-        compilerMain
+        val result = compilerMain
           .getMethod("process", classOf[Array[String]])
-          .invoke(null, argsArray ++ Array("-nowarn"))
+          .invoke(null, argsArray ++ scalacOptions ++ Array("-nowarn"))
+        // Scala 2's `process` returns whether compilation succeeded, Scala 3's returns a reporter
+        val success = result match {
+          case b: java.lang.Boolean => b.booleanValue
+          case reporter =>
+            !reporter.getClass.getMethod("hasErrors").invoke(reporter).asInstanceOf[Boolean]
+        }
+        // Fail here, so that callers don't go on to mark an empty bridge as compiled
+        if (!success)
+          throw IllegalStateException(
+            s"Failed to compile the compiler bridge for Scala $scalaVersion"
+          )
       } else {
         throw IllegalArgumentException("Currently not implemented case.")
       }

@@ -1,12 +1,23 @@
 <project version="4">
     <component name="ScalaCompilerConfiguration">
-        <profile name="mill 1" modules=",">
+        <profile name="mill 1" modules="helloworld,helloworld.test">
+            <parameters></parameters>
+            <plugins></plugins>
+        </profile>
+        <profile name="mill 2" modules="helloworld.subscala3">
             <parameters>
+                <parameter value="-sourceroot"/>
+                <parameter value=".../out/integration/sharedOutFolder.dest/<version>/shared-0/out"/>
+            </parameters>
+            <plugins></plugins>
+        </profile>
+        <profile name="mill 3" modules="mill-build,mill-build.mill-build">
+            <parameters>
+                <parameter value="-sourceroot"/>
+                <parameter value=".../out/integration/sharedOutFolder.dest/<version>/shared-0/out"/>
                 <parameter value="-deprecation"/>
                 <parameter value="-Wconf:msg=will be encoded on the classpath:silent"/>
                 <parameter value="-Ymagic-offset-header:SOURCE_CODE_START"/>
-                <parameter value="-sourceroot"/>
-                <parameter value=".../out/integration/sharedOutFolder.dest/<version>/shared-0/out"/>
                 <parameter value="-Xplugin:.../com/lihaoyi/scalac-mill-moduledefs-plugin_3.9.0/<version>/scalac-mill-moduledefs-plugin_3.9.0-<version>.jar"/>
                 <parameter value="-Xplugin:.../com/lihaoyi/mill-runner-autooverride-plugin_3.9.0/<version>/mill-runner-autooverride-plugin_3.9.0-<version>.jar"/>
             </parameters>
@@ -24,10 +35,6 @@
                 <plugin path=".../org/scala-sbt/compiler-interface/<version>/compiler-interface-<version>.jar"/>
                 <plugin path=".../org/scala-sbt/util-interface/<version>/util-interface-<version>.jar"/>
             </plugins>
-        </profile>
-        <profile name="mill 2" modules="helloworld,helloworld.subscala3,helloworld.test">
-            <parameters></parameters>
-            <plugins></plugins>
         </profile>
     </component>
 </project>

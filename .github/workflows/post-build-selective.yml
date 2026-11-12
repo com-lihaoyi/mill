@@ -53,7 +53,7 @@ jobs:
       run:
         shell: ${{ inputs.shell }}
     steps:
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
 
       - uses: actions/download-artifact@v7
         with:

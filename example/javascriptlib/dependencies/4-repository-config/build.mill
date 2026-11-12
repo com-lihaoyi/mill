@@ -18,7 +18,6 @@ object foo extends TypeScriptModule {
 
 > ./mill foo.run e b k a l m o p
 Sorted with lodash: [a,b,e,k,l,m,o,p]
-....
 {
   version: '4.17.21',
   resolved: 'https://registry.npmmirror.com/lodash/-/lodash-4.17.21.tgz',

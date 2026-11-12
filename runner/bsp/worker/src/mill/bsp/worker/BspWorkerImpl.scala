@@ -15,6 +15,7 @@ import mill.api.daemon.internal.bsp.{BspBootstrapBridge, BspServerHandle, BspSer
 
 object BspWorkerImpl {
 
+  // Loaded reflectively by mill.daemon.IdeWorkerSupport
   def startBspServer(
       topLevelBuildRoot: os.Path,
       streams: SystemStreams,

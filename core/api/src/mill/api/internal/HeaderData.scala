@@ -34,7 +34,7 @@ private[mill] object HeaderData {
   private implicit val bufferedR: upickle.Reader[BufferedValue] =
     new upickle.Reader.Delegate(BufferedValue.Builder)
 
-  def headerDataReader(path: os.Path) = {
+  def headerDataReader(path: os.Path): upickle.default.Reader[HeaderData] = {
     implicit def locatedReader[T: upickle.Reader]: Located.UpickleReader[T] =
       new Located.UpickleReader[T](path)
     implicit def appendableReader[T: upickle.Reader]: Appendable.UpickleReader[T] =

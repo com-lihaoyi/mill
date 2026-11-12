@@ -94,6 +94,7 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
     case api.ModuleKind.NoModule => workerApi.ModuleKind.NoModule
     case api.ModuleKind.CommonJSModule => workerApi.ModuleKind.CommonJSModule
     case api.ModuleKind.ESModule => workerApi.ModuleKind.ESModule
+    case api.ModuleKind.WasmComponent => workerApi.ModuleKind.WasmComponent
   }
 
   private def toWorkerApi(esFeatures: api.ESFeatures): workerApi.ESFeatures = workerApi.ESFeatures(
@@ -197,6 +198,7 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
   }
 
   private def fromSjs(moduleKind: sjs.ModuleKind): api.ModuleKind = moduleKind match {
+    case mk if ScalaJSConfig.isWasmComponent(mk) => api.ModuleKind.WasmComponent
     case sjs.ModuleKind.NoModule => api.ModuleKind.NoModule
     case sjs.ModuleKind.ESModule => api.ModuleKind.ESModule
     case sjs.ModuleKind.CommonJSModule => api.ModuleKind.CommonJSModule
@@ -255,6 +257,11 @@ private[mill] object ScalaJSConfigModule {
       case api.ModuleKind.NoModule => Input.Script(path)
       case api.ModuleKind.ESModule => Input.ESModule(path)
       case api.ModuleKind.CommonJSModule => Input.CommonJSModule(path)
+      case api.ModuleKind.WasmComponent =>
+        throw Exception(
+          "Running or testing a ModuleKind.WasmComponent module is not supported yet: " +
+            "it needs a WASI runtime (e.g. wasmtime) instead of a JavaScript environment"
+        )
     }
     Seq(input)
   }
@@ -290,7 +297,7 @@ trait TestScalaJSConfigModule extends TestScalaJSModule with ScalaJSConfigModule
     linkJs(
       worker = ScalaJSConfigWorkerExternalModule.scalaJSWorker(),
       toolsClasspath = scalaJSToolsClasspath(),
-      runClasspath = scalaJSTestDeps() ++ runClasspath(),
+      runClasspath = runClasspath() ++ scalaJSTestDeps(),
       moduleInitializers = testModuleInitializers(),
       forceOutJs = false,
       testBridgeInit = true,

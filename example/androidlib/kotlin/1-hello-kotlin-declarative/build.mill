@@ -19,12 +19,11 @@
 /** Usage
 
 > ./mill show app.androidApk
-".../out/app/androidApk.dest/app.apk"
+"...$MILL_OUT/app/androidApk.dest/app.apk"
 
 > ./mill app.it.androidTestApk
 
 > ./mill -j 1 show app.test
-...Compiling 2 Kotlin sources...
 
 > cat out/app/test/testForked.dest/worker-0/out.json
 ["",[...{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.text_size_is_correct","selector":"com.helloworld.ExampleUnitTest.text_size_is_correct","duration":...,"status":"Success"}...]]

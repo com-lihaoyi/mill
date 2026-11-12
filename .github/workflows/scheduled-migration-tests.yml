@@ -37,6 +37,19 @@ jobs:
       install-sbt: true
       java-version: 25
       millargs: "example.migrating._._.testForked"
+      mill-test-scheduled: 'true'
+      mill-test-timeout-minutes: '60'
+      shell: bash
+
+  # Real-world `mill init` tests, Linux only
+  linux-real-world:
+    needs: build-linux
+    uses: ./.github/workflows/post-build-selective.yml
+    with:
+      install-sbt: true
+      java-version: 25
+      millargs: "integration.scheduled.migrating.packaged.daemon"
+      timeout-minutes: 240
       shell: bash
 
   windows:
@@ -46,6 +59,8 @@ jobs:
       os: windows-latest
       java-version: 25
       millargs: "example.migrating._._.packaged.daemon"
+      mill-test-scheduled: 'true'
+      mill-test-timeout-minutes: '60'
       extra: "--jobs=1"
       shell: powershell
 

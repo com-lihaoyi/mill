@@ -128,7 +128,7 @@ Publish sumlib-kotlin-0.0.1 to /home/.../.m2/repository/...
   },
   "payload": [
     [
-      ".../out/lib/androidAar.dest/library.aar",
+      "...$MILL_OUT/lib/androidAar.dest/library.aar",
       "sumlib-kotlin-0.0.1.aar"
     ],
 ...

@@ -24,6 +24,7 @@ import mill.util.BuildInfo
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath
 
+import java.util.concurrent.atomic.AtomicInteger
 import scala.annotation.nowarn
 import scala.jdk.CollectionConverters.*
 
@@ -331,12 +332,10 @@ class GenIdeaImpl(
         .map(toResolvedJar)
         .collect { case Some(r) => r }
 
-    val compilerSettings = resolvedModules
-      .foldLeft(Map[(Seq[os.Path], Seq[String]), Vector[JavaModuleApi]]()) {
-        (r, q) =>
-          val key = (q.pluginClasspath.map(os.Path(_)), q.scalaOptions)
-          r + (key -> (r.getOrElse(key, Vector()) :+ q.module))
-      }
+    val compilerSettings: Map[(Seq[os.Path], Seq[String]), Seq[String]] =
+      resolvedModules.groupMap(m => (m.pluginClasspath.map(os.Path(_)), m.scalaOptions))(m =>
+        moduleName(m.segments)
+      )
 
     // Get bspScriptIgnore rules (same as BSP integration)
     val bspScriptIgnore: Seq[String] = MillBuildRootModuleApi.bspScriptIgnore(evaluators)
@@ -409,8 +408,8 @@ class GenIdeaImpl(
         os.sub / "modules.xml",
         allModulesXmlTemplate(
           (modules.map { case (segments = segments) =>
-            IdeUtils.moduleName(segments).getOrElse("")
-          } ++
+            moduleName(segments)
+          }.sorted ++
             scriptFiles.map(scriptModuleName)).sorted
         )
       ),
@@ -521,7 +520,7 @@ class GenIdeaImpl(
           .from(recursive.map((_, None)) ++
             provided.map((_, Some("PROVIDED"))))
           .filter(!_._1.skipIdea)
-          .map { case (v, s) => ScopedOrd(IdeUtils.moduleName(moduleLabels(v)).getOrElse(""), s) }
+          .map { case (v, s) => ScopedOrd(moduleName(moduleLabels(v)), s) }
           .iterator
           .toSeq
           .distinct
@@ -551,7 +550,7 @@ class GenIdeaImpl(
       )
 
       val moduleFile = Tuple2(
-        os.sub / "mill_modules" / s"${IdeUtils.moduleName(resolvedModule.segments).getOrElse("")}.iml",
+        os.sub / "mill_modules" / s"${moduleName(resolvedModule.segments)}.iml",
         moduleXml
       )
 
@@ -599,7 +598,7 @@ class GenIdeaImpl(
 
     // Generate module files for script files
     val scriptModuleFiles: Seq[(os.SubPath, Elem)] = scriptFiles.map { scriptPath =>
-      val moduleXml = scriptModuleXmlTemplate(scriptPath)
+      val moduleXml = scriptModuleXmlTemplate(scriptPath, outDir)
       val moduleFile = Tuple2(
         os.sub / "mill_modules" / s"${scriptModuleName(scriptPath)}.iml",
         moduleXml
@@ -875,13 +874,10 @@ class GenIdeaImpl(
   }
 
   def scalaCompilerTemplate(
-      settings: Map[(Seq[os.Path], Seq[String]), Vector[JavaModuleApi]]
+      settings: Map[(Seq[os.Path], Seq[String]), Seq[String]]
   ) = {
-    def modulesString(mods: Seq[ModuleApi]) =
-      mods.map(m => IdeUtils.moduleName(m.moduleSegments).getOrElse("")).mkString(",")
-
     val orderedSettings = settings.toSeq.map {
-      case ((plugins, params), mods) => ((plugins, params), modulesString(mods))
+      case ((plugins, params), names) => ((plugins, params), names.sorted.mkString(","))
     }.sortBy(_._2).zipWithIndex
 
     <project version={"" + ideaConfigVersion}>
@@ -899,22 +895,28 @@ class GenIdeaImpl(
 
   /**
    * Generate module name for a script file.
+   *
+   * Scripts in different folders can share a file name (e.g. `a/Foo.scala` and
+   * `b/Foo.scala`), so the name includes the script's folder relative to the
+   * workspace, e.g. `script-a.foo.scala`. Scripts at the workspace root keep `script-foo.scala`.
    */
   def scriptModuleName(scriptPath: os.Path): String = {
-    s"script-${scriptPath.baseName}".toLowerCase()
+    val rel = scriptPath.relativeTo(workDir).segments
+    "script-" + moduleName(Segments.labels(rel*))
   }
 
   /**
    * Generate IntelliJ module XML for a script file.
-   * The source root is the path of the file itself.
+   * The source root is the path of the file itself, and the output folder is the
+   * script's `compile.dest` under `outDir` (e.g. `out/a/Foo.scala/compile.dest`).
    */
-  def scriptModuleXmlTemplate(scriptPath: os.Path): Elem = {
+  def scriptModuleXmlTemplate(scriptPath: os.Path, outDir: os.Path): Elem = {
     val relUrl = "file://$MODULE_DIR$/" + relify(scriptPath)
 
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
         <output url={
-      s"file://$$MODULE_DIR$$/../../out/script/${scriptPath.baseName}/compile.dest"
+      "file://$MODULE_DIR$/" + relify(outDir / scriptPath.relativeTo(workDir) / "compile.dest")
     }/>
         <exclude-output />
         <content url={relUrl}>
@@ -925,6 +927,34 @@ class GenIdeaImpl(
       </component>
     </module>
   }
+
+  private object nextGenericModuleName {
+    val nr = AtomicInteger(0)
+    def apply(): String = {
+      s"module_${nr.addAndGet(1)}"
+    }
+  }
+
+  /** Cached module names. */
+  private val moduleNameMap: mutable.Map[Segments, String] = mutable.Map()
+
+  def moduleName(p: Segments): String = moduleNameMap.getOrElse(
+    p, {
+      val name = IdeUtils.moduleName(p) match {
+        // shorten the name
+        case Some(name) if name.length > ModuleNameLenghtLimit =>
+          nextGenericModuleName() + {
+            if (p.value.nonEmpty) "." + p.last.value
+            else ""
+          }
+        case Some(name) => name
+        case None => nextGenericModuleName()
+      }
+      moduleNameMap.update(p, name)
+      name
+    }
+  )
+
 }
 
 object GenIdeaImpl {
@@ -969,4 +999,6 @@ object GenIdeaImpl {
 
   case class GenIdeaException(msg: String) extends RuntimeException(msg)
 
+  /** ModuleNames longer than this limit will use a generic module name */
+  val ModuleNameLenghtLimit: Int = 100
 }

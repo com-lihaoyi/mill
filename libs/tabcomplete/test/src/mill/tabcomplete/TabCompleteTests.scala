@@ -40,7 +40,7 @@ object TabCompleteTests extends TestSuite {
     val outStream = ByteArrayOutputStream()
     val errStream = ByteArrayOutputStream()
 
-    def evalComplete(s: String*) = {
+    def evalComplete(s: String*): Set[String] = {
       UnitTester(
         mainModule,
         null,
@@ -354,36 +354,36 @@ object TabCompleteTests extends TestSuite {
 
       test("long") {
         assertGoldenLiteral(
-          evalComplete("1", "./mill", "--"),
-          Set(
-            "--use-file-locks          Use traditional file-based locking instead of PID-based locking for the Mill daemon. This removes the chance of race conditions when claiming the lock after a crash, but may have issues on some filesystems that do not support lock (e.g. docker mounts on mac)",
-            "--debug                   Show debug output on STDOUT",
-            "--bell                    Ring the bell once if the run completes successfully, twice if it fails.",
-            "--no-build-lock           Evaluate tasks / commands without acquiring an exclusive lock on the Mill output directory",
-            "--import                  <str> Additional ivy dependencies to load into mill, e.g. plugins.",
-            "--bsp-install             Create mill-bsp.json with Mill details under .bsp/",
+          evalComplete("1", "./mill", "--").toSeq.sorted,
+          List(
             "--allow-positional        Allows command args to be passed positionally without `--arg` by default",
-            "--meta-level              <int> Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc. If negative, -1 means the deepest meta-build (bootstrap build), -2 the second deepest meta-build, etc.",
+            "--bell                    Ring the bell once if the run completes successfully, twice if it fails.",
             "--bsp                     Enable BSP server mode. Typically used by a BSP client when starting the Mill BSP server.",
-            "--help-advanced           Print a internal or advanced command flags not intended for common usage",
-            "--watch                   Watch and re-run the given tasks when their inputs change.",
-            "--tab-complete            Runs Mill in tab-completion mode",
-            "--interactive             Alias for now `--no-daemon`. No longer needed for interactive commands since Mill 1.1.0",
-            "--offline                 Try to work offline. This tells modules that support it to work offline and avoid any access to the internet. This is on a best effort basis. There are currently no guarantees that modules don't attempt to fetch remote sources.",
-            "--keep-going              Continue build, even after build failures.",
-            "--define                  <k=v> Define (or overwrite) a system property.",
-            "--no-filesystem-checker   Globally disables the checks that prevent you from reading and writing to disallowed files or folders during evaluation. Useful as an escape hatch in case you desperately need to do something unusual and you are willing to take the risk",
-            "--notify-watch            <bool> Use filesystem based file watching instead of polling based one (defaults to true).",
+            "--bsp-install             Create mill-bsp.json with Mill details under .bsp/",
             "--bsp-watch               <bool> Automatically reload the build when its sources change when running the BSP server (defaults to true).",
-            "--help                    Print this help message and exit.",
-            "--jobs                    <str> The number of parallel threads. It can be an integer e.g. `5` meaning 5 threads, an expression e.g. `0.5C` meaning half as many threads as available cores, or `C-2` meaning 2 threads less than the number of cores. `1` disables parallelism and `0` (the default) uses 1 thread per core.",
-            "--ticker                  <bool> Enable or disable the ticker log, which provides information on running tasks and where each log line came from",
             "--color                   <bool> Toggle colored output; by default enabled only if the console is interactive or FORCE_COLOR environment variable is set, and NO_COLOR is not set",
+            "--debug                   Show debug output on STDOUT",
+            "--define                  <k=v> Define (or overwrite) a system property.",
+            "--help                    Print this help message and exit.",
+            "--help-advanced           Print a internal or advanced command flags not intended for common usage",
+            "--import                  <str> Additional Maven runtime dependencies to load into Mill, e.g. plugins. Format is the same as 'mvnDeps' ('group:artifact:version'). A 'mvn:' or 'ivy:' prefix is also accepted.",
+            "--interactive             Alias for now `--no-daemon`. No longer needed for interactive commands since Mill 1.1.0",
+            "--jobs                    <str> The number of parallel threads. It can be an integer e.g. `5` meaning 5 threads, an expression e.g. `0.5C` meaning half as many threads as available cores, or `C-2` meaning 2 threads less than the number of cores. `1` disables parallelism and `0` (the default) uses 1 thread per core.",
+            "--keep-going              Continue build, even after build failures.",
+            "--meta-level              <int> Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc. If negative, -1 means the deepest meta-build (bootstrap build), -2 the second deepest meta-build, etc.",
+            "--no-build-lock           Evaluate tasks / commands without acquiring an exclusive lock on the Mill output directory",
             "--no-daemon               Run without a long-lived background daemon.",
+            "--no-filesystem-checker   Globally disables the checks that prevent you from reading and writing to disallowed files or folders during evaluation. Useful as an escape hatch in case you desperately need to do something unusual and you are willing to take the risk",
             "--no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands.",
-            "--version                 Show mill version information and exit.",
+            "--notify-watch            <bool> Use filesystem based file watching instead of polling based one (defaults to true).",
+            "--offline                 Try to work offline. This tells modules that support it to work offline and avoid any access to the internet. This is on a best effort basis. There are currently no guarantees that modules don't attempt to fetch remote sources.",
+            "--replay-logs             Replay logs for cached tasks.",
+            "--tab-complete            Runs Mill in tab-completion mode",
             "--task                    <str> The name or a query of the tasks(s) you want to build.",
-            "--replay-logs             Replay logs for cached tasks."
+            "--ticker                  <bool> Enable or disable the ticker log, which provides information on running tasks and where each log line came from",
+            "--use-file-locks          Use traditional file-based locking instead of PID-based locking for the Mill daemon. This removes the chance of race conditions when claiming the lock after a crash, but may have issues on some filesystems that do not support lock (e.g. docker mounts on mac)",
+            "--version                 Show mill version information and exit.",
+            "--watch                   Watch and re-run the given tasks when their inputs change."
           )
         )
       }

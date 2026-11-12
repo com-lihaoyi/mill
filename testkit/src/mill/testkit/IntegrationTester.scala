@@ -5,6 +5,8 @@ import mill.api.internal.Cached
 import mill.constants.OutFiles.OutFiles
 import mill.launcher.MillLauncherMain
 import mill.api.daemon.SystemStreams
+import mill.internal.JsonArrayLogger
+import mill.internal.JsonArrayLogger.Profile
 import ujson.Value
 
 import scala.concurrent.duration.*
@@ -63,8 +65,16 @@ object IntegrationTester {
     override def productIterator = productElements0.iterator
 
     def exitCode: Int = result.exitCode
-    private def cleanup(s: String) =
-      fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText.trim()
+    private def cleanup(s: String) = {
+      try {
+        fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText.trim()
+      } catch {
+        case _: IllegalStateException =>
+          // work around upstream regex parse issue
+          // see https://github.com/com-lihaoyi/mill/issues/7847
+          fansi.Str(s, errorMode = fansi.ErrorMode.Sanitize).plainText.trim()
+      }
+    }
 
     def out = cleanup(result.out.text())
     def err = cleanup(result.err.text())
@@ -369,6 +379,40 @@ object IntegrationTester {
         propagateEnv = propagateEnv,
         timeoutGracePeriod = timeoutGracePeriod
       ).run()
+    }
+
+    /**
+     * The task timings (`mill-profile.json`) of the given meta-level.
+     * Timings for meta-levels that didn't run may be empty.
+     */
+    def timing(level: Int = 0, log: Boolean = false): Timing = Timing(level, log)
+
+    class Timing(level: Int, log: Boolean) {
+
+      private val timings = {
+        val text = {
+          val subPath = Seq.fill(level)("mill-build")
+          os.read(workspacePath / OutFiles.out / subPath / OutFiles.millProfile)
+        }
+        val timings = upickle.read[Seq[Profile.Timing]](text)
+        if (log) println(s"timings of level ${level}: " + pprint.apply(timings, height = 99999))
+        timings
+      }
+
+      def get(selector0: String): Option[Profile.Timing] = {
+        val Seq(res) = mill.api.internal.ParseArgs.apply(Seq(selector0), SelectMode.Separated)
+        val (Seq((_, taskSegments)), _) = res.get
+        //      val (Seq((rootModulePrefix, taskSegments)), _) = res.get
+        //      val segments = rootModulePrefix match {
+        //        case "" => taskSegments.parts
+        //        case s"$external/" => Seq(external) ++ taskSegments.parts
+        //        case s"$script:" => Seq(script) ++ taskSegments.parts
+        //      }
+
+        timings.find(t => t.label == taskSegments.render)
+      }
+
+      def apply(selector0: String): Profile.Timing = get(selector0).get
     }
 
     /**

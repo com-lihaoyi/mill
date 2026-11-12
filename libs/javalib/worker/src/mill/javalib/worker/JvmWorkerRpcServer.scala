@@ -66,7 +66,7 @@ class JvmWorkerRpcServer(
               consoleOut,
               ZincCompilerBridgeProvider(
                 workspace = initialize.compilerBridgeWorkspace,
-                logInfo = log.info,
+                logTicker = log.ticker,
                 acquire = (scalaVersion, scalaOrganization) =>
                   input.compilerBridge.getOrElse {
                     throw new IllegalStateException(

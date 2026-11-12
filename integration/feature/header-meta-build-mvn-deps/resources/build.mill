@@ -1,0 +1,5 @@
+package build
+
+import mill.*
+
+def hello = Task { millbuild.Html.hello }
