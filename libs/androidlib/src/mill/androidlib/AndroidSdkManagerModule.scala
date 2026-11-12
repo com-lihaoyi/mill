@@ -108,6 +108,11 @@ trait AndroidSdkManagerModule extends Module {
   private def hexArray(arr: Array[Byte]) =
     String.format("%0" + (arr.length << 1) + "x", BigInteger(1, arr))
 
+  private def licenseAcceptanceHint(sdkManagerExe: os.Path): String =
+    "Please review the licenses at https://developer.android.com/studio/terms" +
+      " and accept them by overriding `autoAcceptLicenses` to `true`" +
+      s" (with cmdline-tools older than 23.0 you can also run `${sdkManagerExe.toString} --licenses`)."
+
   private def acceptLicenses(sdkManagerExePath: os.Path) = {
     val args = if (isWin)
       Seq("cmd", "/c", "(for /l %i in (1,1,10) do @echo y)")
@@ -221,9 +226,7 @@ trait AndroidSdkManagerModule extends Module {
       } else {
         throw new IllegalStateException(
           s"License for cmdline-tools;$versionShort is not accepted. " +
-            "Please review the licenses at https://developer.android.com/studio/terms" +
-            " and accept them by overriding `autoAcceptLicenses` to `true`" +
-            s" (with cmdline-tools older than 23.0 you can also run `${millSdkManagerExe.toString} --licenses`)."
+            licenseAcceptanceHint(millSdkManagerExe)
         )
       }
     }
@@ -322,9 +325,7 @@ trait AndroidSdkManagerModule extends Module {
           Task.fail(
             "Failed to install the following SDK packages, because their respective" +
               s" licenses are not accepted:\n\n${packagesWithoutLicense.map(_._1).mkString("\n")}" +
-              "\nPlease review the licenses at https://developer.android.com/studio/terms" +
-              " and accept them by overriding `autoAcceptLicenses` to `true`" +
-              s" (with cmdline-tools older than 23.0 you can also run `${sdkManagerPath.toString} --licenses`)."
+              "\n" + licenseAcceptanceHint(sdkManagerPath)
           )
         }
       }
