@@ -126,6 +126,7 @@ trait AndroidSdkManagerModule extends Module {
       case "20.0" => "14742923"
       case "21.0" => "15641748"
       case "22.0" => "15859902"
+      case "23.0" => "16111833"
       case _ =>
         throw IllegalArgumentException(s"Unsupported cmdline tools version: $versionShort")
     }
