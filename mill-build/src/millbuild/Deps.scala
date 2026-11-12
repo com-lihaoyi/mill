@@ -294,7 +294,7 @@ object Deps {
   val jgit = mvn"org.eclipse.jgit:org.eclipse.jgit:7.7.0.202606012155-r"
 
   object RuntimeDeps {
-    val dokkaVersion_runtime = "2.2.0"
+    val dokkaVersion_runtime = "2.3.0"
     val koverVersion_runtime = "0.9.11"
 
     val detektCli_runtime = mvn"io.gitlab.arturbosch.detekt:detekt-cli:1.23.8"
