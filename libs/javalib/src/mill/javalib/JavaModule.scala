@@ -978,7 +978,7 @@ trait JavaModule
    *
    *     ///SOURCE_CODE_START:
    *
-   * (see `CodeGenConstants.userCodeStartMarker`), and the content of the original source
+   * (see `CodeGenConstants.magicOffsetHeader`), and the content of the original source
    * must have the same length in the generated source as on disk, so that the footer
    * starts right after it.
    *

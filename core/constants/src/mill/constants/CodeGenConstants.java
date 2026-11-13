@@ -41,10 +41,10 @@ public class CodeGenConstants {
   public static final String rootModuleAlias = "build";
 
   /**
-   * Prefix of the line that precedes the user code in the sources generated
-   * out of build files. It's followed by the path of the original build file.
-   * The compiler is pointed at it via `-Ymagic-offset-header:SOURCE_CODE_START`,
-   * and it's used to map the generated sources back to the original ones.
+   * The header passed to the Scala compiler via `-Ymagic-offset-header`, in the sources
+   * generated out of build files and scripts. In those, a `///<header>:<original file path>`
+   * line precedes the user code, which lets the compiler report positions in the original
+   * files.
    */
-  public static final String userCodeStartMarker = "///SOURCE_CODE_START:";
+  public static final String magicOffsetHeader = "SOURCE_CODE_START";
 }

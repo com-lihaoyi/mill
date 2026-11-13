@@ -66,7 +66,9 @@ object BspWrappedSourcesTests extends UtestIntegrationTestSuite {
 
           // The top wrapper ends with the marker line, pointing at the build file
           val markerLine = top.linesIterator.toSeq.last
-          assert(markerLine == CodeGenConstants.userCodeStartMarker + (workspacePath / subPath))
+          assert(
+            markerLine == s"///${CodeGenConstants.magicOffsetHeader}:${workspacePath / subPath}"
+          )
         }
 
         // The bottom wrappers depend on the kind of build file. Code generation drops the

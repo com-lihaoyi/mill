@@ -5,8 +5,9 @@ import mill.constants.CodeGenConstants
 /**
  * Maps the sources Mill generates out of build files back to the build files.
  *
- * A generated source consists in a header ending with a line starting with
- * [[CodeGenConstants.userCodeStartMarker]] and followed by the path of the build file,
+ * A generated source consists in a header ending with a
+ * `///<header>:<path of the build file>` line (`<header>` being
+ * [[CodeGenConstants.magicOffsetHeader]]),
  * then the user code, then a footer. Code generation only makes length-preserving edits
  * to the user code (`-Ymagic-offset-header` relies on offsets), so the user code has the
  * same length, and the same lines, as the build file.
@@ -23,7 +24,7 @@ private[mill] object GeneratedBuildSources {
   final case class UserCodeStart(originalSource: os.Path, offset: Int, lineIdx: Int)
 
   def userCodeStart(generatedContent: String): Option[UserCodeStart] = {
-    val marker = CodeGenConstants.userCodeStartMarker
+    val marker = s"///${CodeGenConstants.magicOffsetHeader}:"
     val markerIdx =
       if (generatedContent.startsWith(marker)) 0
       else generatedContent.indexOf("\n" + marker) match {
