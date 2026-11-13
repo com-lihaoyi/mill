@@ -2,13 +2,11 @@ package mill.javalib
 
 import mill.api.{BuildCtx, Discover, ExternalModule, ModuleRef, PathRef, Result, experimental}
 import mill.api.daemon.internal.SemanticDbJavaModuleApi
-import mill.constants.CodeGenConstants
 import mill.util.BuildInfo
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil}
 import mill.util.Version
 import mill.{T, Task}
 
-import scala.jdk.CollectionConverters.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.javalib.api.internal.ZincOp
 import mill.javalib.internal.WrappedSources
@@ -163,7 +161,8 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
             BuildCtx.workspaceRoot,
             Task.dest / "data",
             SemanticDbJavaModule.workerClasspath().map(_.path),
-            allSourceFiles().map(_.path)
+            allSourceFiles().map(_.path),
+            magicOffsetHeader = None
           )
         }
 
@@ -263,28 +262,31 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
     )
   }
 
+  /**
+   * Maps the semanticdb of a source wrapped for `-Ymagic-offset-header` to its original source
+   *
+   * @param magicOffsetHeader the header passed to the compiler via `-Ymagic-offset-header`
+   * @return the semanticdb of the original source, and its path relative to the semanticdb
+   *         root, if the source the semanticdb was generated from is a wrapped source
+   */
   private def postProcessed(
       generatedSourceSemdb: os.Path,
       sourceroot: os.Path,
       semdbRoot: os.Path,
-      workerClasspath: Seq[os.Path]
+      workerClasspath: Seq[os.Path],
+      magicOffsetHeader: String
   ): Option[(Array[Byte], os.SubPath)] = {
-    val baseName = generatedSourceSemdb.last.stripSuffix(".semanticdb")
-    val isGenerated = CodeGenConstants.buildFileExtensions.asScala
-      .exists(ext => baseName.endsWith("." + ext))
-    Option.when(isGenerated) {
-      val generatedSourceSubPath = {
-        val subPath = generatedSourceSemdb.relativeTo(semdbRoot).asSubPath
-        subPath / os.up / subPath.last.stripSuffix(".semanticdb")
-      }
-      val generatedSource = sourceroot / generatedSourceSubPath
-      val userCodeStart = WrappedSources.userCodeStart(
-        os.read(generatedSource),
-        CodeGenConstants.magicOffsetHeader
-      )
-        .getOrElse {
-          sys.error(s"Cannot get original source from generated source $generatedSource")
-        }
+    val generatedSource = {
+      val subPath = generatedSourceSemdb.relativeTo(semdbRoot).asSubPath
+      sourceroot / subPath / os.up / subPath.last.stripSuffix(".semanticdb")
+    }
+    val userCodeStartOpt =
+      if (os.isFile(generatedSource))
+        WrappedSources.userCodeStart(os.read(generatedSource), magicOffsetHeader)
+          // semanticdb files are laid out relative to the sourceroot
+          .filter(_.originalSource.startsWith(sourceroot))
+      else None
+    userCodeStartOpt.map { userCodeStart =>
       val source = userCodeStart.originalSource
       // The user code has the same lines as the original source
       val firstLineIdx = userCodeStart.lineIdx
@@ -314,12 +316,18 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
   }
 
   // The semanticdb-javac plugin has issues with the -sourceroot setting, so we correct this on the fly
+  /**
+   * @param magicOffsetHeader the header passed to the compiler via `-Ymagic-offset-header`,
+   *                          if any. The semanticdb of the sources wrapped with it are mapped
+   *                          to their original sources.
+   */
   private[mill] def copySemanticdbFiles(
       classesDir: os.Path,
       sourceroot: os.Path,
       targetDir: os.Path,
       workerClasspath: Seq[os.Path],
-      sources: Seq[os.Path]
+      sources: Seq[os.Path],
+      magicOffsetHeader: Option[String]
   ): PathRef = {
     assert(classesDir != targetDir)
     os.remove.all(targetDir)
@@ -354,7 +362,12 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
           case _ =>
         }
 
-        postProcessed(source, sourceroot, classesDir / semanticPath, workerClasspath)
+        val semdbRoot = classesDir / semanticPath
+        magicOffsetHeader
+          .filter(_ => source.last.endsWith(".semanticdb") && source.startsWith(semdbRoot))
+          .flatMap { header =>
+            postProcessed(source, sourceroot, semdbRoot, workerClasspath, header)
+          }
           .foreach { case (data, dest) =>
             os.write.over(targetDir / semanticPath / dest, data, createFolders = true)
           }

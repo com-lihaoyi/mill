@@ -430,14 +430,16 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "diag/many" -> List(),
               "mill-build" -> ArraySeq("build.mill.semanticdb"),
               "hello-scala/test" -> ArraySeq("hello-scala/test/src/HelloTest.scala.semanticdb"),
-              "scripts/folder1/script.scala" -> ArraySeq(),
+              "scripts/folder1/script.scala" ->
+                ArraySeq("scripts/folder1/script.scala.semanticdb"),
               "errored/exception" -> List(),
               "hello-scala" -> ArraySeq("hello-scala/src/Hello.scala.semanticdb"),
               "diag" -> ArraySeq("diag/src/DiagCheck.scala.semanticdb"),
               "delayed" -> List(),
               "mill-build/mill-build" -> ArraySeq("mill-build/build.mill.semanticdb"),
               "errored/compilation-error" -> List(),
-              "scripts/foldershared/script.scala" -> ArraySeq(),
+              "scripts/foldershared/script.scala" ->
+                ArraySeq("scripts/foldershared/script.scala.semanticdb"),
               "sourcesNeedCompile" -> ArraySeq()
             )
           )
@@ -472,7 +474,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "hello-java/test" -> ArraySeq("hello-java/test/src/HelloJavaTest.java.semanticdb"),
               "app" -> ArraySeq("app/src/App.java.semanticdb"),
               "hello-scala/test" -> ArraySeq("hello-scala/test/src/HelloTest.scala.semanticdb"),
-              "scripts/folder1/script.scala" -> ArraySeq(),
+              "scripts/folder1/script.scala" ->
+                ArraySeq("scripts/folder1/script.scala.semanticdb"),
               "errored/exception" -> List(),
               "scripts/ignored-folder-2/negated-not-ignored.java" -> ArraySeq(),
               "app/test" -> ArraySeq(),
@@ -486,7 +489,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
                 "scripts/foldershared/Foo.java.semanticdb"
               ),
               "errored/compilation-error" -> List(),
-              "scripts/foldershared/script.scala" -> ArraySeq(),
+              "scripts/foldershared/script.scala" ->
+                ArraySeq("scripts/foldershared/script.scala.semanticdb"),
               "sourcesNeedCompile" -> ArraySeq(),
               "scripts" -> ArraySeq(),
               "mill-build/mill-build" -> ArraySeq("mill-build/build.mill.semanticdb")
