@@ -356,7 +356,7 @@ object CodeGen {
              |$aliasImports
              |import build.*
              |$prelude
-             |///SOURCE_CODE_START:$scriptPath
+             |${CGConst.userCodeStartMarker}$scriptPath
              |object package_ extends $newParent, package_ {
              |  ${
               if (segments.isEmpty) millDiscover(segments.nonEmpty, allPackageObjectRefs) else ""
@@ -408,7 +408,7 @@ object CodeGen {
             case _ => scriptCode0
           }
 
-          val markerComment = s"///SOURCE_CODE_START:$scriptPath\n"
+          val markerComment = s"${CGConst.userCodeStartMarker}$scriptPath\n"
 
           val siblingScripts = scriptSources
             .filter(_ != scriptPath)
