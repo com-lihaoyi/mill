@@ -58,7 +58,8 @@ object BuildInfoTests extends TestSuite {
       BuildInfo.Value(
         "scalaVersion2",
         scalaVersion(),
-        comment = "a helpful comment explaining what scalaVersion\nis all about"
+        comment = "a helpful comment explaining what scalaVersion2\nis all about",
+        accessorExtra = """@deprecated("Use scalaVersion instead")"""
       )
     )
 
@@ -161,9 +162,10 @@ object BuildInfoTests extends TestSuite {
           """  /** a helpful comment explaining what scalaVersion is all about */
             |  val scalaVersion = buildInfoProperties.getProperty("scalaVersion")""".stripMargin,
           """  /**
-            |    * a helpful comment explaining what scalaVersion
+            |    * a helpful comment explaining what scalaVersion2
             |    * is all about
             |    */
+            |  @deprecated("Use scalaVersion instead")
             |  val scalaVersion2 = buildInfoProperties.getProperty("scalaVersion2")""".stripMargin
         )
 
