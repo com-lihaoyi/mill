@@ -972,17 +972,17 @@ trait JavaModule
    * originally implemented in Scala CLI, and having an lsp4j-compatible implementation
    * in org.virtuslab.scala-cli:scala-cli-bsp:*scala-cli-version*
    *
-   * Generated sources are assumed to consist in a header, followed by the content
-   * of the original source, and lastly a footer. The header must end with a line
-   * starting with
+   * Generated sources are assumed to be wrapped for the `-Ymagic-offset-header:<header>`
+   * option of the Scala 3 compiler, which must be part of the scalac options of the module:
+   * they consist in a header, followed by the content of the original source, and lastly
+   * a footer. The header must end with a
    *
-   *     ///SOURCE_CODE_START:
+   *     ///<header>:<path of the original source>
    *
-   * (see `CodeGenConstants.magicOffsetHeader`), and the content of the original source
-   * must have the same length in the generated source as on disk, so that the footer
-   * starts right after it.
+   * line, and the content of the original source must have the same length in the
+   * generated source as on disk, so that the footer starts right after it.
    *
-   * Without this marker, these sources are not passed to BSP clients.
+   * Without this option or this marker, these sources are not passed to BSP clients.
    *
    * As of writing this, length-preserving changes in the original sources prior to adding
    * them in the generated ones (like commenting out package directives, which Mill does to

@@ -15,7 +15,6 @@ import ch.epfl.scala.bsp4j.{
 }
 import mill.api.daemon.internal.{JavaModuleApi, ScalaModuleApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
-import mill.constants.CodeGenConstants
 import mill.javalib.internal.WrappedSources
 
 import java.util.concurrent.CompletableFuture
@@ -107,26 +106,32 @@ private trait EndpointsScala extends ScalaBuildServer with ScalaScriptBuildServe
         s"Getting wrapped sources of ${params.getTargets.asScala.map(_.getUri).mkString(", ")}",
       originId = ""
     ) { (ctx, logger) =>
-      val items = ctx.value.flatMap {
-        case (original, generated) =>
-          val generatedContent = os.read(os.Path(generated))
-          val originalLength = os.read(os.Path(original)).length
-          WrappedSources.wrappers(
-            generatedContent,
-            CodeGenConstants.magicOffsetHeader,
-            originalLength
-          ) match {
-            case Some(wrappers0) =>
-              val item = new WrappedSourceItem(
-                original.toUri.toASCIIString,
-                generated.toUri.toASCIIString
-              )
-              item.setTopWrapper(wrappers0.top)
-              item.setBottomWrapper(wrappers0.bottom)
-              Seq(item)
-            case None =>
-              logger.warn(s"User code start marker not found in $generated")
-              Nil
+      val items = ctx.value.magicOffsetHeader match {
+        case None =>
+          if (ctx.value.sources.nonEmpty)
+            logger.warn(
+              s"No -Ymagic-offset-header in the scalac options of ${ctx.id.getUri}, " +
+                "ignoring its wrapped sources"
+            )
+          Nil
+        case Some(header) =>
+          ctx.value.sources.flatMap {
+            case (original, generated) =>
+              val generatedContent = os.read(os.Path(generated))
+              val originalLength = os.read(os.Path(original)).length
+              WrappedSources.wrappers(generatedContent, header, originalLength) match {
+                case Some(wrappers0) =>
+                  val item = new WrappedSourceItem(
+                    original.toUri.toASCIIString,
+                    generated.toUri.toASCIIString
+                  )
+                  item.setTopWrapper(wrappers0.top)
+                  item.setBottomWrapper(wrappers0.bottom)
+                  Seq(item)
+                case None =>
+                  logger.warn(s"///$header: marker not found in $generated")
+                  Nil
+              }
           }
       }
       WrappedSourcesItem(ctx.id, items.asJava)
