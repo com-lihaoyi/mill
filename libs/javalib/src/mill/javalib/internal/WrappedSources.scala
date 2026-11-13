@@ -36,11 +36,13 @@ private[mill] object WrappedSources {
   /**
    * Where the code from the original source starts in a wrapped source
    *
-   * @param originalSource the original source
+   * @param originalSource the original source, as written in the marker line. It can be
+   *                       relative, which callers have to resolve, typically against the
+   *                       workspace root.
    * @param offset offset in the wrapped source of the first character of the original code
    * @param lineIdx zero-based index of the line of the wrapped source the original code starts on
    */
-  final case class UserCodeStart(originalSource: os.Path, offset: Int, lineIdx: Int)
+  final case class UserCodeStart(originalSource: os.FilePath, offset: Int, lineIdx: Int)
 
   /**
    * Finds where the code from the original source starts in a wrapped source
@@ -64,8 +66,10 @@ private[mill] object WrappedSources {
         .substring(markerIdx + marker.length, markerLineEnd)
         .trim
       val pathOpt =
-        try Some(os.Path(pathStr))
-        catch { case _: IllegalArgumentException => None }
+        if (pathStr.isEmpty) None
+        else
+          try Some(os.FilePath(pathStr))
+          catch { case _: IllegalArgumentException => None }
       pathOpt.map { path =>
         val offset = markerLineEnd + 1
         UserCodeStart(path, offset, wrappedContent.iterator.take(offset).count(_ == '\n'))

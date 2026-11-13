@@ -283,11 +283,11 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
     val userCodeStartOpt =
       if (os.isFile(generatedSource))
         WrappedSources.userCodeStart(os.read(generatedSource), magicOffsetHeader)
+          .map(start => (start, os.Path(start.originalSource, sourceroot)))
           // semanticdb files are laid out relative to the sourceroot
-          .filter(_.originalSource.startsWith(sourceroot))
+          .filter(_._2.startsWith(sourceroot))
       else None
-    userCodeStartOpt.map { userCodeStart =>
-      val source = userCodeStart.originalSource
+    userCodeStartOpt.map { (userCodeStart, source) =>
       // The user code has the same lines as the original source
       val firstLineIdx = userCodeStart.lineIdx
 
