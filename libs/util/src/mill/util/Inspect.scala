@@ -210,7 +210,8 @@ private[mill] object Inspect {
         javaModuleDeps.nonEmpty || javaCompileModuleDeps.nonEmpty || javaRunModuleDeps.nonEmpty
 
       val defaultTaskOpt = module match {
-        case taskMod: DefaultTaskModule => Some(s"${module}.${taskMod.defaultTask()}")
+        case taskMod: DefaultTaskModule =>
+          Some(s"${module}${Segments.segmentSeparator}${taskMod.defaultTask()}")
         case _ => None
       }
 

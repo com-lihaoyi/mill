@@ -111,7 +111,7 @@ object Deps {
   val bouncyCastleProv = mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}"
   val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
 
-  val classgraph = mvn"io.github.classgraph:classgraph:4.8.199"
+  val classgraph = mvn"io.github.classgraph:classgraph:4.8.200"
   val coursierVersion = "2.1.26"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
@@ -280,9 +280,9 @@ object Deps {
   val gradleApi_api = mvn"dev.gradleplugins:gradle-api:8.11.1" // scala-steward:off
 
   val androidTools = mvn"com.android.tools.build:gradle:9.5.1"
-  val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:9.5.0"
+  val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:9.5.1"
   val androidDataBindingCompilerCommon =
-    mvn"androidx.databinding:databinding-compiler-common:9.5.0"
+    mvn"androidx.databinding:databinding-compiler-common:9.5.1"
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.60.1"
 
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10" // scala-steward:off
@@ -386,9 +386,9 @@ object Deps {
     val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
     val screenshotValidationJunitEngine =
       mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
-    // https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
+    // https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip
     // https://developer.android.com/studio?hl=de#command-tools
-    val cmdlineToolsVersion = "19.0"
+    val cmdlineToolsVersion = "22.0"
     // TODO: uiTooling is needed for screenshot tests
     // so we handle it diferrently.
     // Removed it from updaetable for now

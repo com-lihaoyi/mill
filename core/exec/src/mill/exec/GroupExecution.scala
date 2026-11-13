@@ -134,7 +134,7 @@ trait GroupExecution {
               .rest
               .map { case (k, v) =>
                 val (actualValue, append) = Appendable.unwrapAppendMarker(v)
-                (segments ++ Seq(k.value)).mkString(".") -> Located(
+                (segments ++ Seq(k.value)).mkString(Segments.segmentSeparator) -> Located(
                   path,
                   k.index,
                   Appendable(actualValue, append)
