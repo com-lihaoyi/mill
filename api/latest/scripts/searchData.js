@@ -1604,7 +1604,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/contrib/buildinfo/BuildInfo$$Language.html#Java-0","e":false,"i":"","n":"Java","t":"Java extends Language","d":"mill.contrib.buildinfo.BuildInfo.Language","k":"val","x":""},
 {"l":"mill/contrib/buildinfo/BuildInfo$$Language.html#Scala-0","e":false,"i":"","n":"Scala","t":"Scala extends Language","d":"mill.contrib.buildinfo.BuildInfo.Language","k":"val","x":""},
 {"l":"mill/contrib/buildinfo/BuildInfo$$Language.html#Kotlin-0","e":false,"i":"","n":"Kotlin","t":"Kotlin extends Language","d":"mill.contrib.buildinfo.BuildInfo.Language","k":"val","x":""},
-{"l":"mill/contrib/buildinfo/BuildInfo$$Value.html#","e":false,"i":"","n":"Value","t":"Value(key: String, value: String, comment: String = ...)","d":"mill.contrib.buildinfo.BuildInfo","k":"class","x":""},
+{"l":"mill/contrib/buildinfo/BuildInfo$$Value.html#","e":false,"i":"","n":"Value","t":"Value(key: String, value: String, comment: String = ..., accessorExtra: String = ...)","d":"mill.contrib.buildinfo.BuildInfo","k":"class","x":""},
 {"l":"mill/contrib/buildinfo/BuildInfo$$Value$.html#","e":false,"i":"","n":"Value","t":"Value","d":"mill.contrib.buildinfo.BuildInfo","k":"object","x":""},
 {"l":"mill/contrib/buildinfo/BuildInfo$$Value$.html#rw-0","e":false,"i":"","n":"rw","t":"rw: ReadWriter[Value]","d":"mill.contrib.buildinfo.BuildInfo.Value","k":"val","x":""},
 {"l":"mill/contrib/buildinfo/BuildInfo.html#","e":false,"i":"","n":"BuildInfo","t":"BuildInfo extends JavaModule","d":"mill.contrib.buildinfo","k":"trait","x":""},
