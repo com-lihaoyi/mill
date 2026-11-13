@@ -106,7 +106,13 @@ object BuildInfo {
     case Kotlin extends Language("kt")
   }
 
-  case class Value(key: String, value: String, comment: String = "")
+  case class Value(
+      key: String,
+      value: String,
+      comment: String = "",
+      @com.lihaoyi.unroll
+      accessorExtra: String = ""
+  )
   object Value {
     implicit val rw: upickle.ReadWriter[Value] = upickle.macroRW
   }
@@ -286,14 +292,21 @@ object BuildInfo {
   }
 
   def commentStr(v: Value): String = {
-    if (v.comment.isEmpty) ""
-    else {
-      val lines = v.comment.linesIterator.toVector
-      lines.length match {
-        case 1 => s"""/** ${v.comment} */\n  """
-        case _ => s"""/**\n    ${lines.map("* " + _).mkString("\n    ")}\n    */\n  """
+    val comment =
+      if (v.comment.isEmpty) ""
+      else {
+        val lines = v.comment.linesIterator.toVector
+        lines.length match {
+          case 1 => s"""/** ${v.comment} */\n  """
+          case _ => s"""/**\n    ${lines.map("* " + _).mkString("\n    ")}\n    */\n  """
+        }
       }
-
-    }
+    val access =
+      if (v.accessorExtra.isEmpty) ""
+      else {
+        v.accessorExtra + "\n  "
+      }
+    comment + access
   }
+
 }
