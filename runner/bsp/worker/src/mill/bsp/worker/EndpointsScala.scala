@@ -15,7 +15,8 @@ import ch.epfl.scala.bsp4j.{
 }
 import mill.api.daemon.internal.{JavaModuleApi, ScalaModuleApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
-import mill.javalib.internal.GeneratedBuildSources
+import mill.constants.CodeGenConstants
+import mill.javalib.internal.WrappedSources
 
 import java.util.concurrent.CompletableFuture
 import scala.build.bsp.{
@@ -110,7 +111,11 @@ private trait EndpointsScala extends ScalaBuildServer with ScalaScriptBuildServe
         case (original, generated) =>
           val generatedContent = os.read(os.Path(generated))
           val originalLength = os.read(os.Path(original)).length
-          GeneratedBuildSources.wrappers(generatedContent, originalLength) match {
+          WrappedSources.wrappers(
+            generatedContent,
+            CodeGenConstants.magicOffsetHeader,
+            originalLength
+          ) match {
             case Some(wrappers0) =>
               val item = new WrappedSourceItem(
                 original.toUri.toASCIIString,

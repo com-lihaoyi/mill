@@ -11,7 +11,7 @@ import mill.{T, Task}
 import scala.jdk.CollectionConverters.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.javalib.api.internal.ZincOp
-import mill.javalib.internal.GeneratedBuildSources
+import mill.javalib.internal.WrappedSources
 
 @experimental
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
@@ -278,7 +278,10 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
         subPath / os.up / subPath.last.stripSuffix(".semanticdb")
       }
       val generatedSource = sourceroot / generatedSourceSubPath
-      val userCodeStart = GeneratedBuildSources.userCodeStart(os.read(generatedSource))
+      val userCodeStart = WrappedSources.userCodeStart(
+        os.read(generatedSource),
+        CodeGenConstants.magicOffsetHeader
+      )
         .getOrElse {
           sys.error(s"Cannot get original source from generated source $generatedSource")
         }
