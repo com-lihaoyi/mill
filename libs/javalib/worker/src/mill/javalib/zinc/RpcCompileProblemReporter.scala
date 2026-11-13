@@ -28,6 +28,19 @@ class RpcCompileProblemReporter(
 
   override def finish(): Unit = send(RpcProblemMessage.Finish)
 
-  override def notifyProgress(progress: Long, total: Long): Unit =
-    send(RpcProblemMessage.NotifyProgress(progress, total))
+  private val lastReportedThrottleMillis = 100
+  private var lastReportedProgress: (time: Long, percentage: Long) = (0L, 0L)
+
+  override def notifyProgress(progress: Long, total: Long): Unit = {
+    val now = System.currentTimeMillis()
+    val percentage = if (total > 0) progress * 100 / total else 0L
+    if (
+      progress == total ||
+      lastReportedProgress.percentage != percentage ||
+      (lastReportedProgress.time + lastReportedThrottleMillis) < now
+    ) {
+      lastReportedProgress = (time = now, percentage = percentage)
+      send(RpcProblemMessage.NotifyProgress(progress, total))
+    }
+  }
 }
