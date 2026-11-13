@@ -114,6 +114,14 @@ object VaadinModuleTests extends TestSuite {
       assert(os.readLink.absolute(link) == build.app.moduleDir / "node_modules")
     }
 
+    test("prodBuildOptions") - UnitTester(build, null).scoped { eval =>
+      // Mill's task cache decides when to rebuild, so a pre-compiled bundle is never reused
+      val Right(force) = eval(build.app.prod.vaadinForceProductionBuild).runtimeChecked
+      assert(force.value)
+      val Right(ci) = eval(build.app.prod.vaadinCiBuild).runtimeChecked
+      assert(!ci.value)
+    }
+
     test("isolatedWorker") - UnitTester(build, null).scoped { eval =>
       val Right(worker) = eval(build.app.vaadinWorker).runtimeChecked
       val workerLoader = worker.value.getClass.getClassLoader

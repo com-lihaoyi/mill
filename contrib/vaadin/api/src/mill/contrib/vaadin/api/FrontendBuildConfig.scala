@@ -13,6 +13,8 @@ import java.nio.file.Path
  * @param stageDir output root; servlet resources are written to `META-INF/VAADIN` below it
  * @param classpath classpath scanned for frontend dependencies (`@JsModule`, `@NpmPackage`, ...)
  * @param applicationIdentifier identifier of the application's frontend bundle
+ * @param forceProductionBuild always build the bundle, never reuse a pre-compiled one
+ * @param ciBuild install the npm packages with `npm ci`, strictly from the lock file
  */
 case class FrontendBuildConfig(
     projectDir: Path,
@@ -22,5 +24,7 @@ case class FrontendBuildConfig(
     buildToolsDir: Path,
     stageDir: Path,
     classpath: Seq[Path],
-    applicationIdentifier: String
+    applicationIdentifier: String,
+    forceProductionBuild: Boolean = true,
+    ciBuild: Boolean = false
 )

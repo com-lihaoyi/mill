@@ -212,13 +212,30 @@ trait VaadinModule extends JavaModule { outer =>
         buildToolsDir = buildTools,
         stageDir = stage,
         classpath = classpath.map(_.path),
-        applicationIdentifier = outer.vaadinApplicationIdentifier()
+        applicationIdentifier = outer.vaadinApplicationIdentifier(),
+        forceProductionBuild = vaadinForceProductionBuild(),
+        ciBuild = vaadinCiBuild()
       )
       VaadinModule.linkNodeModules(buildTools, outer.moduleDir, Task.log)
       outer.vaadinWorker().buildFrontend(config, VaadinModule.logger(Task.log))
 
       PathRef(stage)
     }
+
+    /**
+     * Always build the production bundle with npm and Vite. Vaadin would otherwise
+     * reuse a pre-compiled bundle it finds on the classpath or wrote into the
+     * project earlier (`src/main/bundles/prod.bundle`), whose themes it copies to
+     * `VAADIN/static/themes`; Mill's task cache already decides when to rebuild.
+     */
+    def vaadinForceProductionBuild: T[Boolean] = Task { true }
+
+    /**
+     * Install the npm packages with `npm ci`: strictly from the project's
+     * `package-lock.json`, failing when it does not match `package.json`, so the
+     * bundle is reproducible. Needs both files in the project.
+     */
+    def vaadinCiBuild: T[Boolean] = Task { false }
 
     /** Command wrapper around [[vaadinFrontendBuild]]. */
     def vaadinBuildFrontend(): Command[PathRef] = Task.Command {
@@ -297,7 +314,9 @@ object VaadinModule {
       buildToolsDir: os.Path,
       stageDir: os.Path,
       classpath: Seq[os.Path],
-      applicationIdentifier: String
+      applicationIdentifier: String,
+      forceProductionBuild: Boolean,
+      ciBuild: Boolean
   ): FrontendBuildConfig = FrontendBuildConfig(
     projectDir = projectDir.toNIO,
     frontendDir = frontendDir.toNIO,
@@ -306,6 +325,8 @@ object VaadinModule {
     buildToolsDir = buildToolsDir.toNIO,
     stageDir = stageDir.toNIO,
     classpath = classpath.map(_.toNIO),
-    applicationIdentifier = applicationIdentifier
+    applicationIdentifier = applicationIdentifier,
+    forceProductionBuild = forceProductionBuild,
+    ciBuild = ciBuild
   )
 }

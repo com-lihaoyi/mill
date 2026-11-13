@@ -182,9 +182,9 @@ class VaadinBuildAdapter(config: FrontendBuildConfig, log: VaadinLogger)
 
   override def runNpmInstall(): Boolean = true
 
-  override def ciBuild(): Boolean = false
+  override def ciBuild(): Boolean = config.ciBuild
 
-  override def forceProductionBuild(): Boolean = false
+  override def forceProductionBuild(): Boolean = config.forceProductionBuild
 
   override def compressBundle(): Boolean = true
 
