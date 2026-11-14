@@ -497,7 +497,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
 
     val (close, framework) = withScalaNativeBridge.apply().apply(_.getFramework(
       nativeLink().path.toIO,
-      allForkEnv(),
+      (if (propagateEnv()) Task.env else Map()) ++ allForkEnv(),
       toWorkerApi(logLevel()),
       testFramework()
     ))
