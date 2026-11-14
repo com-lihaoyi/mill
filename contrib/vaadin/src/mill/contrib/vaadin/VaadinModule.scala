@@ -145,6 +145,10 @@ trait VaadinModule extends JavaModule { outer =>
    * dependencies of the production build, e.g. a JDBC driver, go into the
    * sub-module's own `runMvnDeps`.
    *
+   * To publish it, mix in [[PublishModule]] after it
+   * (`object prod extends VaadinProdModule with PublishModule`), so that
+   * `PublishModule` narrows `moduleDeps` to published modules.
+   *
    * As a regular [[JavaModule]], it provides `run`, `runBackground`, `assembly`
    * and `launcher` for the production application. Mix in
    * [[mill.javalib.repackage.RepackageModule]] for an executable Spring Boot jar
@@ -152,12 +156,8 @@ trait VaadinModule extends JavaModule { outer =>
    */
   trait VaadinProdModule extends JavaModule {
 
-    /**
-     * The module dependencies of the Vaadin module, as runtime dependencies: the
-     * production module compiles nothing itself, and unlike `moduleDeps` this also
-     * works when it is a [[PublishModule]], whose `moduleDeps` must be `PublishModule`s.
-     */
-    override def runModuleDeps: Seq[JavaModule] = outer.moduleDeps ++ outer.runModuleDeps
+    override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
+    override def runModuleDeps: Seq[JavaModule] = outer.runModuleDeps
     override def mvnDeps: T[Seq[Dep]] = outer.mvnDeps()
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task { outer.mandatoryMvnDeps() }
     override def bomMvnDeps: T[Seq[Dep]] = super.bomMvnDeps() ++ outer.bomMvnDeps()

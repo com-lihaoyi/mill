@@ -100,8 +100,8 @@ object VaadinModuleTests extends TestSuite {
     }
 
     test("prodModuleDepsPublished") - UnitTester(build, null).scoped { eval =>
-      // the Vaadin module's module dependencies reach the production module as runtime deps
-      assert(build.publishedApp.prod.runModuleDeps == Seq(build.lib))
+      // with PublishModule mixed in after VaadinProdModule, moduleDeps are the published ones
+      assert(build.publishedApp.prod.moduleDeps == Seq(build.lib))
       val Right(local) = eval(build.publishedApp.prod.transitiveLocalClasspath).runtimeChecked
       val Right(libLocal) = eval(build.lib.localClasspath).runtimeChecked
       assert(libLocal.value.toSet.subsetOf(local.value.toSet))
