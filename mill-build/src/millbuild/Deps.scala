@@ -133,8 +133,12 @@ object Deps {
   val castor = mvn"com.lihaoyi::castor:0.3.2"
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = mvn"org.flywaydb:flyway-core:11.20.3"
-  // compile-time only: at runtime the Vaadin plugin uses the Flow version of the user's application
-  val vaadinFlowPluginBase_api = mvn"com.vaadin:flow-plugin-base:25.2.0" // scala-steward:off
+  // compile-time only: at runtime the Vaadin plugin uses the Flow version of the user's application.
+  // One worker per incompatible flow-plugin-base API, named after the first Flow version it supports
+  val vaadinFlowPluginBase_api = Map(
+    "25.2.0" -> mvn"com.vaadin:flow-plugin-base:25.2.0", // scala-steward:off
+    "25.3.4" -> mvn"com.vaadin:flow-plugin-base:25.3.4" // scala-steward:off
+  )
   val jibCore = mvn"com.google.cloud.tools:jib-core:0.28.2"
   val graphvizJava = Seq(
     mvn"guru.nidi:graphviz-java-min-deps:0.18.1",
