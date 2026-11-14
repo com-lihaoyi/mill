@@ -26,7 +26,7 @@ object app extends JavaModule, VaadinModule {
 
   def bomMvnDeps = Seq(
     mvn"org.springframework.boot:spring-boot-dependencies:4.1.1",
-    mvn"com.vaadin:vaadin-bom:25.3.0"
+    mvn"com.vaadin:vaadin-bom:25.3.5"
   )
   def mvnDeps = Seq(mvn"com.vaadin:vaadin-spring-boot-starter")
 

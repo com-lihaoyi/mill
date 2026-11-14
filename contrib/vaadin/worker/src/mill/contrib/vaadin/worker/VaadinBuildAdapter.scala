@@ -60,15 +60,13 @@ class VaadinBuildAdapter(config: FrontendBuildConfig, log: VaadinLogger)
     val reactEnabled = isReactEnabled() && FrontendUtils.isReactRouterRequired(
       BuildFrontendUtil.getFrontendDirectory(this)
     )
-    val frontendDependencies =
-      new FrontendDependenciesScanner.FrontendDependenciesScannerFactory()
-        .createScanner(
-          !optimizeBundle(),
-          getClassFinder(),
-          generateEmbeddableWebComponents(),
-          featureFlags,
-          reactEnabled
-        )
+    val frontendDependencies = VaadinBuildAdapter.createScanner(
+      allDependenciesScan = !optimizeBundle(),
+      finder = getClassFinder(),
+      generateEmbeddableWebComponents = generateEmbeddableWebComponents(),
+      featureFlags = featureFlags,
+      reactEnabled = reactEnabled
+    )
 
     BuildFrontendUtil.runNodeUpdater(this, frontendDependencies)
 
@@ -184,9 +182,9 @@ class VaadinBuildAdapter(config: FrontendBuildConfig, log: VaadinLogger)
 
   override def runNpmInstall(): Boolean = true
 
-  override def ciBuild(): Boolean = false
+  override def ciBuild(): Boolean = config.ciBuild
 
-  override def forceProductionBuild(): Boolean = false
+  override def forceProductionBuild(): Boolean = config.forceProductionBuild
 
   override def compressBundle(): Boolean = true
 
@@ -232,4 +230,38 @@ class VaadinBuildAdapter(config: FrontendBuildConfig, log: VaadinLogger)
   override def isFrontendIgnoreVersionChecks(): Boolean = false
 
   override def isCommercialBannerEnabled(): Boolean = false
+}
+
+object VaadinBuildAdapter {
+
+  /**
+   * Creates the scanner of the production build. The worker is compiled against
+   * the oldest supported `flow-plugin-base`, but runs against the application's
+   * Flow version: Flow 25.3 replaced the five-argument `createScanner` with one
+   * taking `productionMode` as well, so the variant the classpath has is called
+   * reflectively, as the Maven plugin calls it (`productionMode = true`).
+   */
+  private[worker] def createScanner(
+      allDependenciesScan: Boolean,
+      finder: ClassFinder,
+      generateEmbeddableWebComponents: Boolean,
+      featureFlags: FeatureFlags,
+      reactEnabled: Boolean
+  ): FrontendDependenciesScanner = {
+    val factory = new FrontendDependenciesScanner.FrontendDependenciesScannerFactory()
+    val createScanners = factory.getClass.getMethods.filter(_.getName == "createScanner")
+    val args = Seq[AnyRef](
+      Boolean.box(allDependenciesScan),
+      finder,
+      Boolean.box(generateEmbeddableWebComponents),
+      featureFlags,
+      Boolean.box(reactEnabled)
+    )
+    val (method, allArgs) = createScanners.find(_.getParameterCount == 6) match {
+      case Some(withProductionMode) => (withProductionMode, args :+ Boolean.box(true))
+      case None => (createScanners.find(_.getParameterCount == 5).get, args)
+    }
+    try method.invoke(factory, allArgs*).asInstanceOf[FrontendDependenciesScanner]
+    catch { case e: java.lang.reflect.InvocationTargetException => throw e.getCause }
+  }
 }
