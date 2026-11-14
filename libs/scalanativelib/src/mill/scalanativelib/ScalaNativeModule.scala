@@ -497,7 +497,8 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
 
     val (close, framework) = withScalaNativeBridge.apply().apply(_.getFramework(
       nativeLink().path.toIO,
-      allForkEnv(),
+      // Like `run` and JVM tests, include the environment of the Mill client
+      (if (propagateEnv()) Task.env else Map.empty) ++ allForkEnv(),
       toWorkerApi(logLevel()),
       testFramework()
     ))
