@@ -48,11 +48,20 @@ trait AndroidSdkManagerModule extends Module {
     cmdlineToolsPath / "bin" / s"sdkmanager$ext"
   }
 
+  // macOS archives carry an arch suffix (`mac_arm64`, `mac_x86_64`) from cmdline-tools 22.0 on
+  private val firstMacArchSuffixedBuild = 15859902L
+
   private def cmdlineToolsURL(versionLong: String): String = {
     val platform =
       if (isWin) "win"
-      else if (isMac) "mac"
-      else if (isLinux) "linux"
+      else if (isMac) {
+        if (versionLong.toLong >= firstMacArchSuffixedBuild) {
+          System.getProperty("os.arch") match {
+            case "aarch64" | "arm64" => "mac_arm64"
+            case _ => "mac_x86_64"
+          }
+        } else "mac"
+      } else if (isLinux) "linux"
       else throw IllegalStateException("Unknown platform")
 
     s"https://dl.google.com/android/repository/commandlinetools-$platform-${versionLong}_latest.zip"
@@ -99,6 +108,11 @@ trait AndroidSdkManagerModule extends Module {
   private def hexArray(arr: Array[Byte]) =
     String.format("%0" + (arr.length << 1) + "x", BigInteger(1, arr))
 
+  private def licenseAcceptanceHint(sdkManagerExe: os.Path): String =
+    "Please review the licenses at https://developer.android.com/studio/terms" +
+      " and accept them by overriding `autoAcceptLicenses` to `true`" +
+      s" (with cmdline-tools older than 23.0 you can also run `${sdkManagerExe.toString} --licenses`)."
+
   private def acceptLicenses(sdkManagerExePath: os.Path) = {
     val args = if (isWin)
       Seq("cmd", "/c", "(for /l %i in (1,1,10) do @echo y)")
@@ -126,6 +140,7 @@ trait AndroidSdkManagerModule extends Module {
       case "20.0" => "14742923"
       case "21.0" => "15641748"
       case "22.0" => "15859902"
+      case "23.0" => "16111833"
       case _ =>
         throw IllegalArgumentException(s"Unsupported cmdline tools version: $versionShort")
     }
@@ -211,8 +226,7 @@ trait AndroidSdkManagerModule extends Module {
       } else {
         throw new IllegalStateException(
           s"License for cmdline-tools;$versionShort is not accepted. " +
-            s"Please run `${millSdkManagerExe.toString} --licenses` to review and accept the licenses" +
-            ", or override `autoAcceptLicenses` to `true`."
+            licenseAcceptanceHint(millSdkManagerExe)
         )
       }
     }
@@ -311,8 +325,7 @@ trait AndroidSdkManagerModule extends Module {
           Task.fail(
             "Failed to install the following SDK packages, because their respective" +
               s" licenses are not accepted:\n\n${packagesWithoutLicense.map(_._1).mkString("\n")}" +
-              s"\nPlease run `${sdkManagerPath.toString} --licenses` to review and accept the licenses" +
-              ", or override `autoAcceptLicenses` to `true`."
+              "\n" + licenseAcceptanceHint(sdkManagerPath)
           )
         }
       }
@@ -418,7 +431,7 @@ trait AndroidSdkManagerModule extends Module {
       sdkmanagerExe: os.Path,
       packages: Seq[String]
   ): CommandResult = {
-    os.call(
+    val result = os.call(
       cmd = Seq(
         sdkmanagerExe.toString,
         "--install"
@@ -426,6 +439,20 @@ trait AndroidSdkManagerModule extends Module {
       stdout = os.Inherit,
       stderr = os.Inherit
     )
+
+    // With cmdline-tools 23.0+ an unknown package only prints a message and still exits with 0,
+    // so verify the result. `sdkmanager` lives in `<sdk>/cmdline-tools/<version>/bin/`.
+    val versionDir = sdkmanagerExe / os.up / os.up
+    if ((versionDir / os.up).last == "cmdline-tools") {
+      val sdkPath = versionDir / os.up / os.up
+      val notInstalled = packages.filterNot(isPackageInstalled(sdkPath, _))
+      if (notInstalled.nonEmpty)
+        throw IllegalStateException(
+          s"Failed to install the following Android SDK packages (not found in $sdkPath): " +
+            notInstalled.mkString(", ")
+        )
+    }
+    result
   }
 
 }
