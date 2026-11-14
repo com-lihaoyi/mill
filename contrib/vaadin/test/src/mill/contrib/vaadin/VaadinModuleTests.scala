@@ -66,6 +66,14 @@ object VaadinModuleTests extends TestSuite {
       assert(!VaadinModule.isSupportedFlowVersion("24.9.0"))
     }
 
+    test("workerFor") {
+      assert(VaadinModule.workerFor("25.2.0") == "25.2")
+      assert(VaadinModule.workerFor("25.3.3") == "25.2")
+      assert(VaadinModule.workerFor("25.3.4") == "25.3")
+      assert(VaadinModule.workerFor("25.3.7") == "25.3")
+      assert(VaadinModule.workerFor("26.0.0") == "25.3")
+    }
+
     test("frontendDir") - UnitTester(build, null).scoped { eval =>
       val Right(millLayout) = eval(build.app.vaadinFrontendDir).runtimeChecked
       assert(millLayout.value.path == build.app.moduleDir / "frontend")

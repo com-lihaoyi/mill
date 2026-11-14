@@ -65,7 +65,7 @@ trait VaadinModule extends JavaModule { outer =>
    * [[VaadinProdModule.vaadinFrontendBuild]].
    */
   def vaadinDevBuildToolsDir: T[os.Path] = Task(persistent = true) {
-    VaadinModule.linkNodeModules(Task.dest, moduleDir, Task.log)
+    VaadinModule.linkNodeModules(Task.dest, moduleDir)
     Task.dest
   }
 
@@ -101,7 +101,9 @@ trait VaadinModule extends JavaModule { outer =>
    */
   def vaadinWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-contrib-vaadin-worker"),
+      Dep.millProjectModule(
+        s"mill-contrib-vaadin-worker-${VaadinModule.workerFor(vaadinFlowVersion())}"
+      ),
       mvn"com.vaadin:flow-plugin-base:${vaadinFlowVersion()}",
       // Vaadin's build tasks log npm/Vite progress and errors via SLF4J (to stderr)
       mvn"org.slf4j:slf4j-simple:${BuildInfo.slf4jSimpleVersion}"
@@ -214,7 +216,7 @@ trait VaadinModule extends JavaModule { outer =>
         classpath = classpath.map(_.path),
         applicationIdentifier = outer.vaadinApplicationIdentifier()
       )
-      VaadinModule.linkNodeModules(buildTools, outer.moduleDir, Task.log)
+      VaadinModule.linkNodeModules(buildTools, outer.moduleDir)
       outer.vaadinWorker().buildFrontend(config, VaadinModule.logger(Task.log))
 
       PathRef(stage)
@@ -250,7 +252,22 @@ object VaadinModule {
    */
   private[vaadin] val FrontendFolderProperty = "vaadin.vaadin.frontend.folder"
 
-  /** Whether the worker, compiled against [[BuildInfo.flowPluginBaseVersion]], supports `flowVersion`. */
+  /** The workers, each with the oldest Flow version it supports, oldest first. */
+  private[vaadin] val workers: Seq[(String, String)] =
+    BuildInfo.workerFlowVersions.split(",").toSeq.map { kv =>
+      val Array(k, v) = kv.split("=", 2)
+      (k, v)
+    }.sortBy((_, v) => Version.parse(v))(using Version.MavenOrdering)
+
+  /** The worker for `flowVersion`: the one compiled against the newest Flow version not above it. */
+  private[vaadin] def workerFor(flowVersion: String): String = {
+    val flow = Version.parse(flowVersion)
+    workers.filter((_, v) => flow.isAtLeast(Version.parse(v))(using Version.MavenOrdering))
+      .lastOption.map(_._1)
+      .getOrElse(workers.head._1)
+  }
+
+  /** Whether the oldest worker, compiled against [[BuildInfo.flowPluginBaseVersion]], supports `flowVersion`. */
   private[vaadin] def isSupportedFlowVersion(flowVersion: String): Boolean =
     Version.parse(flowVersion)
       .isAtLeast(Version.parse(BuildInfo.flowPluginBaseVersion))(using Version.MavenOrdering)
@@ -266,17 +283,19 @@ object VaadinModule {
    */
   private[vaadin] def linkNodeModules(
       buildFolder: os.Path,
-      projectDir: os.Path,
-      log: mill.api.Logger
+      projectDir: os.Path
   ): Unit = {
     val link = (buildFolder / "node_modules").toNIO
     if (!java.nio.file.Files.exists(link, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
       try java.nio.file.Files.createSymbolicLink(link, (projectDir / "node_modules").toNIO)
       catch {
         case e: (java.io.IOException | UnsupportedOperationException) =>
-          log.warn(
-            s"Could not link ${projectDir / "node_modules"} into $buildFolder, Vite may not " +
-              s"resolve the imports of the files Vaadin generates there: $e"
+          throw Exception(
+            s"Could not link ${projectDir / "node_modules"} into $buildFolder: Vite resolves the " +
+              "imports of the files Vaadin generates there by walking up to a node_modules folder, " +
+              "and Mill's build folders lie outside the project. On Windows, creating symbolic " +
+              "links needs Developer Mode or the corresponding privilege.",
+            e
           )
       }
     }
