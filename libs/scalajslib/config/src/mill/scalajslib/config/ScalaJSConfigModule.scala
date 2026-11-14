@@ -235,7 +235,7 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
       case Right(_) =>
         ScalaJSConfigWorkerExternalModule.scalaJSWorker().run0(
           scalaJSToolsClasspath(),
-          jsEnvConfig(),
+          jsEnvConfigWithClientEnv(),
           scalaJsInputs()
         )
         ()
@@ -321,7 +321,7 @@ trait TestScalaJSConfigModule extends TestScalaJSModule with ScalaJSConfigModule
   def testFrameworkInstance: Task[(close: () => Unit, framework: Framework)] = Task.Anon {
     ScalaJSConfigWorkerExternalModule.scalaJSWorker().rawGetFramework(
       scalaJSToolsClasspath(),
-      jsEnvConfig(),
+      jsEnvConfigWithClientEnv(),
       testFramework(),
       scalaJsTestInputs()
     )
