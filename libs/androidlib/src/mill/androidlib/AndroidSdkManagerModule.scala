@@ -431,11 +431,13 @@ trait AndroidSdkManagerModule extends Module {
       sdkmanagerExe: os.Path,
       packages: Seq[String]
   ): CommandResult = {
+    // wrap package names in quotes on Windows
+    val packageArgs = if (isWin) packages.map(p => s"\"$p\"") else packages
     val result = os.call(
       cmd = Seq(
         sdkmanagerExe.toString,
         "--install"
-      ) ++ packages,
+      ) ++ packageArgs,
       stdout = os.Inherit,
       stderr = os.Inherit
     )
