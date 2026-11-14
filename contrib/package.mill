@@ -230,6 +230,8 @@ object `package` extends mill.Module {
     object worker extends Cross[WorkerModule](Deps.vaadinFlowPluginBase_api.keys.toSeq)
     trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
       def flowBinary = crossValue
+      // the workers share their sources, their API docs would clash
+      override def includeInApiDocs = false
       def moduleDir: os.Path = super.moduleDir / flowBinary
 
       def sharedSources = Task.Sources(moduleDir / os.up / "src-shared")
