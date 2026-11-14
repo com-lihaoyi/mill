@@ -210,7 +210,9 @@ object `package` extends mill.Module {
       ),
       BuildInfo.Value(
         "workerFlowVersions",
-        Deps.vaadinFlowPluginBase_api.toSeq.sortBy(_._1).map((k, d) => s"$k=${d.version}").mkString(","),
+        Deps.vaadinFlowPluginBase_api.toSeq.sortBy(
+          _._1
+        ).map((k, d) => s"$k=${d.version}").mkString(","),
         "The workers, each with the oldest Flow version it supports"
       ),
       BuildInfo.Value("slf4jSimpleVersion", Deps.RuntimeDeps.slf4jSimple_runtime.version)

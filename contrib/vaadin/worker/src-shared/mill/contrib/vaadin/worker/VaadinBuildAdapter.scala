@@ -10,7 +10,7 @@ import com.vaadin.flow.server.frontend.{
   Options,
   TaskCleanFrontendFiles
 }
-import com.vaadin.flow.server.frontend.scanner.{ClassFinder, FrontendDependenciesScanner}
+import com.vaadin.flow.server.frontend.scanner.ClassFinder
 import com.vaadin.pro.licensechecker.{LicenseChecker, MissingLicenseKeyException}
 import mill.contrib.vaadin.api.{FrontendBuildConfig, VaadinLogger}
 
