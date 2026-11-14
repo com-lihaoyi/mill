@@ -67,11 +67,11 @@ object VaadinModuleTests extends TestSuite {
     }
 
     test("workerFor") {
-      assert(VaadinModule.workerFor("25.2.0") == "25.2")
-      assert(VaadinModule.workerFor("25.3.3") == "25.2")
-      assert(VaadinModule.workerFor("25.3.4") == "25.3")
-      assert(VaadinModule.workerFor("25.3.7") == "25.3")
-      assert(VaadinModule.workerFor("26.0.0") == "25.3")
+      assert(VaadinModule.workerFor("25.2.0") == "25.2.0")
+      assert(VaadinModule.workerFor("25.3.3") == "25.2.0")
+      assert(VaadinModule.workerFor("25.3.4") == "25.3.4")
+      assert(VaadinModule.workerFor("25.3.7") == "25.3.4")
+      assert(VaadinModule.workerFor("26.0.0") == "25.3.4")
     }
 
     test("frontendDir") - UnitTester(build, null).scoped { eval =>

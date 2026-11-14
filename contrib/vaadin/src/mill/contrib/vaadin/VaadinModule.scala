@@ -252,19 +252,17 @@ object VaadinModule {
    */
   private[vaadin] val FrontendFolderProperty = "vaadin.vaadin.frontend.folder"
 
-  /** The workers, each with the oldest Flow version it supports, oldest first. */
-  private[vaadin] val workers: Seq[(String, String)] =
-    BuildInfo.workerFlowVersions.split(",").toSeq.map { kv =>
-      val Array(k, v) = kv.split("=", 2)
-      (k, v)
-    }.sortBy((_, v) => Version.parse(v))(using Version.MavenOrdering)
+  /** The workers, each named after the first Flow version it supports, oldest first. */
+  private[vaadin] val workers: Seq[String] =
+    BuildInfo.workerFlowVersions.split(",").toSeq
+      .sortBy(Version.parse)(using Version.MavenOrdering)
 
   /** The worker for `flowVersion`: the one compiled against the newest Flow version not above it. */
   private[vaadin] def workerFor(flowVersion: String): String = {
     val flow = Version.parse(flowVersion)
-    workers.filter((_, v) => flow.isAtLeast(Version.parse(v))(using Version.MavenOrdering))
-      .lastOption.map(_._1)
-      .getOrElse(workers.head._1)
+    workers.filter(w => flow.isAtLeast(Version.parse(w))(using Version.MavenOrdering))
+      .lastOption
+      .getOrElse(workers.head)
   }
 
   /** Whether the oldest worker, compiled against [[BuildInfo.flowPluginBaseVersion]], supports `flowVersion`. */

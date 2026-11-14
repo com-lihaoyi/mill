@@ -205,15 +205,13 @@ object `package` extends mill.Module {
     override def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq(
       BuildInfo.Value(
         "flowPluginBaseVersion",
-        Deps.vaadinFlowPluginBase_api("25.2").version,
+        Deps.vaadinFlowPluginBase_api("25.2.0").version,
         "Version of flow-plugin-base the oldest worker is compiled against, the oldest supported Flow version"
       ),
       BuildInfo.Value(
         "workerFlowVersions",
-        Deps.vaadinFlowPluginBase_api.toSeq.sortBy(
-          _._1
-        ).map((k, d) => s"$k=${d.version}").mkString(","),
-        "The workers, each with the oldest Flow version it supports"
+        Deps.vaadinFlowPluginBase_api.keys.toSeq.sorted.mkString(","),
+        "The workers, each named after the first Flow version it supports"
       ),
       BuildInfo.Value("slf4jSimpleVersion", Deps.RuntimeDeps.slf4jSimple_runtime.version)
     )
@@ -223,22 +221,22 @@ object `package` extends mill.Module {
 
     /**
      * Drives Vaadin's frontend build tooling. One worker per incompatible
-     * `flow-plugin-base` API, compiled against the oldest Flow version it supports;
+     * `flow-plugin-base` API, named after the first Flow version it supports;
      * at runtime, `flow-plugin-base` is resolved in the Flow version of the user's
      * application and loaded together with the matching worker in an isolated classloader.
      */
     object worker extends Cross[WorkerModule](Deps.vaadinFlowPluginBase_api.keys.toSeq)
     trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
-      def flowBinary = crossValue
+      def flowVersion = crossValue
       // the workers share their sources, their API docs would clash
       override def includeInApiDocs = false
-      def moduleDir: os.Path = super.moduleDir / flowBinary
+      def moduleDir: os.Path = super.moduleDir / flowVersion
 
       def sharedSources = Task.Sources(moduleDir / os.up / "src-shared")
       def sources = Task { sharedSources() ++ super.sources() }
 
       def compileModuleDeps = Seq(vaadin.api)
-      def compileMvnDeps = Seq(Deps.vaadinFlowPluginBase_api(flowBinary))
+      def compileMvnDeps = Seq(Deps.vaadinFlowPluginBase_api(flowVersion))
     }
   }
 
