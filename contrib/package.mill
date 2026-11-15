@@ -205,7 +205,7 @@ object `package` extends mill.Module {
     override def buildInfoMembers: T[Seq[BuildInfo.Value]] = Seq(
       BuildInfo.Value(
         "flowPluginBaseVersion",
-        Deps.vaadinFlowPluginBase_api("25.2.0").version,
+        Deps.vaadinFlowPluginBase_api("25.2.17").version,
         "Version of flow-plugin-base the oldest worker is compiled against, the oldest supported Flow version"
       ),
       BuildInfo.Value(
