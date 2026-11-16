@@ -4,6 +4,7 @@ import mill.*
 import mill.api.Discover
 import mill.contrib.vaadin.internal.BuildInfo
 import mill.javalib.*
+import mill.javalib.publish.{PomSettings, VersionControl}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
@@ -28,6 +29,25 @@ object VaadinModuleTests extends TestSuite {
 
     object mavenApp extends MavenModule with VaadinModule
 
+    object lib extends JavaModule with PublishModule {
+      def publishVersion = "0.0.1"
+      def pomSettings = PomSettings("lib", "com.example", "", Seq(), VersionControl(), Seq())
+    }
+
+    /** A published application: `PublishModule` requires its `moduleDeps` to be published too. */
+    object publishedApp extends JavaModule with PublishModule with VaadinModule {
+      def publishVersion = "0.0.1"
+      def pomSettings = PomSettings("app", "com.example", "", Seq(), VersionControl(), Seq())
+      def moduleDeps = Seq(lib)
+      def bomMvnDeps = Seq(mvn"com.vaadin:vaadin-bom:$vaadinVersion")
+      def mvnDeps = Seq(mvn"com.vaadin:vaadin-core")
+
+      object prod extends VaadinProdModule with PublishModule {
+        def publishVersion = "0.0.1"
+        def pomSettings = PomSettings("app-prod", "com.example", "", Seq(), VersionControl(), Seq())
+      }
+    }
+
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -44,6 +64,14 @@ object VaadinModuleTests extends TestSuite {
       assert(VaadinModule.isSupportedFlowVersion(BuildInfo.flowPluginBaseVersion))
       assert(VaadinModule.isSupportedFlowVersion("99.0.0"))
       assert(!VaadinModule.isSupportedFlowVersion("24.9.0"))
+    }
+
+    test("workerFor") {
+      assert(VaadinModule.workerFor("25.2.0") == "25.2.0")
+      assert(VaadinModule.workerFor("25.3.3") == "25.2.0")
+      assert(VaadinModule.workerFor("25.3.4") == "25.3.4")
+      assert(VaadinModule.workerFor("25.3.7") == "25.3.4")
+      assert(VaadinModule.workerFor("26.0.0") == "25.3.4")
     }
 
     test("frontendDir") - UnitTester(build, null).scoped { eval =>
@@ -77,6 +105,21 @@ object VaadinModuleTests extends TestSuite {
 
       // everything else shipped is also on the development runtime classpath
       assert(prodJars.diff(prodOnly).toSet.subsetOf(jarNames(run.value).toSet))
+    }
+
+    test("prodModuleDepsPublished") - UnitTester(build, null).scoped { eval =>
+      // with PublishModule mixed in after VaadinProdModule, moduleDeps are the published ones
+      assert(build.publishedApp.prod.moduleDeps == Seq(build.lib))
+      val Right(local) = eval(build.publishedApp.prod.transitiveLocalClasspath).runtimeChecked
+      val Right(libLocal) = eval(build.lib.localClasspath).runtimeChecked
+      assert(libLocal.value.toSet.subsetOf(local.value.toSet))
+    }
+
+    test("devBuildToolsLinkNodeModules") - UnitTester(build, null).scoped { eval =>
+      val Right(buildTools) = eval(build.app.vaadinDevBuildToolsDir).runtimeChecked
+      val link = buildTools.value / "node_modules"
+      assert(os.isLink(link))
+      assert(os.readLink.absolute(link) == build.app.moduleDir / "node_modules")
     }
 
     test("isolatedWorker") - UnitTester(build, null).scoped { eval =>

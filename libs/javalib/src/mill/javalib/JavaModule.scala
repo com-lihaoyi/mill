@@ -13,6 +13,7 @@ import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
+import mill.api.daemon.Segments
 import mill.api.{
   BuildCtx,
   DefaultTaskModule,
@@ -574,7 +575,7 @@ trait JavaModule
     cs.Dependency(
       cs.Module(
         JavaModule.internalOrg,
-        coursier.core.ModuleName(moduleSegments.parts.mkString("-").replace('/', '-')),
+        JavaModule.moduleName(moduleSegments),
         Map.empty
       ),
       VersionConstraint(JavaModule.internalVersion)
@@ -583,6 +584,10 @@ trait JavaModule
     )
 
   def coursierDependencyTask: Task[cs.Dependency] = Task.Anon {
+    cachedCoursierDependency()
+  }
+
+  private def cachedCoursierDependency: T[cs.Dependency] = Task {
     val bindDependency0 = bindDependency()
     val forceVersions = mvnDeps().filter(_.force).map(bindDependency0(_).dep).map { dep =>
       DependencyManagement.Key.from(dep) ->
@@ -600,6 +605,10 @@ trait JavaModule
    * we provide details about this module to coursier.
    */
   def coursierProject: Task[cs.Project] = Task.Anon {
+    cachedCoursierProject()
+  }
+
+  private def cachedCoursierProject: T[cs.Project] = Task {
     coursierProject0()
   }
 
@@ -640,8 +649,8 @@ trait JavaModule
         bomModuleDepsChecked.map { modDep =>
           val dep = coursier.core.Dependency(
             coursier.core.Module(
-              coursier.core.Organization("mill-internal"),
-              coursier.core.ModuleName(modDep.moduleSegments.parts.mkString("-")),
+              JavaModule.internalOrg,
+              JavaModule.moduleName(modDep.moduleSegments),
               Map.empty
             ),
             VersionConstraint("0+mill-internal")
@@ -793,7 +802,11 @@ trait JavaModule
    *
    * Doesn't include the coursier project of the current module, see [[coursierProject]] for that.
    */
-  def transitiveCoursierProjects: Task[Seq[cs.Project]] = {
+  def transitiveCoursierProjects: Task[Seq[cs.Project]] = Task.Anon {
+    cachedTransitiveCoursierProjects()
+  }
+
+  private def cachedTransitiveCoursierProjects: T[Seq[cs.Project]] = {
     val allModuleDeps =
       (compileModuleDepsChecked ++ moduleDepsChecked ++ runModuleDepsChecked ++ bomModuleDepsChecked).distinct
     Task {
@@ -1568,14 +1581,20 @@ trait JavaModule
     val treeTask = mvnDepsTree(args)
     Task.Command(exclusive = true) {
       val rendered = treeTask()
-      Task.log.unprefixedStreams.out.println(rendered)
-      rendered
+      if (rendered.replace("\n", "").trim.nonEmpty) {
+        Task.log.unprefixedStreams.out.println(rendered)
+        rendered
+      } else ""
     }
   }
 
   protected def mvnDepsTree(args: MvnDepsTreeArgs): Task[String] = {
     val (invalidModules, modules) =
-      args.whatDependsOn.partitionMap(ModuleParser.javaOrScalaModule)
+      args.whatDependsOn.partitionMap(x =>
+        // If no colon, this could be a module, so prepend the internal group
+        if (x.indexOf(":") < 0) ModuleParser.javaOrScalaModule(s"mill-internal:${x}")
+        else ModuleParser.javaOrScalaModule(x)
+      )
 
     if (invalidModules.nonEmpty) {
       Task.Anon {
@@ -1949,6 +1968,11 @@ object JavaModule {
   }
 
   private[mill] def internalOrg = coursier.core.Organization("mill-internal")
+  private def moduleName(segments: Segments): coursier.core.ModuleName =
+    coursier.core.ModuleName(segments.render
+      .replace("/", ".") // cross-values
+      .replace(":", ".") // scripts
+    )
   private[mill] def internalVersion = "0+mill-internal"
 
 }

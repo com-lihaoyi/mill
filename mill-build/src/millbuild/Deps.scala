@@ -133,8 +133,12 @@ object Deps {
   val castor = mvn"com.lihaoyi::castor:0.3.2"
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = mvn"org.flywaydb:flyway-core:11.20.3"
-  // compile-time only: at runtime the Vaadin plugin uses the Flow version of the user's application
-  val vaadinFlowPluginBase_api = mvn"com.vaadin:flow-plugin-base:25.2.0" // scala-steward:off
+  // compile-time only: at runtime the Vaadin plugin uses the Flow version of the user's application.
+  // One worker per incompatible flow-plugin-base API, named after the first Flow version it supports
+  val vaadinFlowPluginBase_api = Map(
+    "25.2.0" -> mvn"com.vaadin:flow-plugin-base:25.2.0", // scala-steward:off
+    "25.3.4" -> mvn"com.vaadin:flow-plugin-base:25.3.4" // scala-steward:off
+  )
   val jibCore = mvn"com.google.cloud.tools:jib-core:0.28.2"
   val graphvizJava = Seq(
     mvn"guru.nidi:graphviz-java-min-deps:0.18.1",
@@ -206,7 +210,7 @@ object Deps {
     mvn"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = mvn"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
-  val scalaCliBsp = mvn"org.virtuslab.scala-cli:scala-cli-bsp:1.18.0"
+  val scalaCliBsp = mvn"org.virtuslab.scala-cli:scala-cli-bsp:1.19.0"
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.5.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.17.4"
@@ -386,9 +390,9 @@ object Deps {
     val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
     val screenshotValidationJunitEngine =
       mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
-    // https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
+    // https://dl.google.com/android/repository/commandlinetools-linux-16111833_latest.zip
     // https://developer.android.com/studio?hl=de#command-tools
-    val cmdlineToolsVersion = "19.0"
+    val cmdlineToolsVersion = "23.0"
     // TODO: uiTooling is needed for screenshot tests
     // so we handle it diferrently.
     // Removed it from updaetable for now

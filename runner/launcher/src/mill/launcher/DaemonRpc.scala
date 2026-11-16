@@ -71,7 +71,8 @@ object DaemonRpc {
       clientToServer: PrintStream,
       stdout: RpcConsole.Message => Unit,
       stderr: RpcConsole.Message => Unit,
-      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult
+      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult,
+      pollStdin: ServerToClient.PollStdin => StdinResult = defaultPollStdin
   ): MillRpcClient[ClientToServer, ServerToClient] = {
     val transport = MillRpcWireTransport(
       name = "DaemonRpcClient",
@@ -87,7 +88,7 @@ object DaemonRpc {
         case req: ServerToClient.RunSubprocess =>
           runSubprocess(req).asInstanceOf[input.Response]
         case req: ServerToClient.PollStdin =>
-          defaultPollStdin(req).asInstanceOf[input.Response]
+          pollStdin(req).asInstanceOf[input.Response]
         case req: ServerToClient.GetTerminalDims =>
           defaultGetTerminalDims(req).asInstanceOf[input.Response]
       }

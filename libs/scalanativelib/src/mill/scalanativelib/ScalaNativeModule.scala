@@ -453,6 +453,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
         .toSet
     )
 
+    // FIXME: This should be `super.coursierProject()`, but that's not possible due to bin-compat
     val proj = coursierProject0()
 
     proj.withDependencies(

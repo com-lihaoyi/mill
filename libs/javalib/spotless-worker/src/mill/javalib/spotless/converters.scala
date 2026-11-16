@@ -3,6 +3,7 @@ package mill.javalib.spotless
 import com.diffplug.spotless.generic.*
 import com.diffplug.spotless.java.*
 import com.diffplug.spotless.kotlin.*
+import com.diffplug.spotless.markdown.FlexmarkStep
 import com.diffplug.spotless.scala.ScalaFmtStep
 import com.diffplug.spotless.{FileSignature, FormatterStep, LintSuppression, Provisioner}
 import coursier.core.Configuration
@@ -169,6 +170,12 @@ class ToFormatterStep(charset: Charset, provisioner: Provisioner)
         Option(scalaMajorVersion).getOrElse(ScalaFmtStep.defaultScalaMajorVersion()),
         provisioner,
         path(configFile).fold(null)(_.toIO)
+      )
+    case step: Flexmark =>
+      import step.*
+      FlexmarkStep.create(
+        Option(version).getOrElse(FlexmarkStep.defaultVersion()),
+        provisioner
       )
 
 def toLintSuppression(suppress: Suppress) = {
