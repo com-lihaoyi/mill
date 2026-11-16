@@ -85,7 +85,10 @@ private[mill] object ParseArgs {
     separate(scriptArgs).map(extractAndValidate(_, selectMode == SelectMode.Multi))
   }
 
-  def extractAndValidate(scriptArgs: Seq[String], multiSelect: Boolean): Result[TasksWithParams] = {
+  def extractAndValidate(
+      scriptArgs: Seq[String],
+      multiSelect: Boolean
+  ): Result[TasksWithParams] = {
     val (selectors, args) = extractSelsAndArgs(scriptArgs, multiSelect)
     for {
       _ <- validateSelectors(selectors)
@@ -122,9 +125,10 @@ private[mill] object ParseArgs {
 
   def extractSegments(selectorString: String): Result[(String, Segments)] = {
 
+    // compatibility heuristics which syntax to parse
+
     val dot = selectorString.indexOf(".")
     val slash = selectorString.indexOf("/")
-    // println(s"selectorString: ${selectorString} (${dot}, ${slash})")
 
     val sel = (dot, slash) match {
       // there are no dots, default to the new selector
