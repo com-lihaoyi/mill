@@ -1,25 +1,34 @@
 // :api-spotless: {site-url}/api/latest/mill/javalib/spotless
-
+//
 // If your project has file groups each requiring different formatting,
 // you may want to give Mill's https://github.com/diffplug/spotless[Spotless] plugin a try.
 // It supports formatting all files with a single command
 // as opposed to using a different plugin/command for each group.
-
+//
 // We define a module that extends link:{api-spotless}/SpotlessModule.html[SpotlessModule] and
 // provide a JSON configuration file with the format specifications.
 
-/** See Also: build.mill.yaml */
-/** See Also: src/A.kt */
-/** See Also: src/B.java */
-/** See Also: LICENSE */
+// The main configuration lives in the .spotless-formats.json file:
 /** See Also: .spotless-formats.json */
 
+// The spotless support is then added to the module:
+
+/** See Also: build.mill.yaml */
+
+// The example files are later formated:
+/** See Also: src/A.kt */
+/** See Also: src/B.java */
+/** See Also: example.md */
+/** See Also: LICENSE */
+/** See Also: .scalafmt.conf */
+
 // As per the specifications:
-
+//
 // * The `build.mill` is to be formatted using `ScalaFmt` step.
-// * All Java files are to be formatted using `PalantirFormatJava` and `LicenseHeader` steps.
+// * All Java files are to be formatted using `GoogleJavaFormat` and `LicenseHeader` steps.
 // * All Kotlin files are to be formatted using `Ktfmt` and `LicenseHeader` steps.
-
+// * All Markdown files are formatted using the `Flexmark` steps.
+//
 // NOTE: Most fields have default values and can be omitted in the JSON file.
 // An example is the `LicenseHeader.header` field that references the `LICENSE` file.
 //
@@ -30,21 +39,31 @@
 
 /** Usage
 > ./mill spotless --check   # check fails initially
+[warn] no files to format for glob:build.mill
 checking format in 1 java files
 format errors in src/B.java
 checking format in 1 kt files
 format errors in src/A.kt
-format errors in 2 files
-error: ...format check failed for 2 files
+checking format in 1 md files
+format errors in example.md
+format errors in 3 files
+spotless
+error: ...format check failed for 3 files
 
 > ./mill spotless           # auto-fix format
+checking format in 1 java files
 formatting src/B.java
+checking format in 1 kt files
 formatting src/A.kt
-formatted 2 files
+checking format in 1 md files
+formatting example.md
+formatted 3 files
+format completed
 
 > ./mill spotless           # fast incremental format
 1 java files are already formatted
 1 kt files are already formatted
+1 md files are already formatted
 */
 
 // This demonstrates how different file groups can be formatted with a single command.
@@ -62,5 +81,6 @@ formatted 2 files
 > ./mill mill.javalib.spotless.SpotlessModule/ --check
 checking format in 1 java files
 checking format in 1 kt files
+checking format in 1 md files
 format check completed
 */

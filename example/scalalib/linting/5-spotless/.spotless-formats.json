@@ -36,5 +36,15 @@
         "configFile": ".scalafmt3.conf"
       }
     ]
+  },
+  {
+    "includes": [
+      "glob:**.md"
+    ],
+    "steps": [
+      {
+        "$type": "Flexmark"
+      }
+    ]
   }
 ]

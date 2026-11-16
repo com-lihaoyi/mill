@@ -23,15 +23,17 @@ object `package` extends SpotlessModule {
 /** See Also: lib/src/A.java */
 /** See Also: lib/src-2/B.scala */
 /** See Also: lib/src-3/B.scala */
+/** See Also: example.md */
 /** See Also: .scalafmt.conf */
 /** See Also: .scalafmt3.conf */
 /** See Also: .spotless-formats.json */
 
 // As per the specifications:
 
-// * All Java files are to be formatted using `PalantirFormatJava` step.
+// * All Java files are to be formatted using `GoogleJavaFormat` step.
 // * All Scala 2 files are to be formatted using `Scalafmt` step with the configuration in `.scalafmt.conf`.
 // * All Scala 3 files are to be formatted using `Scalafmt` step with the configuration in `.scalafmt3.conf`.
+// * All Markdown files are formatted using the `Flexmark` steps.
 
 // NOTE: Most fields have default values and can be omitted in the JSON file.
 // An example is the `ScalaFmt.configFile` field that references the `.scalafmt.conf` file.
@@ -50,24 +52,33 @@ checking format in 1 java files
 format errors in lib/src/A.java
 checking format in 1 scala files
 format errors in lib/src-2/B.scala
-checking format in 1 scala files
+checking format in 2 mill,scala files
 format errors in lib/src-3/B.scala
-checking format in 1 scala files
 format errors in build.mill
-format errors in 4 files
-error: ...format check failed for 4 files
+checking format in 1 md files
+format errors in example.md
+format errors in 5 files
+spotless
+error: ...format check failed for 5 files
 
 > ./mill spotless             # auto-fix format
+checking format in 1 java files
 formatting lib/src/A.java
+checking format in 1 scala files
 formatting lib/src-2/B.scala
+checking format in 2 mill,scala files
 formatting lib/src-3/B.scala
 formatting build.mill
-formatted 4 files
+checking format in 1 md files
+formatting example.md
+formatted 5 files
+format completed
 
 > ./mill spotless           # fast incremental format
 1 java files are already formatted
 1 scala files are already formatted
-1 scala files are already formatted
+2 mill,scala files are already formatted
+1 md files are already formatted
 */
 
 // This demonstrates how different file groups can be formatted with a single command.
@@ -85,6 +96,7 @@ formatted 4 files
 > ./mill mill.javalib.spotless.SpotlessModule/ --check
 checking format in 1 java files
 checking format in 1 scala files
-checking format in 1 scala files
+checking format in 2 mill,scala files
+checking format in 1 md files
 format check completed
 */

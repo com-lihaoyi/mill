@@ -26,9 +26,13 @@ include::partial$example/kotlinlib/linting/4-ktfmt.adoc[]
 
 include::partial$example/kotlinlib/linting/6-spotless.adoc[]
 
+=== In-Code Configuration
+
+include::partial$example/kotlinlib/linting/7-spotless-code.adoc[]
+
 === Ratchet
 
-include::partial$example/javalib/linting/6-spotless-ratchet.adoc[]
+include::partial$example/javalib/linting/7-spotless-ratchet.adoc[]
 
 == Code Coverage with Kover
 
