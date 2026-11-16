@@ -35,7 +35,7 @@
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="api/FrontendBuildConfig.html" t="n" class="documentableName ">FrontendBuildConfig</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">projectDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">frontendDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">javaSourceDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">resourcesDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">buildToolsDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">stageDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">classpath</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">applicationIdentifier</span>: <span data-unresolved-link="" t="t">String</span>)
+            <span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="api/FrontendBuildConfig.html" t="n" class="documentableName ">FrontendBuildConfig</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">projectDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">frontendDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">javaSourceDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">resourcesDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">buildToolsDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">stageDir</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">classpath</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Path</span>], <span t="k"></span><span data-unresolved-link="" t="n">applicationIdentifier</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">forceProductionBuild</span>: <span data-unresolved-link="" t="t">Boolean</span> = ..., <span t="k"></span><span data-unresolved-link="" t="n">ciBuild</span>: <span data-unresolved-link="" t="t">Boolean</span> = ...)
            </div>
           </div>
          </div>
@@ -61,9 +61,17 @@
               <dd class="body-medium">
                <p>Vaadin's build folder (Maven: <code>target</code>, Gradle: <code>build</code>)</p>
               </dd>
+              <dt class="body-small">ciBuild</dt>
+              <dd class="body-medium">
+               <p>install the npm packages with <code>npm ci</code>, strictly from the lock file</p>
+              </dd>
               <dt class="body-small">classpath</dt>
               <dd class="body-medium">
                <p>classpath scanned for frontend dependencies (<code>@JsModule</code>, <code>@NpmPackage</code>, ...)</p>
+              </dd>
+              <dt class="body-small">forceProductionBuild</dt>
+              <dd class="body-medium">
+               <p>always build the bundle, never reuse a pre-compiled one</p>
               </dd>
               <dt class="body-small">frontendDir</dt>
               <dd class="body-medium">
