@@ -11,12 +11,12 @@ import scala.util.Properties.isWin
  * Allows you to retrieve or compile the Scala compiler bridge.
  *
  * @param workspace Workspace for the compiler bridge.
- * @param logInfo  logs a message at INFO level.
+ * @param logTicker logs a message to the ticker
  */
 @internal
 case class ZincCompilerBridgeProvider(
     workspace: os.Path,
-    logInfo: String => Unit,
+    logTicker: String => Unit,
     acquire: ZincCompilerBridgeProvider.Acquire
 )
 @internal
@@ -64,7 +64,7 @@ object ZincCompilerBridgeProvider {
    *                      is compiled on a JVM newer than the one the Scala version supports
    */
   def compile(
-      logInfo: String => Unit,
+      logTicker: String => Unit,
       workingDir: os.Path,
       compileDest: os.Path,
       scalaVersion: String,
@@ -81,7 +81,7 @@ object ZincCompilerBridgeProvider {
       )
     }
 
-    logInfo("Compiling compiler interface...")
+    logTicker(s"Compiling compiler interface for Scala ${scalaVersion}")
 
     os.makeDir.all(workingDir)
     os.makeDir.all(compileDest)

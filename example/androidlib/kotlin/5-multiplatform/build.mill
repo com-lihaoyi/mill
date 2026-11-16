@@ -1,0 +1,91 @@
+//| mill-jvm-version: zulu:21
+// This example shows a Kotlin Multiplatform library `shared`, compiled for the
+// JVM and for Android, used by a separate Android app `androidApp`.
+
+package build
+import mill.*, androidlib.*, androidlib.multiplatform.*, kotlinlib.*
+
+object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = "35.0.0"
+}
+
+trait AndroidSettings extends AndroidModule {
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+  def androidCompileSdk = 35
+  def androidMinSdk = 24
+}
+
+object shared extends AndroidKotlinMultiplatformModule {
+  def kotlinVersion = "2.2.20"
+
+  trait SharedPlatformModule extends PlatformModule {
+    def mvnDeps = super.mvnDeps() ++
+      Seq(mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    def kotlincPluginMvnDeps = super.kotlincPluginMvnDeps() ++ Seq(
+      mvn"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${this.kotlinVersion()}"
+    )
+  }
+
+  object jvm extends SharedPlatformModule {
+    object test extends PlatformTests, TestModule.Junit4 {
+      def mvnDeps = Seq(mvn"org.jetbrains.kotlin:kotlin-test-junit:${this.kotlinVersion()}")
+    }
+  }
+
+  object android extends AndroidPlatformModule, AndroidSettings, SharedPlatformModule {
+    def androidNamespace = "com.example.shared"
+
+    object test extends PlatformHostTests, TestModule.Junit4 {
+      def mvnDeps = Seq(mvn"org.jetbrains.kotlin:kotlin-test-junit:${this.kotlinVersion()}")
+    }
+  }
+}
+
+object androidApp extends AndroidAppKotlinModule, AndroidSettings {
+  def kotlinVersion = "2.2.20"
+  def androidApplicationId = "com.example.app"
+  def androidApplicationNamespace = "com.example.app"
+  def moduleDeps = Seq(shared.android)
+}
+
+// An `AndroidKotlinMultiplatformModule` can contain an `AndroidPlatformModule`,
+// which compiles `androidMain` and `commonMain` against the Android SDK.
+//
+// ----
+// shared/src/
+//   commonMain/kotlin/        shared by all platforms
+//   jvmMain/kotlin/           only for `shared.jvm`
+//   androidMain/kotlin/       only for `shared.android`
+//   androidMain/res/          Android resources of `shared.android`
+//   commonTest/kotlin/        tests shared by all platforms
+//   jvmTest/kotlin/           tests only for `shared.jvm.test`
+//   androidHostTest/kotlin/   tests only for `shared.android.test`
+// androidApp/src/main/
+//   AndroidManifest.xml
+//   kotlin/
+//   res/
+// ----
+//
+// The `AndroidManifest.xml` of `shared.android` is optional, and generated from
+// its `androidNamespace` unless `src/androidMain/AndroidManifest.xml` exists.
+// Its `PlatformHostTests` run `androidHostTest` and `commonTest` on the JVM.
+//
+// Dependencies of all platforms, like `kotlinx-serialization-json` here, go in
+// a trait extended by every platform module, `SharedPlatformModule`.
+
+/** Usage
+
+> ./mill shared.jvm.test
+...com.example.shared.GreetingTest...greetMentionsPlatform...
+...com.example.shared.JvmPlatformTest...platformIsJava...
+...com.example.shared.MessageTest...jsonRoundTrip...
+
+> ./mill shared.android.test
+...com.example.shared.AndroidPlatformTest...platformIsAndroid...
+...com.example.shared.GreetingTest...greetMentionsPlatform...
+...com.example.shared.MessageTest...jsonRoundTrip...
+
+> ./mill show androidApp.androidApk
+"...$MILL_OUT/androidApp/androidApk.dest/app.apk"
+
+*/

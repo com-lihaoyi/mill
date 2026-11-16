@@ -8,18 +8,26 @@
 // We define a module that extends link:{api-spotless}/SpotlessModule.html[SpotlessModule] and
 // provide a JSON configuration file with the format specifications.
 
+// The main configuration lives in the .spotless-formats.json file:
+/** See Also: .spotless-formats.json */
+
+// The spotless support is then added to the module:
+
 /** See Also: build.mill.yaml */
+
+// The example files are later formated:
 /** See Also: src/A.java */
 /** See Also: resources/app.properties */
 /** See Also: LICENSE */
-/** See Also: .spotless-formats.json */
+/** See Also: example.md */
 /** See Also: .scalafmt.conf */
 
 // As per the specifications:
 //
 // * The `build.mill` is to be formatted using `ScalaFmt` step.
 // * The `resources/app.properties` file is to be formatted using `TrimTrailingWhitespace` step.
-// * All Java files are to be formatted using `PalantirFormatJava` and `LicenseHeader` steps.
+// * All Java files are to be formatted using `GoogleJavaFormat` and `LicenseHeader` steps.
+// * All Markdown files are formatted using the `Flexmark` steps.
 //
 // NOTE: Most fields have default values and can be omitted in the JSON file.
 // An example is the `LicenseHeader.header` field that references the `LICENSE` file.
@@ -31,22 +39,31 @@
 
 /** Usage
 > ./mill spotless --check   # check fails initially
+[warn] no files to format for glob:build.mill
 checking format in 1 properties files
 format errors in resources/app.properties
 checking format in 1 java files
 format errors in src/A.java
-format errors in 2 files
-error: ...format check failed for 2 files
+checking format in 1 md files
+format errors in example.md
+format errors in 3 files
+spotless
+error: ...format check failed for 3 files
 
 > ./mill spotless           # auto-fix format
+checking format in 1 properties files
 formatting resources/app.properties
+checking format in 1 java files
 formatting src/A.java
-formatted 2 files
+checking format in 1 md files
+formatting example.md
+formatted 3 files
 format completed
 
 > ./mill spotless           # fast incremental format
 1 properties files are already formatted
 1 java files are already formatted
+1 md files are already formatted
 */
 
 // This demonstrates how different file groups can be formatted with a single command.
@@ -64,5 +81,6 @@ format completed
 > ./mill mill.javalib.spotless.SpotlessModule/ --check
 checking format in 1 properties files
 checking format in 1 java files
+checking format in 1 md files
 format check completed
 */

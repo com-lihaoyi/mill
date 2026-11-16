@@ -27,6 +27,6 @@ jobs:
       - uses: actions/checkout@v7
         with: {fetch-depth: 0}
 
-      - uses: coursier/cache-action@v8
+      - uses: coursier/cache-action@v9
 
       - run: ci/publish-docs.sh

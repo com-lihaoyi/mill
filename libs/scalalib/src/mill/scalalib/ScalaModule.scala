@@ -617,24 +617,27 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       else Seq()
 
     Task.Command {
-      (
-        super.prepareOffline(all)() ++
-          // resolve the compile bridge jar
-          defaultResolver().classpath(
-            scalacPluginMvnDeps()
-          ) ++
-          defaultResolver().classpath(
-            scalaDocPluginMvnDeps()
-          ) ++
-          (
-            jvmWorker().scalaCompilerBridgeJarV2(
-              scalaVersion(),
-              scalaOrganization0(scalaVersion()),
-              defaultResolver()
-            ).fullClasspath
-          ) ++
-          Task.sequence(tasks)().flatten
-      ).distinct
+      Seq(
+        super.prepareOffline(all)(),
+        // scala compiler classpath
+        scalaCompilerClasspath(),
+        // plugins
+        defaultResolver().classpath(
+          scalacPluginMvnDeps()
+        ),
+        // scaladoc plugins
+        defaultResolver().classpath(
+          scalaDocPluginMvnDeps()
+        ),
+        // resolve the compile bridge jar
+        jvmWorker().scalaCompilerBridgeJarV2(
+          scalaVersion(),
+          scalaOrganization0(scalaVersion()),
+          defaultResolver()
+        ).fullClasspath,
+        // all-tasks
+        Task.sequence(tasks)().flatten
+      ).flatten.distinct
     }
   }
 

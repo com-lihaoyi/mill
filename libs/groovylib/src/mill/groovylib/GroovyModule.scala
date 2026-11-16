@@ -198,8 +198,8 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
       )
 
       def compileJava: Result[CompilationResult] = {
-        ctx.log.info(
-          s"Compiling ${javaSourceFiles.size} Java sources to $classes ..."
+        ctx.log.ticker(
+          s"Compiling ${javaSourceFiles.size} Java sources"
         )
         // The compiler step is lazy, but its dependencies are not!
         internalCompileJavaFiles(
@@ -215,8 +215,8 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
       }
 
       def compileGroovy(): Result[CompilationResult] = {
-        ctx.log.info(
-          s"Compiling ${groovySourceFiles.size} Groovy sources to $classes ..."
+        ctx.log.ticker(
+          s"Compiling ${groovySourceFiles.size} Groovy sources"
         )
         val workerGroovyResult =
           GroovyWorkerManager.groovyWorker().withValue(groovyCompilerClasspath()) {

@@ -41,10 +41,8 @@
 /** Usage
 
 > ./mill compile
-compiling 1 Scala source...
 
 > ./mill test.compile
-compiling 1 Scala source...
 
 > ./mill test.testForked
 + foo.FooTests...hello ...

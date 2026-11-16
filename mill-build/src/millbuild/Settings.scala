@@ -21,9 +21,10 @@ object Settings {
     "0.12.17",
     "1.0.6",
     "1.1.10",
-    // can't build, as it requires Mill 2.0.0-M2 features
-    //    "2.0.0-M2",
-    "1.3.1"
+    // can't build, as it requires Mill 2.0.0-M2 features, due to early bootstrapping
+    // "2.0.0-M2",
+    "1.3.1",
+    "1.4.0-M2"
   )
   val mimaBaseVersions: Seq[String] = Seq(
     "1.0.0",

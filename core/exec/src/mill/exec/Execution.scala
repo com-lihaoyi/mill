@@ -82,7 +82,7 @@ case class Execution(
     // multiple Executions racing on the same file and producing a corrupted profile.
     profileLogger = new JsonArrayLogger.Profile(
       if (depth == 0) os.Path(runArtifacts.profile)
-      else os.Path(outPath) / mill.constants.OutFiles.millProfile
+      else os.Path(outPath) / mill.constants.OutFiles.OutFiles.millProfile
     ),
     workspace = os.Path(workspace),
     outPath = os.Path(outPath),

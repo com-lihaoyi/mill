@@ -78,7 +78,6 @@ object myplugin extends ScalaModule, PublishModule {
 /** Usage
 
 > ./mill myplugin.compile
-compiling 1 Scala source...
 
 */
 

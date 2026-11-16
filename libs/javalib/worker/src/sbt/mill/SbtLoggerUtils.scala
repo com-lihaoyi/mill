@@ -19,7 +19,8 @@ object SbtLoggerUtils {
   // per line, and skips it for INFO logging where it is usually unhelpful
   class ConciseLevelConsoleAppender(
       name: String,
-      log: String => Unit,
+      logInfo: String => Unit,
+      logTicker: String => Unit,
       ansiCodesSupported0: Boolean
   ) extends ConsoleAppender(
         name,
@@ -27,34 +28,36 @@ object SbtLoggerUtils {
         suppressedMessage = _ => None
       ) {
     override def appendLog(level: Level.Value, message0: => String): Unit = {
-      import mill.api.BuildCtx.workspaceRoot
+      // flippables
+      var logAction = logInfo
+      var skipMsg = false
+
       val message =
         if (level != Level.Info) message0
         else {
-          // Hackily scrape the `compiling` messages logged by SBT to rewrite them in a
-          // less verbose format by converting absolute paths to relative to workspaceRoot
-          def maybeTruncate(path0: String): String = {
-            val path = os.Path(path0, workspaceRoot)
-
-            if (!path.startsWith(workspaceRoot)) path.toString
-            else path.subRelativeTo(workspaceRoot).toString
-          }
           val sourcesWords = Set("source", "sources")
           message0 match {
-            case s"compiling $n Scala $sources to $path ..."
+            case s"compiling $n Scala $sources to $_ ..."
                 if n.forall(_.isDigit) && sourcesWords.contains(sources) =>
 
-              s"compiling $n Scala $sources to ${maybeTruncate(path)} ..."
+              logAction = logTicker
+              s"Compiling $n Scala $sources"
 
-            case s"compiling $n Java $sources to $path ..."
+            case s"compiling $n Java $sources to $_ ..."
                 if n.forall(_.isDigit) && sourcesWords.contains(sources) =>
-              s"compiling $n Java $sources to ${maybeTruncate(path)} ..."
 
-            case s"compiling $n Scala $sources1 and $m Java $sources2 to $path ..."
+              logAction = logTicker
+              s"Compiling $n Java $sources"
+
+            case s"compiling $n Scala $sources1 and $m Java $sources2 to $_ ..."
                 if n.forall(_.isDigit) && sourcesWords.contains(sources1) &&
                   m.forall(_.isDigit) && sourcesWords.contains(sources2) =>
 
-              s"compiling $n Scala $sources1 and $m Java $sources2 to ${maybeTruncate(path)} ..."
+              logAction = logTicker
+              s"Compiling $n Scala $sources1 and $m Java $sources2"
+
+            case "done compiling" =>
+              skipMsg = true
 
             case _ => message0
           }
@@ -69,7 +72,7 @@ object SbtLoggerUtils {
         case _ => ""
       }
 
-      log(severityPrefix + message)
+      if (!skipMsg) logAction(severityPrefix + message)
     }
   }
 }

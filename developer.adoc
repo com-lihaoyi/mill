@@ -20,8 +20,8 @@ When starting out, please run:
 
 5. Test manually via `./mill dist.run scratch foo.scala`
 
-6. Run specific integration/example tests e.g. `./mill integration.feature.full-run-logs` or
-   `./mill example.javalib.basic.1-script`
+6. Run specific integration/example tests e.g. `./mill integration.dedicated.full-run-logs` or
+   `./mill example.javalib.basic.1-simple`
 
 7. Run broader integration/unit tests e.g. `./mill core.__.test` or
    `./mill example.javalib.basic._`
@@ -36,8 +36,8 @@ Ways you can run manual testing or automated tests using `./mill`:
 
 |===
 | Config | Automated Testing | Manual Testing | Manual Testing CI
-| In-Process Tests | `core.__.test`, `scalalib.test`, `contrib.buildinfo.test`, etc. |  |
-| Sub-Process Tests| `integration.ide.bsp-server`, `example.javalib.basic._` | `dist.run` | `test-mill-dev.sh`
+| In-Process Tests | `core.__.test`, `libs.scalalib.test`, `contrib.buildinfo.test`, etc. |  |
+| Sub-Process Tests| `integration.dedicated.bsp-server`, `example.javalib.basic._` | `dist.run` | `test-dist-run.sh`
 | Bootstrapping: Building Mill with your current checkout of Mill |  | `dist.installLocal` | `test-mill-bootstrap.sh`
 |===
 
@@ -58,7 +58,7 @@ These range from tiny unit tests, to larger integration tests that instantiate a
 Most "core" tests live in `core.__.test`; these should run almost instantly, and cover
 most of Mill's functionality that is not specific to Scala/Scala.js/etc..
 Tests specific to Scala/Scala.js/Scala-Native live in
-`scalalib.test`/`scalajslib.test`/`scalanativelib.test` respectively, and take a lot longer
+`libs.scalalib.test`/`libs.scalajslib.test`/`libs.scalanativelib.test` respectively, and take a lot longer
 to run because running them involves actually compiling Scala code.
 
 The various `contrib` modules also have tests in this style, e.g.
@@ -77,7 +77,7 @@ is difficult to cover via unit tests.
 
 [source,console]
 ----
-> ./mill example.javalib.basic.3-simple
+> ./mill example.javalib.basic.1-simple
 > ./mill integration.feature.inspect
 ----
 
@@ -89,14 +89,14 @@ This is useful for analysis of why the test passed or failed.
 
 [source,console]
 ----
-> ./mill dist.run example/javalib/basic/3-simple -i foo.run --text hello
+> ./mill dist.run example/javalib/basic/1-simple -i run --text hello
 ----
 
 **Manual Test using Launcher Script**
 
 [source,console]
 ----
-> ./mill dist.launcher && (cd example/javalib/basic/3-simple && ../../../../out/dist/launcher.dest/run foo.run --text hello)
+> ./mill dist.launcher && (cd example/javalib/basic/1-simple && ../../../../out/dist/launcher.dest/run run --text hello)
 ----
 
 `example` tests are written in a single `build.mill` file, with the test commands written
@@ -123,10 +123,10 @@ infrastructure, but with differences:
 ==== Different Flavors or Sub-Process Tests
 
 
-There are eight variants of these tests, `.{packaged,fast,native}.{daemon,nodaemon}`.
-When you run e.g. `./mill integration.feature.full-run-logs`, it picks the default configuration
+There are eight variants of these tests, `.{packaged,proguard,native,fast}.{daemon,nodaemon}`.
+When you run e.g. `./mill integration.dedicated.full-run-logs`, it picks the default configuration
 for the test that is exercised in Mill's CI pipeline, but you can run the other variants manually
-e.g. `./mill integration.feature.full-run-logs.proguard.nodaemon` which can be useful for manual
+e.g. `./mill integration.dedicated.full-run-logs.proguard.nodaemon` which can be useful for manual
 testing.
 
 The first label specifies how the Mill code is packaged before testing
@@ -156,7 +156,7 @@ You can reproduce these tests manually using `dist.raw.installLocal`:
 
 [source,console]
 ----
-> ./mill dist.raw.installLocal && (cd example/javalib/basic/3-simple && ../../../../mill-assembly.jar run --text hello)
+> ./mill dist.raw.installLocal && (cd example/javalib/basic/1-simple && ../../../../mill-assembly.jar run --text hello)
 ----
 
 You can also use `dist.native.installLocal` for a Graal Native Image executable

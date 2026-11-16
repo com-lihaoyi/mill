@@ -90,7 +90,7 @@ object Deps {
     val playVersion = "2.9.12"
   }
   object Play_3_0 extends Play {
-    val playVersion = "3.0.11"
+    val playVersion = "3.0.12"
   }
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
@@ -111,7 +111,7 @@ object Deps {
   val bouncyCastleProv = mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}"
   val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
 
-  val classgraph = mvn"io.github.classgraph:classgraph:4.8.199"
+  val classgraph = mvn"io.github.classgraph:classgraph:4.8.200"
   val coursierVersion = "2.1.26"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
@@ -124,18 +124,22 @@ object Deps {
     mvn"io.get-coursier:coursier-paths:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierUtil =
     mvn"io.get-coursier::coursier-util:$coursierVersion".withDottyCompat(scalaVersion)
-  val coursierVersions = mvn"io.get-coursier::versions:0.6.1".withDottyCompat(scalaVersion)
+  val coursierVersions = mvn"io.get-coursier::versions:0.7.0".withDottyCompat(scalaVersion)
   val coursierInterface = mvn"io.get-coursier:interface:1.0.30"
   val coursierJvm =
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
 
-  val cask = mvn"com.lihaoyi::cask:0.9.7"
-  val castor = mvn"com.lihaoyi::castor:0.3.0"
+  val cask = mvn"com.lihaoyi::cask:0.11.3"
+  val castor = mvn"com.lihaoyi::castor:0.3.2"
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = mvn"org.flywaydb:flyway-core:11.20.3"
-  // compile-time only: at runtime the Vaadin plugin uses the Flow version of the user's application
-  val vaadinFlowPluginBase_api = mvn"com.vaadin:flow-plugin-base:25.2.0" // scala-steward:off
-  val jibCore = mvn"com.google.cloud.tools:jib-core:0.27.3"
+  // compile-time only: at runtime the Vaadin plugin uses the Flow version of the user's application.
+  // One worker per incompatible flow-plugin-base API, named after the first Flow version it supports
+  val vaadinFlowPluginBase_api = Map(
+    "25.2.0" -> mvn"com.vaadin:flow-plugin-base:25.2.0", // scala-steward:off
+    "25.3.4" -> mvn"com.vaadin:flow-plugin-base:25.3.4" // scala-steward:off
+  )
+  val jibCore = mvn"com.google.cloud.tools:jib-core:0.28.2"
   val graphvizJava = Seq(
     mvn"guru.nidi:graphviz-java-min-deps:0.18.1",
     mvn"org.webjars.npm:viz.js-graphviz-java:2.1.3",
@@ -206,7 +210,7 @@ object Deps {
     mvn"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = mvn"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
-  val scalaCliBsp = mvn"org.virtuslab.scala-cli:scala-cli-bsp:1.18.0"
+  val scalaCliBsp = mvn"org.virtuslab.scala-cli:scala-cli-bsp:1.19.0"
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.5.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.17.4"
@@ -254,7 +258,7 @@ object Deps {
   val kotlinStdlib = mvn"org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
   val groovyVersion_lowerBound = "4.0.28"
   val groovyCompiler_lowerBound = mvn"org.apache.groovy:groovy:$groovyVersion_lowerBound"
-  val groovyVersion = "5.1.1"
+  val groovyVersion = "6.0.0"
   val groovyCompiler_runtime = mvn"org.apache.groovy:groovy:$groovyVersion"
 
   /** Used for the `mill init` from a Maven project. */
@@ -279,10 +283,10 @@ object Deps {
   val coursierJvmIndexVersion = "0.0.5"
   val gradleApi_api = mvn"dev.gradleplugins:gradle-api:8.11.1" // scala-steward:off
 
-  val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
-  val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:9.5.0"
+  val androidTools = mvn"com.android.tools.build:gradle:9.5.1"
+  val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:9.5.1"
   val androidDataBindingCompilerCommon =
-    mvn"androidx.databinding:databinding-compiler-common:9.5.0"
+    mvn"androidx.databinding:databinding-compiler-common:9.5.1"
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.60.1"
 
   val sbt_api = mvn"org.scala-sbt:sbt:1.10.10" // scala-steward:off
@@ -302,7 +306,7 @@ object Deps {
       mvn"org.jetbrains.dokka:analysis-kotlin-descriptors:$dokkaVersion_runtime"
     val dokkaBase_runtime = mvn"org.jetbrains.dokka:dokka-base:$dokkaVersion_runtime"
     val dokkaCli_runtime = mvn"org.jetbrains.dokka:dokka-cli:$dokkaVersion_runtime"
-    val errorProneCore_runtime = mvn"com.google.errorprone:error_prone_core:2.51.0"
+    val errorProneCore_runtime = mvn"com.google.errorprone:error_prone_core:2.52.0"
     val freemarker_runtime = mvn"org.freemarker:freemarker:2.3.35"
     val jupiterInterface_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
     val jupiterInterface6_runtime = mvn"com.github.sbt.junit:jupiter-interface:0.19.0"
@@ -349,11 +353,11 @@ object Deps {
 
   /** Used to manage transitive versions. */
   lazy val transitiveDeps = Seq(
-    mvn"org.apache.ant:ant:1.10.17",
+    mvn"org.apache.ant:ant:1.10.18",
     Deps.commonsIo,
     Deps.gson,
-    mvn"com.google.protobuf:protobuf-java:4.33.6",
-    mvn"com.google.guava:guava:33.7.2-jre",
+    mvn"com.google.protobuf:protobuf-java:4.36.2",
+    mvn"com.google.guava:guava:33.8.0-jre",
     mvn"org.yaml:snakeyaml:2.7",
     mvn"org.apache.commons:commons-compress:1.28.0"
   )
@@ -378,17 +382,17 @@ object Deps {
     val bundleTool = mvn"com.android.tools.build:bundletool:1.18.3"
     val ndkVersion = "27.0.12077973"
     val cmakeVersion = "3.22.1"
-    val layoutLibVersion = "15.1.2"
+    val layoutLibVersion = "15.2.3"
     val layoutLibRenderer = mvn"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
     val layoutLibRuntime = mvn"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
     val composePreviewRenderer =
-      mvn"com.android.tools.compose:compose-preview-renderer-model:0.0.1-alpha09"
+      mvn"com.android.tools.compose:compose-preview-renderer-model:0.0.1-alpha11"
     val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
     val screenshotValidationJunitEngine =
       mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
-    // https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
+    // https://dl.google.com/android/repository/commandlinetools-linux-16111833_latest.zip
     // https://developer.android.com/studio?hl=de#command-tools
-    val cmdlineToolsVersion = "19.0"
+    val cmdlineToolsVersion = "23.0"
     // TODO: uiTooling is needed for screenshot tests
     // so we handle it diferrently.
     // Removed it from updaetable for now

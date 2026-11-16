@@ -38,7 +38,7 @@ abstract class KotlinWorkerImplBase(
     val (exitCode, exitCodeName) = compiler.compile(args, sources, classpath)
 
     if (exitCode != 0) {
-      sys.error(s"Kotlin compiler failed with exit code ${exitCode} ($exitCodeName)")
+      ctx.fail(s"Kotlin compiler failed with exit code ${exitCode} ($exitCodeName)")
     }
     ()
 

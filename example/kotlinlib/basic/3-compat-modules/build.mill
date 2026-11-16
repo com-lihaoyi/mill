@@ -20,10 +20,8 @@
 /** Usage
 
 > ./mill compile
-Compiling 1 Kotlin source...
 
 > ./mill test.compile
-Compiling 1 Kotlin source...
 
 > ./mill test.testForked
 ...foo.FooTests hello ...

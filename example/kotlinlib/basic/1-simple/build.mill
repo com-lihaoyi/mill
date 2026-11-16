@@ -46,8 +46,7 @@ Inputs:
 */
 /** Usage
 > ./mill compile # compile sources into classfiles
-...
-Compiling 1 Kotlin sources to...
+
 */
 
 /** Usage

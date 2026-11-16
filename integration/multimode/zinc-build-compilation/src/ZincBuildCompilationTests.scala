@@ -9,19 +9,19 @@ object ZincBuildCompilationTests extends UtestIntegrationTestSuite {
     test("simple") - integrationTest { tester =>
       import tester.*
 
-      val initial = eval(("dummy"))
+      eval(("dummy"))
 
-      assert(initial.err.contains("compiling 2 Scala sources"))
+      assert(timing(1)("compile").cached == false)
 
-      val cached = eval(("dummy"))
-      assert(!cached.err.contains("compiling"))
+      eval(("dummy"))
+      assert(timing(1).get("compile") == None || timing(1)("compile").cached == true)
 
       modifyFile(workspacePath / "build.mill", _.replace("running foo", "running foo2"))
-      val mangledFoo = eval(("dummy"))
-      assert(mangledFoo.err.contains("compiling 1 Scala source"))
+      eval(("dummy"))
+      assert(timing(1)("compile").cached == false)
 
-      val cached2 = eval(("dummy"))
-      assert(!cached2.err.contains("compiling"))
+      eval(("dummy"))
+      assert(timing(1).get("compile") == None || timing(1)("compile").cached == true)
 
       val subFolderResCached = eval(("dummy"))
       assert(!subFolderResCached.err.contains("compiling"))
@@ -30,8 +30,8 @@ object ZincBuildCompilationTests extends UtestIntegrationTestSuite {
         workspacePath / "subfolder/package.mill",
         _.replace("running helperFoo", "running helperFoo2")
       )
-      val mangledHelperFoo = eval(("dummy"))
-      assert(mangledHelperFoo.err.contains("compiling 1 Scala source"))
+      eval(("dummy"))
+      assert(timing(1)("compile").cached == false)
 
     }
   }

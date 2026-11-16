@@ -46,10 +46,8 @@ trait BarModule extends CrossSbtModule {
 /** Usage
 
 > ./mill foo.compile
-compiling 1 Scala source...
 
 > ./mill foo.test.compile
-compiling 1 Scala source...
 
 > ./mill foo.test.testForked
 + foo.FooTests...hello ...

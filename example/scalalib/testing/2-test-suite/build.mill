@@ -18,10 +18,8 @@
 /** Usage
 
 > ./mill foo.compile
-compiling 1 ... source...
 
 > ./mill foo.test.compile
-compiling 2 ... source...
 
 > ./mill foo.test.testForked
 ...foo.FooTests...hello ...

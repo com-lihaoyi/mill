@@ -25,13 +25,10 @@ object `package` extends KotlinJsModule {
 /** Usage
 
 > ./mill run
-Compiling 1 Kotlin sources to .../out/compile.dest/classes...
 <h1>Hello World</h1>
 stringifiedJsObject: ["hello","world","!"]
 
 > ./mill test # Test is incorrect, `test` fails
-Compiling 1 Kotlin sources to .../out/test/compile.dest/classes...
-Linking IR to .../out/test/linkBinary.dest/binaries
 produce executable: .../out/test/linkBinary.dest/binaries
 ...
 error: ... expected:<"<h1>Hello World Wrong</h1>"> but was:<"<h1>Hello World</h1>...

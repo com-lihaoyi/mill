@@ -271,6 +271,7 @@ object `package` extends mill.Module {
   object bootstrap extends Cross[BootstrapIntegrationCrossModule](build.listCross)
   object migrating extends Cross[MigrationIntegrationCrossModule](build.listCross)
   object manual extends Cross[IntegrationCrossModule](build.listCross)
+  object scheduled extends Cross[IntegrationCrossModule](build.listCross)
 
   trait DedicatedIntegrationCrossModule extends IntegrationCrossModule {
     override def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =

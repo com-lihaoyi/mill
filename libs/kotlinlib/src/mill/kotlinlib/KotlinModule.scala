@@ -8,7 +8,7 @@ package kotlinlib
 
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import mill.api.{BuildCtx, ModuleRef, Result}
+import mill.api.{ModuleRef, Result}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
@@ -329,8 +329,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       val updateCompileOutput = upstreamCompileOutput()
 
       def compileJava: Result[CompilationResult] = {
-        ctx.log.info(
-          s"Compiling ${javaSourceFiles.size} Java sources to ${classes} ..."
+        ctx.log.ticker(
+          s"Compiling ${javaSourceFiles.size} Java sources"
         )
         // The compile step is lazy, but its dependencies are not!
         internalCompileJavaFiles(
@@ -348,8 +348,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
       if (isMixed || isKotlin) {
         val extra = if (isJava) s"and reading ${javaSourceFiles.size} Java sources " else ""
-        ctx.log.info(
-          s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classes.relativeTo(BuildCtx.workspaceRoot)} ..."
+        ctx.log.ticker(
+          s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}"
         )
 
         val compilerArgs: Seq[String] = Seq(

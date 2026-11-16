@@ -11,6 +11,17 @@ trait JavaHomeModule extends CoursierModule {
 
   @deprecated("Please use `jvmVersion` instead", "Mill after 1.1.0-RC3")
   def jvmId: T[String] = ""
+
+  /**
+   * The JVM to use in for this module. Supports coursier JVM specifier, see:
+   * https://mill-build.org/mill/cli/build-header.html#_mill_jvm_version
+   *
+   * Example values:
+   * "21"         -> Downloads and uses JDK 21
+   * "temurin:21" -> Downloads and uses the Temurin JDK 21 distribution
+   * "system"     -> Uses the system provided JDK
+   * "system|21"  -> Uses the system JDK. If no system JDK is found, download and use JDK 21
+   */
   def jvmVersion: T[String] = jvmId()
 
   /**

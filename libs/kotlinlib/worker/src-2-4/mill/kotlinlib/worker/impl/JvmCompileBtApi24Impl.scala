@@ -47,22 +47,24 @@ class JvmCompileBtApi24Impl(classpathSnapshotCache: os.Path)
     compilerArguments.applyArgumentStrings(untypedArguments(args).asJava)
     applyTypedArguments(compilerArguments, args)
 
-    val icBuilder = builder.snapshotBasedIcConfigurationBuilder(
+    val icConfig = builder.snapshotBasedIcConfigurationBuilder(
       incrementalCachePath.toNIO,
       SourcesChanges.ToBeCalculated.INSTANCE,
-      classpathSnapshotFiles.asJava,
-      (incrementalCachePath / "shrunk-classpath-snapshot.bin").toNIO
+      classpathSnapshotFiles.asJava
     )
     import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration as Ic
-    icBuilder.set(Ic.ROOT_PROJECT_DIR, ctx.workspace.toNIO)
-    icBuilder.set(Ic.MODULE_BUILD_DIR, incrementalCachePath.toNIO)
-    icBuilder.set(Ic.PRECISE_JAVA_TRACKING, java.lang.Boolean.TRUE)
-    icBuilder.set(
+    icConfig.set(BaseIncrementalCompilationConfiguration.ROOT_PROJECT_DIR, ctx.workspace.toNIO)
+    icConfig.set(
+      BaseIncrementalCompilationConfiguration.MODULE_BUILD_DIR,
+      incrementalCachePath.toNIO
+    )
+    icConfig.set(Ic.PRECISE_JAVA_TRACKING, java.lang.Boolean.TRUE)
+    icConfig.set(
       BaseIncrementalCompilationConfiguration.TRACK_CONFIGURATION_INPUTS,
       java.lang.Boolean.TRUE
     )
 
-    builder.set(JvmCompilationOperation.INCREMENTAL_COMPILATION, icBuilder.build())
+    builder.set(JvmCompilationOperation.INCREMENTAL_COMPILATION, icConfig.build())
     builder.build()
   }
 

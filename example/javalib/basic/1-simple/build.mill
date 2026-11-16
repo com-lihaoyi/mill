@@ -46,7 +46,6 @@ Inputs:
 /** Usage
 > ./mill compile # compile sources into classfiles
 ...
-compiling 1 Java source to...
 */
 
 /** Usage

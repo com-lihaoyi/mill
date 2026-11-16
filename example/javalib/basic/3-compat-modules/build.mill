@@ -19,10 +19,8 @@
 /** Usage
 
 > ./mill compile
-compiling 1 Java source...
 
 > ./mill test.compile
-compiling 1 Java source...
 
 > ./mill test.testForked
 ...foo.FooTests.hello ...

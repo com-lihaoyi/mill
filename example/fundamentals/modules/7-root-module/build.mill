@@ -43,7 +43,6 @@ object `package` extends JavaModule {
 /** Usage
 > ./mill compile # compile sources into classfiles
 ...
-compiling 1 Java source to...
 
 > ./mill run # run the main method, if any
 error: argument -t/--text is required

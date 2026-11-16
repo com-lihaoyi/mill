@@ -89,8 +89,7 @@ Inputs:
 */
 /** Usage
 > ./mill compile # compile sources into classfiles
-...
-compiling 1 Scala source to...
+
 */
 
 /** Usage

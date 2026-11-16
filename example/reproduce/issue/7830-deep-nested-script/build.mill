@@ -1,0 +1,9 @@
+/** Usage
+
+> d=$(printf 'foo/%.0s' {1..61}); mkdir -p $d && touch ${d}Oof.java
+
+> mill mill.idea/
+...
+Writing mill_modules/script-module_1.Oof.java.iml...
+
+*/

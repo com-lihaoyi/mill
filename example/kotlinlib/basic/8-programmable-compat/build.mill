@@ -23,10 +23,8 @@ object foo extends KotlinModule, KotlinMavenModule {
 /** Usage
 
 > ./mill foo.compile
-Compiling 1 Kotlin source...
 
 > ./mill foo.test.compile
-Compiling 1 Kotlin source...
 
 > ./mill foo.test.testForked
 ...foo.FooTests hello ...

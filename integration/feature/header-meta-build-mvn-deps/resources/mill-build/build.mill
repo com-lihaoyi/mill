@@ -1,0 +1,18 @@
+//| mvnDeps: ["com.lihaoyi::scalatags:0.13.1"]
+package build
+
+import mill.*
+import mill.meta.MillBuildRootModule
+import scalatags.Text.all.*
+
+object `package` extends MillBuildRootModule {
+  def generatedSources = Task {
+    os.write(
+      Task.dest / "Html.scala",
+      s"""package millbuild
+         |object Html { def hello = "${div("hello").render}" }
+         |""".stripMargin
+    )
+    super.generatedSources() ++ Seq(PathRef(Task.dest))
+  }
+}

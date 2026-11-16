@@ -10,7 +10,6 @@ converting sbt build
 init completed, run "mill resolve _" to list available tasks
 
 > ./mill compile
-compiling 13 Scala sources to ...
 
 > ./mill test
 MySuite:

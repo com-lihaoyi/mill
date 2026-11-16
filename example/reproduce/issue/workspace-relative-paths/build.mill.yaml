@@ -1,0 +1,11 @@
+extends: Module
+# Kotlin 1.9 doesn't work with 25 and KotlinModule.compile doesn't support jvmVersion yet
+mill-jvm-version: "21"
+
+object fooKotlin19:
+  extends: KotlinModule
+  kotlinVersion: "1.9.0"
+
+object fooKotlin24:
+  extends: KotlinModule
+  kotlinVersion: "2.4.21"

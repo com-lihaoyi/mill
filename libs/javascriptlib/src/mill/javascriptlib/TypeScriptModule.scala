@@ -147,6 +147,7 @@ trait TypeScriptModule extends Module { outer =>
       }
 
   def tscCopySources: Task[Unit] = Task.Anon {
+    Task.log.ticker("Preparing sources")
     val coreTarget = Task.dest / "src"
 
     if (!os.exists(Task.dest)) os.makeDir.all(Task.dest)
@@ -206,6 +207,7 @@ trait TypeScriptModule extends Module { outer =>
   }
 
   private[javascriptlib] def tscCopyModDeps: Task[Unit] = Task.Anon {
+    Task.log.ticker("Preparing module dependencies")
     val targets =
       recModuleDeps.map { _.moduleDir.subRelativeTo(BuildCtx.workspaceRoot).segments.head }.distinct
 
@@ -224,6 +226,7 @@ trait TypeScriptModule extends Module { outer =>
 
   // mv generated sources for base mod and its deps
   private[javascriptlib] def tscCopyGenSources: Task[Unit] = Task.Anon {
+    Task.log.ticker("Preparing generated sources")
     def copyGeneratedSources(sourcePath: os.Path, destinationPath: os.Path): Unit = {
       os.makeDir.all(destinationPath / os.up)
       os.copy.over(sourcePath, destinationPath)
@@ -248,6 +251,7 @@ trait TypeScriptModule extends Module { outer =>
    * to `moduleDir / src / resources`
    */
   private[javascriptlib] def tscLinkResources: Task[Unit] = Task.Anon {
+    Task.log.ticker("Linking")
     val dest = Task.dest / "resources"
     if (!os.exists(dest)) os.makeDir.all(dest)
 
@@ -463,6 +467,7 @@ trait TypeScriptModule extends Module { outer =>
    * import * as somepackage from "<some-package>"
    */
   def createNodeModulesSymlink: Task[Unit] = Task.Anon {
+    Task.log.ticker("Creating symlinks")
     os.copy.over(npmInstall().path / "package.json", Task.dest / "package.json")
 
     if (!os.exists(Task.dest / "node_modules"))
@@ -489,6 +494,7 @@ trait TypeScriptModule extends Module { outer =>
   def customTsConfig: T[Boolean] = Task { true }
 
   private[javascriptlib] def mkTsconfig: Task[Unit] = Task.Anon {
+    Task.log.ticker("Creating tsconfig")
     val default: Map[String, ujson.Value] = Map(
       "compilerOptions" -> ujson.Obj.from(
         compilerOptionsBuilder().toSeq ++ Seq("typeRoots" -> typeRoots())
@@ -522,8 +528,10 @@ trait TypeScriptModule extends Module { outer =>
     mkTsconfig()
 
     // Run type check, build declarations
-    if (runTypeCheck())
+    if (runTypeCheck()) {
+      Task.log.ticker("Typechecking")
       os.call("node_modules/typescript/bin/tsc", cwd = Task.dest)
+    }
 
     PathRef(Task.dest)
   }

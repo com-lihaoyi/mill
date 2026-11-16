@@ -189,6 +189,9 @@ jobs:
 
           - millargs: "integration.failure._"
 
+            # Reproduce previously reported issue and their fixes
+          - millargs: "example.reproduce._._"
+
     uses: ./.github/workflows/post-build-selective.yml
     with:
       setup-android: ${{ matrix.setup-android || false }}

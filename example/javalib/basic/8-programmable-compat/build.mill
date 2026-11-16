@@ -16,10 +16,8 @@ object foo extends MavenModule {
 /** Usage
 
 > ./mill foo.compile
-compiling 1 Java source...
 
 > ./mill foo.test.compile
-compiling 1 Java source...
 
 > ./mill foo.test.testForked
 ...foo.FooTests.hello ...

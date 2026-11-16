@@ -15,6 +15,59 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#1.4.0-M2]
+=== 1.4.0-M2
+:version: 1.4.0-M2
+:milestone-name: 1.4.0-M2
+:milestone: 158
+:prev-version: 1.4.0-M1
+_2026-11-04_
+
+__Changes since Mill {prev-version}:__
+
+**Features and Improvements**
+
+* New experimental `KotlinMultiplatformModule` with a JVM + JS example ({link-pr}/7071[7071])
+* Add `IntegrationTester.timing` to access task timings/profile ({link-pr}/7862[7862])
+* Honor YAML header config in `mill-build/build.mill` ({link-pr}/7816[7816])
+* Log all compilation starts via ticker ({link-pr}/7858[7858])
+* Log a relative path when running `--bsp-install` ({link-pr}/7865[7865])
+* GenIdea: Handle empty and very long module file names ({link-pr}/7868[7868])
+* Fix incomplete escape sequence handling in `PromtLogger` ({link-pr}/7869[7869])
+
+**Internal changes and dependency updates**
+
+* Update test literals
+* Update pmd-dist to 7.29.0 ({link-pr}/7853[7853])
+* Mark vaadin-flow dependency as lower level api dependency
+* Update batik-rasterizer to 1.20 ({link-pr}/7812[7812])
+* Update freemarker to 2.3.35 ({link-pr}/7713[7713])
+* Update hilt-android-gradle-plugin to 2.60.1 ({link-pr}/7687[7687])
+* Update Mill to 1.4.0-M1, JVM to zulu:25.0.5 ({link-pr}/7857[7857])
+* Update gradle to 8.9.3 ({link-pr}/7678[7678])
+* Update cask to 0.11.3 ({link-pr}/7761[7761])
+* Update gradle to 8.13.2 ({link-pr}/7859[7859])
+* Update example commands in developer.adoc ({link-pr}/7861[7861])
+* Update protobuf-java to 4.36.2 ({link-pr}/7760[7760])
+* Update jib-core to 0.28.2 ({link-pr}/7759[7759])
+* Update groovy to 5.1.3 in examples ({link-pr}/7707[7707])
+* Update castor to 0.3.2 ({link-pr}/7693[7693])
+* Update layoutlib, layoutlib-runtime to 15.1.4 ({link-pr}/7681[7681])
+* Quarkus: scheduled run fixes and enhancements ({link-pr}/7831[7831])
+* Update transitive ant to 1.10.18 ({link-pr}/7706[7706])
+* Update compose-preview-renderer-model to 0.0.1-alpha11 ({link-pr}/7680[7680])
+* Update branches in readme
+* Log compiler bridge compilation to ticker ({link-pr}/7864[7864])
+* Update mill scripts
+* Update Play 3 version to 3.0.12 ({link-pr}/7720[7720])
+* Update gradle to 9.5.0 ({link-pr}/7870[7870])
+* Update groovy to 6.0.0 in examples ({link-pr}/7875[7875])
+* Update layoutlib to 15.2.3 ({link-pr}/7871[7871])
+* Update guava to 33.8.0-jre ({link-pr}/7874[7874])
+* Update error_prone_core to 2.52.0 ({link-pr}/7873[7873])
+* Test final Groovy 6 release instead of alpha ({link-pr}/7876[7876])
+
+
 [#1.4.0-M1]
 === 1.4.0-M1
 :version: 1.4.0-M1

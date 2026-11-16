@@ -37,7 +37,6 @@ object ScalaTabsErrorFormattingTests extends TestSuite {
         assertGoldenLiteral(
           errLines,
           List(
-            "compiling 1 Scala source to out/core/compile.dest/classes ...",
             "[error] core/src/Main.scala:4:18",
             "\t\tval bad: Int = \"hello\"",
             "\t\t               ^^^^^^^",

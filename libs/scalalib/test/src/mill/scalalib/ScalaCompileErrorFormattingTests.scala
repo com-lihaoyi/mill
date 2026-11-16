@@ -39,7 +39,6 @@ object ScalaCompileErrorFormattingTests extends TestSuite {
       assertGoldenLiteral(
         checkLines("scala-type-mismatch"),
         List(
-          "compiling 1 Scala source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.scala:5:18",
           "    val x: Int = \"hello\"",
           "                 ^^^^^^^",
@@ -56,7 +55,6 @@ object ScalaCompileErrorFormattingTests extends TestSuite {
       assertGoldenLiteral(
         checkLines("scala-type-method"),
         List(
-          "compiling 1 Scala source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.scala:6:7",
           "    s.nonExistentMethod()",
           "      ^^^^^^^^^^^^^^^^^",
@@ -72,7 +70,6 @@ object ScalaCompileErrorFormattingTests extends TestSuite {
       assertGoldenLiteral(
         checkLines("scala-type-variable"),
         List(
-          "compiling 1 Scala source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.scala:5:13",
           "    val x = undefinedVariable + 1",
           "            ^^^^^^^^^^^^^^^^^",
@@ -88,7 +85,6 @@ object ScalaCompileErrorFormattingTests extends TestSuite {
       assertGoldenLiteral(
         checkLines("scala-parse-semicolon"),
         List(
-          "compiling 1 Scala source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.scala:6:15",
           "    val y = x +",
           "              ^",
@@ -104,7 +100,6 @@ object ScalaCompileErrorFormattingTests extends TestSuite {
       assertGoldenLiteral(
         checkLines("scala-parse-string"),
         List(
-          "compiling 1 Scala source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.scala:5:13",
           "    val s = \"hello world",
           "            ^",
@@ -120,7 +115,6 @@ object ScalaCompileErrorFormattingTests extends TestSuite {
       assertGoldenLiteral(
         checkLines("scala-parse-toplevel"),
         List(
-          "compiling 1 Scala source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.scala:6:7",
           "class class Foo {",
           "      ^^^^^",

@@ -39,7 +39,6 @@ object JavaCompileErrorFormattingTests extends TestSuite {
       assertGoldenLiteral(
         checkLines("java-type-unchecked"),
         List(
-          "compiling 1 Java source to out/core/compile.dest/classes ...",
           "[warn] core/src/Foo.java:6:22",
           "        return (T[]) obj;",
           "                     ^^^",
@@ -61,7 +60,6 @@ object JavaCompileErrorFormattingTests extends TestSuite {
       assertGoldenLiteral(
         checkLines("java-type-mismatch"),
         List(
-          "compiling 1 Java source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.java:5:17",
           "        int x = \"hello\";",
           "                ^^^^^^^",
@@ -76,7 +74,6 @@ object JavaCompileErrorFormattingTests extends TestSuite {
       assertGoldenLiteral(
         checkLines("java-type-method"),
         List(
-          "compiling 1 Java source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.java:6:10",
           "        s.nonExistentMethod();",
           "         ^^^^^^^^^^^^^^^^^^",
@@ -93,7 +90,6 @@ object JavaCompileErrorFormattingTests extends TestSuite {
       assertGoldenLiteral(
         checkLines("java-type-variable"),
         List(
-          "compiling 1 Java source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.java:5:17",
           "        int x = undefinedVariable + 1;",
           "                ^^^^^^^^^^^^^^^^^",
@@ -110,7 +106,6 @@ object JavaCompileErrorFormattingTests extends TestSuite {
       assertGoldenLiteral(
         checkLines("java-parse-semicolon"),
         List(
-          "compiling 1 Java source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.java:5:18",
           "        int x = 1",
           "                 ^",
@@ -125,7 +120,6 @@ object JavaCompileErrorFormattingTests extends TestSuite {
       assertGoldenLiteral(
         checkLines("java-parse-string"),
         List(
-          "compiling 1 Java source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.java:5:20",
           "        String s = \"hello world",
           "                   ^",
@@ -140,7 +134,6 @@ object JavaCompileErrorFormattingTests extends TestSuite {
       assertGoldenLiteral(
         checkLines("java-parse-toplevel"),
         List(
-          "compiling 1 Java source to out/core/compile.dest/classes ...",
           "[error] core/src/Foo.java:1:1",
           "package javaParseToplevel;",
           "^",

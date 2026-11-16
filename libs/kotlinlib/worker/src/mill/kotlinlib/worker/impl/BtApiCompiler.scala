@@ -15,6 +15,7 @@ import mill.kotlinlib.worker.api.renderIntAsHex
 import java.io.{PrintWriter, StringWriter}
 import java.nio.file.Path
 import scala.jdk.CollectionConverters.*
+import scala.util.chaining.*
 
 /**
  * Shared Build Tools API compilation flow. Implementations only supply the version-specific
@@ -41,24 +42,37 @@ trait BtApiCompiler(val classpathSnapshotCache: os.Path) extends Compiler {
       classpathEntry: Path
   )(using ctx: TaskCtx): BuildOperation[ClasspathEntrySnapshot]
 
-  protected def kotlinLogger(using ctx: TaskCtx): KotlinLogger = new KotlinLogger {
-    override def isDebugEnabled(): Boolean = ctx.log.debugEnabled
+  protected def kotlinLogger(using ctx: TaskCtx): KotlinLogger = {
+    // Kotlin uses file:///path instead of file:/path
+    val workspaceUrl = ctx.workspace.toURL.toExternalForm()
+      .replaceFirst("\\Qfile:/\\E([^/])", "file:///$1").pipe { u =>
+        if (u.endsWith("/")) u else "$u/"
+      }
 
-    override def error(message: String, throwable: Throwable): Unit = {
-      if (throwable == null) ctx.log.error(message)
-      else ctx.log.error(s"${message}\n${formatThrowable(throwable)}")
+    new KotlinLogger {
+      private def mangleFileUrls(message: String): String = message
+        .replaceFirst("^\\Q" + workspaceUrl + "\\E", "")
+
+      override def isDebugEnabled(): Boolean = ctx.log.debugEnabled
+
+      override def error(message: String, throwable: Throwable): Unit = {
+        val msg = mangleFileUrls(message)
+        if (throwable == null) ctx.log.error(msg)
+        else ctx.log.error(s"${msg}\n${formatThrowable(throwable)}")
+      }
+
+      override def warn(message: String, throwable: Throwable): Unit = {
+        val msg = mangleFileUrls(message)
+        if (throwable == null) ctx.log.warn(msg)
+        else ctx.log.warn(s"${msg}\n${formatThrowable(throwable)}")
+      }
+
+      override def info(message: String): Unit = ctx.log.info(mangleFileUrls(message))
+
+      override def debug(message: String): Unit = ctx.log.debug(mangleFileUrls(message))
+
+      override def lifecycle(message: String): Unit = ctx.log.info(mangleFileUrls(message))
     }
-
-    override def warn(message: String, throwable: Throwable): Unit = {
-      if (throwable == null) ctx.log.warn(message)
-      else ctx.log.warn(s"${message}\n${formatThrowable(throwable)}")
-    }
-
-    override def info(message: String): Unit = ctx.log.info(message)
-
-    override def debug(message: String): Unit = ctx.log.debug(message)
-
-    override def lifecycle(message: String): Unit = ctx.log.info(message)
   }
 
   protected def destinationDirectoryFromArgs(args: Seq[String])(using ctx: TaskCtx): os.Path =
