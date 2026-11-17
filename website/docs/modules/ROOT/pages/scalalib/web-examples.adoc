@@ -53,4 +53,8 @@ include::partial$example/scalalib/web/9-cross-platform-version-publishing.adoc[]
 
 include::partial$example/scalalib/web/10-wasm.adoc[]
 
+== Vaadin Flow Example
+
+include::partial$example/scalalib/web/11-vaadin.adoc[]
+
 
