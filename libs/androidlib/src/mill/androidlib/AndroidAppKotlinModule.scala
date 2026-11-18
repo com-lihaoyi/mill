@@ -174,18 +174,43 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
         msg: String,
         results: Seq[TestResult]
     )] = Task.Command {
-      // `TestModule.testTask` always runs with `forkArgs()`, so we rebuild its `TestModuleUtil`
-      // arguments here only to append our recording flag to the fork args
+      screenshotTestTask(
+        Task.Anon(testArgsDefault() ++ args),
+        Task.Anon(Seq.empty[String]),
+        Task.Anon(Seq(s"${JvmTestArg}TestOption.recordingModeEnabled=true"))
+      )()
+    }
+
+    override protected def testTask(
+        args: Task[Seq[String]],
+        globSelectors: Task[Seq[String]]
+    ): Task[(msg: String, results: Seq[TestResult])] =
+      screenshotTestTask(args, globSelectors, Task.Anon(Seq.empty[String]))
+
+    // `TestModule.testTask` always runs with `forkArgs()`, so we rebuild its `TestModuleUtil`
+    // arguments here only to append `extraForkArgs`. Like AGP does, we also clear the images of
+    // the previous run first, so that stale rendered or diff images don't linger.
+    private def screenshotTestTask(
+        args: Task[Seq[String]],
+        globSelectors: Task[Seq[String]],
+        extraForkArgs: Task[Seq[String]]
+    ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
+      for (
+        dir <- Seq(androidScreenshotTestResultDir().path / "rendered", diffImageDirPath().path)
+      ) {
+        os.remove.all(dir)
+        os.makeDir.all(dir)
+      }
       TestModuleUtil(
         testUseArgsFile(),
-        forkArgs() ++ Seq(s"${JvmTestArg}TestOption.recordingModeEnabled=true"),
-        Seq.empty[String],
+        forkArgs() ++ extraForkArgs(),
+        globSelectors(),
         jvmWorker().scalalibClasspath(),
         resources(),
         testFramework(),
         runClasspath(),
         testClasspath(),
-        testArgsDefault() ++ args,
+        args(),
         testForkGrouping(),
         jvmWorker().testrunnerEntrypointClasspath(),
         allForkEnv(),
