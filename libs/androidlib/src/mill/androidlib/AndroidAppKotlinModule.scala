@@ -234,7 +234,13 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
 
     override def forkArgs: T[Seq[String]] = super.forkArgs() ++ testJvmArgs()
     override def runClasspath: T[Seq[PathRef]] =
-      super.runClasspath() ++ androidPreviewScreenshotTestEngineClasspath() ++ compileClasspath()
+      androidScreenshotRuntimeClasspath() ++ androidPreviewScreenshotTestEngineClasspath() ++
+        compileClasspath()
+
+    /** The runtime classpath of the previews, without the test engine itself */
+    private def androidScreenshotRuntimeClasspath: T[Seq[PathRef]] = Task {
+      super.runClasspath()
+    }
 
     def androidPreviewScreenshotTestEngineClasspath: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
@@ -256,30 +262,41 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
      * [[https://android.googlesource.com/platform/tools/base/+/ed71a44af8ab9dc001006ead1fcfe578466b32a9/preview/screenshot/screenshot-validation-junit-engine/src/main/java/com/android/tools/screenshot/PreviewScreenshotTestEngineInput.kt]]
      */
     private def testJvmArgs: T[Seq[String]] = Task {
-      def paths(ps: Seq[os.Path]) = ps.mkString(java.io.File.pathSeparator)
+      def paths(ps: Seq[os.Path]) = ps.distinct.mkString(java.io.File.pathSeparator)
       val mainClasses = outer.compile().classes.path
       val testClasses = compile().classes.path
+      val rClassJar = androidProcessedResources().path
+      // as AGP does, the dependencies of the previews are the runtime and the compile classpath,
+      // plus the R class jar
+      val testRuntime =
+        androidScreenshotRuntimeClasspath().map(_.path) ++ compileClasspath().map(_.path) :+
+          rClassJar
+      // as AGP does, the fonts are only passed if the SDK has them
+      val fontsPath = Some(androidSdkModule().fontsPath()).filter(os.exists)
       val params = Map(
         "screenshotTestDirectory" -> paths(Seq(testClasses)),
         "mainDirectory" -> paths(Seq(mainClasses)),
-        "dependencyJars" -> paths(compileClasspath().map(_.path)),
+        "dependencyJars" -> paths(testRuntime.filter(p => os.isFile(p) && p.ext == "jar")),
         "previewImageOutputDir" -> (androidScreenshotTestResultDir().path / "rendered").toString,
         "previewDiffImageOutputDir" -> diffImageDirPath().path.toString,
         "referenceImageDir" -> androidScreenshotReferenceImageDir().path.toString,
         "projectRoot" -> BuildCtx.workspaceRoot.toString,
         "ImageDiffer.threshold" -> androidScreenshotTestDiffThreshold.toString,
-        "Renderer.fontsPath" -> androidSdkModule().fontsPath().toString,
+        "Renderer.fontsPath" -> fontsPath.fold("")(_.toString),
         "Renderer.resourceApkPath" -> androidLinkedResources().apk.path.toString,
         "Renderer.namespace" -> androidApplicationNamespace(),
-        "Renderer.mainAllClassPath" -> paths(outer.compileClasspath().map(_.path)),
+        "Renderer.mainAllClassPath" -> paths(outer.runClasspath().map(_.path)),
         "Renderer.mainProjectClassPath" -> paths(Seq(mainClasses)),
-        "Renderer.screenshotAllClassPath" -> paths(compileClasspath().map(_.path)),
+        "Renderer.screenshotAllClassPath" -> paths(testRuntime),
         "Renderer.screenshotProjectClassPath" -> paths(Seq(testClasses)),
         "Renderer.layoutlibDataDir" -> layoutLibRuntimePath().path.toString,
         // the renderer bootstraps layoutlib in an isolated classloader built from these
         "Renderer.layoutlibClassPath" -> paths(
-          (composePreviewRenderer() ++ layoutLibRenderer()).map(_.path)
-        )
+          (composePreviewRenderer() ++ layoutLibRenderer() :+ androidSdkModule().androidJarPath())
+            .map(_.path)
+        ),
+        "Renderer.testRuntimeResourceDirs" -> paths(androidLibraryResources().map(_.path)),
+        "Renderer.testRuntimeRClassJars" -> paths(Seq(rClassJar))
       )
 
       params.map { case (k, v) => s"$JvmTestArg$k=$v" }.toSeq
