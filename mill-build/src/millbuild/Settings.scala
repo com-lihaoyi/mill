@@ -49,5 +49,6 @@ object Settings {
     "1.3.1"
   )
 
+  // GraalVM >= 25 is needed for FFM support on AArch64 in native images (used by native-terminal)
   val graalvmJvmId = "liberica-nik:25.0.5.0.3"
 }

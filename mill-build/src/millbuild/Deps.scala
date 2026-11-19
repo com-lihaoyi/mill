@@ -113,20 +113,13 @@ object Deps {
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.200"
   val coursierVersion = "2.1.27"
-  // coursier-cache depends on native-terminal, which contains the same classes as
-  // native-terminal-no-ffm (see nativeTerminal below), that we use instead
-  private val coursierNativeTerminalExclusion =
-    "io.github.alexarchambault.native-terminal" -> "native-terminal"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
-    .exclude(coursierNativeTerminalExclusion)
   val coursierArchiveCache =
     mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
-      .exclude(coursierNativeTerminalExclusion)
   val coursierCore =
     mvn"io.get-coursier::coursier-core:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierCache =
     mvn"io.get-coursier::coursier-cache:$coursierVersion".withDottyCompat(scalaVersion)
-      .exclude(coursierNativeTerminalExclusion)
   val coursierPaths =
     mvn"io.get-coursier:coursier-paths:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierUtil =
@@ -135,7 +128,6 @@ object Deps {
   val coursierInterface = mvn"io.get-coursier:interface:1.0.30"
   val coursierJvm =
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
-      .exclude(coursierNativeTerminalExclusion)
 
   val cask = mvn"com.lihaoyi::cask:0.11.3"
   val castor = mvn"com.lihaoyi::castor:0.3.2"
@@ -236,9 +228,9 @@ object Deps {
     mvn"io.quarkus:quarkus-core-deployment:3.31.4" // scala-steward:off
   val upickle = mvn"com.lihaoyi::upickle:4.4.3"
   val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:${upickle.version}"
-  // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
-  // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
-  val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
+  // native-terminal uses FFM on Java >= 22, which requires GraalVM >= 25 for native images
+  // on AArch64 (see oracle/graal#8113 and Settings.graalvmJvmId)
+  val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal:0.1.0"
   val zinc = mvn"org.scala-sbt::zinc:2.1.0"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
