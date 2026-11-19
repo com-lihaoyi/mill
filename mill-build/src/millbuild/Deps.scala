@@ -132,7 +132,7 @@ object Deps {
   val cask = mvn"com.lihaoyi::cask:0.11.3"
   val castor = mvn"com.lihaoyi::castor:0.3.2"
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
-  val flywayCore = mvn"org.flywaydb:flyway-core:11.20.3"
+  val flywayCore = mvn"org.flywaydb:flyway-core:13.13.0"
   // compile-time only: at runtime the Vaadin plugin uses the Flow version of the user's application.
   // One worker per incompatible flow-plugin-base API, named after the first Flow version it supports
   val vaadinFlowPluginBase_api = Map(
