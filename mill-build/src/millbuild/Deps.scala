@@ -112,14 +112,21 @@ object Deps {
   val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.200"
-  val coursierVersion = "2.1.26"
+  val coursierVersion = "2.1.27"
+  // coursier-cache depends on native-terminal, which contains the same classes as
+  // native-terminal-no-ffm (see nativeTerminal below), that we use instead
+  private val coursierNativeTerminalExclusion =
+    "io.github.alexarchambault.native-terminal" -> "native-terminal"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
+    .exclude(coursierNativeTerminalExclusion)
   val coursierArchiveCache =
     mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
+      .exclude(coursierNativeTerminalExclusion)
   val coursierCore =
     mvn"io.get-coursier::coursier-core:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierCache =
     mvn"io.get-coursier::coursier-cache:$coursierVersion".withDottyCompat(scalaVersion)
+      .exclude(coursierNativeTerminalExclusion)
   val coursierPaths =
     mvn"io.get-coursier:coursier-paths:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierUtil =
@@ -128,6 +135,7 @@ object Deps {
   val coursierInterface = mvn"io.get-coursier:interface:1.0.30"
   val coursierJvm =
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
+      .exclude(coursierNativeTerminalExclusion)
 
   val cask = mvn"com.lihaoyi::cask:0.11.3"
   val castor = mvn"com.lihaoyi::castor:0.3.2"
