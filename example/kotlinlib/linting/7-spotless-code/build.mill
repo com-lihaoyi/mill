@@ -4,8 +4,6 @@
 // configuration file. When that is not flexible enough, override the
 // link:{api-spotless}/SpotlessModule.html[SpotlessModule]`spotlessFormats` task instead.
 
-// NOTE: Files used by the configuration must be declared as a source dependency
-
 package build
 import mill.*, kotlinlib.*
 import mill.javalib.spotless.*
@@ -17,19 +15,21 @@ object `package` extends KotlinModule, SpotlessModule {
 
   // Override the formats in code, instead of using a `.spotless-formats.json` file.
   override def spotlessFormats: Task[Seq[Format]] = Task {
-    // Because our configuration does read the LICENSE file
-    val _ = licenseHeader()
+    val header = licenseHeader()
     Seq(
       // All Kotlin files are to be formatted using `Ktfmt` and `LicenseHeader` steps.
-      // The `LicenseHeader` step defaults to the `LICENSE` file.
       Format("glob:**.{kt,kts}")(
         Format.Ktfmt(),
-        Format.LicenseHeader(delimiter = "(package |@file|import )")
+        Format.LicenseHeader(
+          delimiter = "(package |@file|import )",
+          header = Format.ContentOrFile(file = Format.RelPathRef(header)))
       ),
       // All Java files are to be formatted using `GoogleJavaFormat` and `LicenseHeader` steps.
       Format("glob:**.java")(
         Format.GoogleJavaFormat(version = "1.35.0"),
-        Format.LicenseHeader(delimiter = "(package|import|public|class|module) ")
+        Format.LicenseHeader(
+          delimiter = "(package|import|public|class|module) ",
+          header = Format.ContentOrFile(file = Format.RelPathRef(header)))
       ),
       // All Markdown files are formatted using the `Flexmark` step.
       Format("glob:**.md")(
