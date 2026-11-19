@@ -49,5 +49,6 @@ object Settings {
     "1.3.1"
   )
 
-  val graalvmJvmId = "graalvm-community:23.0.1"
+  // 25.0.1 is the last GraalVM 25 release available on macOS x64
+  val graalvmJvmId = "graalvm-community:25.0.1"
 }
