@@ -57,10 +57,27 @@ private[daemon] class MetaBuildAccess(
   )(
       evaluate: MetaBuildAccess.WriteScope => T
   ): T = {
+    var failedWriteTries = 0
     LockUpgrade.readThenWrite(
       acquireRead =
         workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read, waitReporter),
-      tryAcquireWrite = () => workspaceLocking.tryMetaBuildWriteLock(depth),
+      // With many launchers probing concurrently, some reader is almost always
+      // active, so a non-queued try-Write can fail forever while nobody
+      // publishes. After a few failures, queue for Write instead: that holds
+      // back new probes, which cannot complete before someone publishes anyway.
+      // Queuing cannot deadlock: a launcher holding a meta-build lease at this
+      // depth never needs a new one at this depth or a deeper one.
+      tryAcquireWrite = () =>
+        workspaceLocking.tryMetaBuildWriteLock(depth).left.flatMap { contention =>
+          failedWriteTries += 1
+          if (failedWriteTries < MetaBuildAccess.failedWriteTriesBeforeQueuing) Left(contention)
+          else Right(workspaceLocking.metaBuildLock(
+            depth,
+            LauncherLocking.LockKind.Write,
+            // `readThenWrite` has been reporting the wait since the first failed try
+            LauncherLocking.WaitReporter.Noop
+          ))
+        },
       awaitStateChange =
         timeoutMs => workspaceLocking.awaitMetaBuildStateChange(depth, timeoutMs),
       waitReporter = waitReporter
@@ -71,6 +88,12 @@ private[daemon] class MetaBuildAccess(
 }
 
 private[daemon] object MetaBuildAccess {
+
+  /**
+   * Without contention a launcher fails at most once or twice; in a livelock
+   * it fails hundreds of times.
+   */
+  val failedWriteTriesBeforeQueuing = 3
 
   /**
    * Held during the write phase of [[MetaBuildAccess.withMetaBuild]]. All
