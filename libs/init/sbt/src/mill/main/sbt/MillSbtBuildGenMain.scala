@@ -36,11 +36,15 @@ object MillSbtBuildGenMain {
     val millWorkspace = os.pwd
 
     val sbtCmd = sbt.getOrElse {
-      def systemSbtExists(cmd: String) = os.call(
-        cmd = (cmd, "--help"),
-        check = false,
-        cwd = sbtWorkspace
-      ).exitCode == 1
+      // sbt runners up to 2.0.x exit with code 1 on `--help`, while 2.1.0 and later exit with 0
+      def systemSbtExists(cmd: String) = {
+        val exitCode = os.call(
+          cmd = (cmd, "--help"),
+          check = false,
+          cwd = sbtWorkspace
+        ).exitCode
+        exitCode == 0 || exitCode == 1
+      }
       if (isWin) {
         val cmd = "sbt.bat"
         if (systemSbtExists(cmd)) cmd else sys.error(s"No system wide $cmd found")
