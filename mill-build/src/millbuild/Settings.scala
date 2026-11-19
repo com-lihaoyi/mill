@@ -49,6 +49,5 @@ object Settings {
     "1.3.1"
   )
 
-  // 25.0.1 is the last GraalVM 25 release available on macOS x64
-  val graalvmJvmId = "graalvm-community:25.0.1"
+  val graalvmJvmId = "liberica-nik:25.0.5.0.3"
 }
