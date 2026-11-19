@@ -677,8 +677,7 @@ class MillBuildBootstrap(
         // If another launcher published while this one waited for Write, re-probe
         // under Read rather than here, where the probe would hold off all other
         // launchers queued for this lock.
-        if (readProbeOpt.exists(_.frameOpt == currentFrame)) Some(evaluateAndPublish(writeScope))
-        else None
+        Option.when(readProbeOpt.exists(_.frameOpt == currentFrame))(evaluateAndPublish(writeScope))
       }
     }
   }
