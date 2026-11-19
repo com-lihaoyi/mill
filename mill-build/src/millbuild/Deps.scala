@@ -261,6 +261,8 @@ object Deps {
   val groovyVersion = "6.0.0"
   val groovyCompiler_runtime = mvn"org.apache.groovy:groovy:$groovyVersion"
 
+  val windowsAnsi = mvn"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.6"
+
   /** Used for the `mill init` from a Maven project. */
   object MavenInit {
     val mavenVersion = "3.9.9"
