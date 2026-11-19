@@ -57,7 +57,6 @@ private[daemon] class MetaBuildAccess(
   )(
       evaluate: MetaBuildAccess.WriteScope => T
   ): T = {
-    var failedWriteTries = 0
     LockUpgrade.readThenWrite(
       acquireRead =
         workspaceLocking.metaBuildLock(depth, LauncherLocking.LockKind.Read, waitReporter),
@@ -67,17 +66,20 @@ private[daemon] class MetaBuildAccess(
       // back new probes, which cannot complete before someone publishes anyway.
       // Queuing cannot deadlock: a launcher holding a meta-build lease at this
       // depth never needs a new one at this depth or a deeper one.
-      tryAcquireWrite = () =>
-        workspaceLocking.tryMetaBuildWriteLock(depth).left.flatMap { contention =>
-          failedWriteTries += 1
-          if (failedWriteTries < MetaBuildAccess.failedWriteTriesBeforeQueuing) Left(contention)
-          else Right(workspaceLocking.metaBuildLock(
-            depth,
-            LauncherLocking.LockKind.Write,
-            // `readThenWrite` has been reporting the wait since the first failed try
-            LauncherLocking.WaitReporter.Noop
-          ))
-        },
+      tryAcquireWrite = {
+        var failedWriteTries = 0
+        () =>
+          workspaceLocking.tryMetaBuildWriteLock(depth).left.flatMap { contention =>
+            failedWriteTries += 1
+            if (failedWriteTries < MetaBuildAccess.failedWriteTriesBeforeQueuing) Left(contention)
+            else Right(workspaceLocking.metaBuildLock(
+              depth,
+              LauncherLocking.LockKind.Write,
+              // `readThenWrite` has been reporting the wait since the first failed try
+              LauncherLocking.WaitReporter.Noop
+            ))
+          }
+      },
       awaitStateChange =
         timeoutMs => workspaceLocking.awaitMetaBuildStateChange(depth, timeoutMs),
       waitReporter = waitReporter
