@@ -658,8 +658,7 @@ class MillBuildBootstrap(
       }
     }
 
-    @scala.annotation.tailrec
-    def probeThenEvaluate(): RunnerLauncherState = {
+    MillBuildBootstrap.repeatUntilSome {
       var readProbeOpt = Option.empty[ReuseProbe]
       metaBuild.withMetaBuild(depth, waitReporter) { (state, scope) =>
         reusable(state.frameAt(depth)) match {
@@ -680,13 +679,8 @@ class MillBuildBootstrap(
         // launchers queued for this lock.
         if (readProbeOpt.exists(_.frameOpt == currentFrame)) Some(evaluateAndPublish(writeScope))
         else None
-      } match {
-        case Some(state) => state
-        case None => probeThenEvaluate()
       }
     }
-
-    probeThenEvaluate()
   }
 
   /**
@@ -795,6 +789,12 @@ class MillBuildBootstrap(
 }
 
 object MillBuildBootstrap {
+
+  @scala.annotation.tailrec
+  private def repeatUntilSome[T](body: => Option[T]): T = body match {
+    case Some(value) => value
+    case None => repeatUntilSome(body)
+  }
 
   // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
   // tend to capture the entire enclosing instance, causing memory leaks
