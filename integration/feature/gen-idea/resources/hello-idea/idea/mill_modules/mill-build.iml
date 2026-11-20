@@ -32,7 +32,6 @@
         <orderEntry type="library" name="fastparse_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="geny_3-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="is-terminal-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="jansi.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="javax.inject-1.jar" level="project"/>
         <orderEntry type="library" name="jline-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jline-native-<version>.jar" level="project"/>
@@ -79,7 +78,7 @@
         <orderEntry type="library" name="mill-libs_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="mill-moduledefs_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-autooverride-api_3-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="native-terminal-<version>.jar" level="project"/>
         <orderEntry type="library" name="os-lib_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="os-zip-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-archiver-<version>.jar" level="project"/>
@@ -114,7 +113,6 @@
         <orderEntry type="library" name="upickle-implicits_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="upickle_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="versions_2.13-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="windows-ansi-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-jni-utils-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="xbean-reflect-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="xz-<version>.jar" level="project"/>
