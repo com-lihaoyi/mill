@@ -1,7 +1,7 @@
 package mill.internal
 
-import mill.constants.OutFiles
 import utest.*
+import mill.constants.OutFiles.OutFiles
 
 object LauncherOutFilesImplTests extends TestSuite {
   val tests: Tests = Tests {

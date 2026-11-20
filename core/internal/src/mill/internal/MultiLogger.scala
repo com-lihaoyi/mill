@@ -2,7 +2,8 @@ package mill.internal
 
 import mill.api.{Logger, SystemStreams}
 
-import java.io.{InputStream, PrintStream, ByteArrayOutputStream}
+import java.io.{ByteArrayOutputStream, InputStream, PrintStream}
+import scala.annotation.nowarn
 
 class MultiLogger(
     val logger1: Logger,
@@ -147,8 +148,8 @@ class MultiLogger(
   )
   override def withOutStream(outStream: PrintStream): Logger = {
     MultiLogger(
-      logger1.withOutStream(outStream),
-      logger2.withOutStream(outStream),
+      logger1.withOutStream(outStream): @nowarn("cat=deprecation"),
+      logger2.withOutStream(outStream): @nowarn("cat=deprecation"),
       inStream0
     )
   }

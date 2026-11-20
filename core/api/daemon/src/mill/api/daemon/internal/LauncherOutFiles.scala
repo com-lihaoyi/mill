@@ -1,7 +1,7 @@
 package mill.api.daemon.internal
 
 import mill.constants.DaemonFiles
-import mill.constants.OutFiles
+import mill.constants.OutFiles.OutFiles
 
 import java.nio.file.Path
 
