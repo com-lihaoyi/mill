@@ -12,20 +12,25 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    permissions: write-all
+    permissions: write
     steps:
       # We want to always create a status, even if the PR is not a draft, so that  
       # if there was a previous `pending` draft status it can get over-written by a
       # `success` when it is ready for review
       - run: |
           curl --request POST \
-          --url ${{ github.event.pull_request.statuses_url }} \
-          --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+          --url "$STATUSES_URL" \
+          --header "authorization: Bearer $TOKEN" \
           --header 'content-type: application/json' \
-          --data '{
-            "state": "${{(github.event.action != 'ready_for_review' && github.event.pull_request.draft) && 'pending' || 'success'}}",
-            "context": "Draft CI",
-            "target_url": ${{(github.event.action != 'ready_for_review' && github.event.pull_request.draft) && format('"{0}/commits/{1}"', github.event.pull_request.head.repo.html_url, github.event.pull_request.head.ref) || 'null'}},
-            "description": "${{(github.event.action != 'ready_for_review' && github.event.pull_request.draft) && 'use CI on your repo fork (link on right) until this PR is ready for review' || 'PR is ready for review, running CI in Mill repo'}}"
-            }' \
+          --data "$(jq -cn \
+            --arg state "$STATE" \
+            --arg target "$TARGET_URL" \
+            --arg description "$DESCRIPTION" \
+            '{state: $state, context: "Draft CI", target_url: (if $target == "" then null else $target end), description: $description}')" \
           --fail-with-body
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STATUSES_URL: ${{ github.event.pull_request.statuses_url }}
+          STATE: ${{ (github.event.action != 'ready_for_review' && github.event.pull_request.draft) && 'pending' || 'success' }}
+          TARGET_URL: ${{ (github.event.action != 'ready_for_review' && github.event.pull_request.draft) && format('{0}/commits/{1}', github.event.pull_request.head.repo.html_url, github.event.pull_request.head.ref) || '' }}
+          DESCRIPTION: ${{ (github.event.action != 'ready_for_review' && github.event.pull_request.draft) && 'use CI on your repo fork (link on right) until this PR is ready for review' || 'PR is ready for review, running CI in Mill repo' }}
