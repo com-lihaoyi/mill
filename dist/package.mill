@@ -560,13 +560,20 @@ object `package` extends MillJavaModule with Proguard with DistModule {
       """-H:-ReduceImplicitExceptionStackTraceInformation""",
       // Prevent Native Image runtime from consuming runtime options like -D<key>=<value>
       // https://github.com/com-lihaoyi/mill/issues/6770
-      "-H:-ParseRuntimeOptions"
+      "-H:-ParseRuntimeOptions",
+      // Silence the warnings that GraalVM >= 24 emits at runtime, like the JVM, when
+      // native libraries are loaded (jline-native, native-terminal) or when Scala 3
+      // lazy vals use sun.misc.Unsafe. Same as what we pass to the Mill daemon JVM.
+      "--enable-native-access=ALL-UNNAMED",
+      "-Dsun.misc.unsafe.memory.access=allow"
       // Enable JVisualVM support
       // https://www.graalvm.org/latest/tools/visualvm/#using-visualvm-with-graalvm-native-executables
       // "--enable-monitoring=jvmstat,heapdump"
     )
 
     def jvmId = Settings.graalvmJvmId
+    // Liberica NIK 25.0.5.0.3 isn't in the latest JVM index published on Maven Central yet
+    def jvmIndexVersion = Task { "github" }
 
     /**
      * Native image module for installLocal. Uses the processed assembly jar
@@ -583,6 +590,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
       def nativeImageOptions = native.nativeImageOptions
       def jvmId = native.jvmId
+      def jvmIndexVersion = native.jvmIndexVersion()
     }
   }
 }
