@@ -573,7 +573,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
     def jvmVersion = Settings.graalvmJvmId
     // Liberica NIK 25.0.5.0.3 isn't in the latest JVM index published on Maven Central yet
-    def jvmIndexVersion = Task { "github" }
+    def jvmIndexVersion = Settings.jvmIndexVersion
 
     /**
      * Native image module for installLocal. Uses the processed assembly jar

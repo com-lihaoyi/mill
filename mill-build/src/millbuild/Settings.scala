@@ -52,4 +52,5 @@ object Settings {
   )
 
   val graalvmJvmId = "liberica-nik:25.0.5.0.3"
+  val jvmIndexVersion = "github"
 }
