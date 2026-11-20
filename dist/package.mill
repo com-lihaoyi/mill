@@ -571,7 +571,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
       // "--enable-monitoring=jvmstat,heapdump"
     )
 
-    def jvmId = Settings.graalvmJvmId
+    def jvmVersion = Settings.graalvmJvmId
     // Liberica NIK 25.0.5.0.3 isn't in the latest JVM index published on Maven Central yet
     def jvmIndexVersion = Task { "github" }
 
@@ -589,7 +589,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
       }
 
       def nativeImageOptions = native.nativeImageOptions
-      def jvmId = native.jvmId
+      def jvmVersion = native.jvmVersion
       def jvmIndexVersion = native.jvmIndexVersion()
     }
   }
