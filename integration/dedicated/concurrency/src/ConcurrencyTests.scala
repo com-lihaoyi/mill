@@ -50,15 +50,17 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
    * positive (each expected wait happened) and negative (no other wait
    * happened) — so any spurious extra contention (e.g. an unintended
    * escalation to a meta-build Write that should have stayed on Read) fails
-   * the test, and any missing expected contention fails it too.
+   * the test, and any missing expected contention fails it too. Waits
+   * matching `tolerated` may or may not happen.
    */
   private def assertContention(
       launcher: mill.testkit.IntegrationTester.SpawnedProcess,
-      expected: Set[String]
+      expected: Set[String],
+      tolerated: String => Boolean = _ => false
   ): Unit = {
     val actual = contentionMessages(launcher)
     val missing = expected -- actual
-    val extra = actual -- expected
+    val extra = (actual -- expected).filterNot(tolerated)
     if (missing.nonEmpty || extra.nonEmpty) {
       throw new java.lang.AssertionError(
         s"\ncontention mismatch:\nmissing:\n  ${missing.toSeq.sorted.mkString("\n  ")}\nextra:\n  ${extra.toSeq.sorted.mkString("\n  ")}\n"
@@ -126,7 +128,11 @@ object ConcurrencyTests extends UtestIntegrationTestSuite {
       // Only `sameTask` is deterministically held while launcher 1 is
       // parked; the outer `runSameTask` Command lock often races free
       // before launcher 2 escalates.
-      assertContention(launcher2, Set(blockedLine("runSameTask", blockerPid, "sameTask", "read")))
+      assertContention(
+        launcher2,
+        Set(blockedLine("runSameTask", blockerPid, "sameTask", "read")),
+        tolerated = _.matches("blocked on read lock PID \\d+ 'runSameTask'")
+      )
     }
 
     test("downstream-holds-upstream-write-lock-while-computing") - integrationTest { tester =>
