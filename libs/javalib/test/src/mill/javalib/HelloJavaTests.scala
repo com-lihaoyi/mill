@@ -51,6 +51,9 @@ object HelloJavaTests extends TestSuite {
       }
     }
 
+    // Checks that `--debug` doesn't invalidate compilation: compiles once normally, then
+    // again with `debugEnabled = true`, which must find everything up to date.
+    // Can be deleted together with the deprecated `zincLogDebug` task.
     test("debugFlagKeepsCompileUpToDate") {
       testEval().scoped { eval =>
         val Right(result) = eval.apply(HelloJava.core.compile).runtimeChecked

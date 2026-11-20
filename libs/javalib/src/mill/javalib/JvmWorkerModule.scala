@@ -177,8 +177,6 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       zincCompilerBridge,
       classPath = classpath().map(_.path),
       jobs = jobs,
-      // Not read by the worker. Depending on `zincLogDebug` here would make `--debug`
-      // rebuild the worker, and so invalidate every compilation using it.
       zincLogDebug = false,
       useFileLocks = useFileLocks(),
       close0 = () => ()
