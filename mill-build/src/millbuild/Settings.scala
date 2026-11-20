@@ -49,5 +49,5 @@ object Settings {
     "1.3.1"
   )
 
-  val graalvmJvmId = "graalvm-community:23.0.1"
+  val graalvmJvmId = "liberica-nik:25.0.5.0.3"
 }

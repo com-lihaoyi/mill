@@ -15,6 +15,61 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#1.4.0-M3]
+=== 1.4.0-M3
+:version: 1.4.0-M3
+:milestone-name: 1.4.0-M3
+:milestone: 159
+:prev-version: 1.4.0-M2
+_2026-11-20_
+
+__Changes since Mill {prev-version}:__
+
+**Features and Improvements**
+
+* Document the jvmVersion better ({link-pr}/7877[7877])
+* Quarkus: Conditional ext dependencies and fixes ({link-pr}/7832[7832])
+* Include `scalaCompilerClasspath` in `prepareOffline` ({link-pr}/7892[7892])
+* Kotlin: Render paths in compiler messages relative to the workspace ({link-pr}/7890[7890])
+* Include `javaHome` in `prepareOffline` ({link-pr}/7894[7894])
+* KMP: Initial support for Android targets ({link-pr}/7863[7863])
+* Don't limit shown test failures to 5 in non-CI environments ({link-pr}/7899[7899])
+* Print "Re-run {link-pr}/[]" and an empty line to ease perception of `--watch` output ({link-pr}/7907[7907])
+* Accept module names in `showMvnDepsTree --whatDependsOn` ({link-pr}/7896[7896])
+* Fix ANSI state bleed in PromptLogger ({link-pr}/7909[7909])
+* List more inherited module parents ({link-pr}/7919[7919])
+* `BuildInfo`: Add support for extra accessor annotations ({link-pr}/7922[7922])
+* mill-contrib-vaadin: support Flow 25.3.4+, PublishModule production modules and nested projects ({link-pr}/7921[7921])
+* mill-contrib-vaadin: always build the production bundle, optional npm ci ({link-pr}/7928[7928])
+* Spotless: Support Formatting Markdown with Flexmark ({link-pr}/7936[7936])
+
+**Internal changes and dependency updates**
+
+* Add a regression test for relaying a line with an unparseable escape ({link-pr}/7847[7847]) ({link-pr}/7879[7879])
+* Kotlin: Fix API deprecations ({link-pr}/7881[7881])
+* Update io.get-coursier::versions to 0.7.0 ({link-pr}/7893[7893])
+* Add 1.4.0-M2 to documentation page ({link-pr}/7891[7891])
+* Update gradle to 9.5.1 ({link-pr}/7883[7883])
+* CI: Update coursier/cache-action from 8 to 9 ({link-pr}/7878[7878])
+* Update classgraph to 4.8.200 ({link-pr}/7898[7898])
+* Update databinding-compiler to 9.5.1 ({link-pr}/7882[7882])
+* Extract `Segments.segmentSeparator` ({link-pr}/7906[7906])
+* Cache and speed up some internal tasks used for dependency resolution with Coursier ({link-pr}/7914[7914])
+* Add a FIXME
+* Android: Bump cmdline tools to 22 ({link-pr}/7866[7866])
+* Throttle mostly redundant compiler progress notifications over RPC ({link-pr}/7924[7924])
+* Update scala-cli-bsp to 1.19.0 ({link-pr}/7927[7927])
+* `showMvnDepsTree`: Don't print unnecessary newlines for empty trees ({link-pr}/7932[7932])
+* Don't retry on a new daemon after stdin was forwarded to the old one ({link-pr}/7917[7917])
+* Android: Bump cmdline tools to 23.0 ({link-pr}/7920[7920])
+* Update zinc to 2.1.0 ({link-pr}/7771[7771])
+* Update logback-classic to 1.6.7 ({link-pr}/7937[7937])
+* Update bouncycastle to 1.87 ({link-pr}/7910[7910])
+* Update Scala 2.12 to 2.12.21 ({link-pr}/7943[7943])
+* security: ci: build the draft status payload with jq instead of string surgery ({link-pr}/7956[7956])
+* CI: Replace too mighty `write-all` permissions with `write` ({link-pr}/7961[7961])
+
+
 [#1.4.0-M2]
 === 1.4.0-M2
 :version: 1.4.0-M2
