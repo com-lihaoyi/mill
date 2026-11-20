@@ -105,16 +105,14 @@ Usage: mill [options] task [task-options] [+ task ...]
 Advanced and internal command-line flags not intended for common usage. Use at your own risk!
 
 Advanced Options:
-  <bool>                    Use filesystem based file watching instead of polling based one
-                            (defaults to true).
   --allow-positional        Allows command args to be passed positionally without `--arg` by default
-  -b                        Ring the bell once if the run completes successfully, twice if it fails.
+  -b --bell                 Ring the bell once if the run completes successfully, twice if it fails.
   --bsp                     Enable BSP server mode. Typically used by a BSP client when starting the
                             Mill BSP server.
   --bsp-install             Create mill-bsp.json with Mill details under .bsp/
   --bsp-watch <bool>        Automatically reload the build when its sources change when running the
                             BSP server (defaults to true).
-  -d                        Show debug output on STDOUT
+  -d --debug                Show debug output on STDOUT
   --disable-ticker          Deprecated, use `--ticker false` instead
   -i --interactive          Alias for now `--no-daemon`. No longer needed for interactive commands
                             since Mill 1.1.0
@@ -127,6 +125,8 @@ Advanced Options:
   --no-server               Deprecated, use `--no-daemon` instead
   --no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to
                             evaluate tasks / commands.
+  --notify-watch <bool>     Use filesystem based file watching instead of polling based one
+                            (defaults to true).
   --offline                 Try to work offline. This tells modules that support it to work offline
                             and avoid any access to the internet. This is on a best effort basis.
                             There are currently no guarantees that modules don't attempt to fetch
