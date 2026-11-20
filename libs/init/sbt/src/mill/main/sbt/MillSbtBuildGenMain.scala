@@ -36,15 +36,20 @@ object MillSbtBuildGenMain {
     val millWorkspace = os.pwd
 
     val sbtCmd = sbt.getOrElse {
-      // sbt runners up to 2.0.x exit with code 1 on `--help`, while 2.1.0 and later exit with 0
-      def systemSbtExists(cmd: String) = {
-        val exitCode = os.call(
-          cmd = (cmd, "--help"),
-          check = false,
-          cwd = sbtWorkspace
-        ).exitCode
-        exitCode == 0 || exitCode == 1
-      }
+      // `--script-version` only prints the runner version, without booting sbt
+      // (unlike `--version`, which loads the build in an sbt project directory),
+      // and exits with 0 on all runner versions. Starting a missing command throws
+      // an IOException rather than returning an exit code.
+      def systemSbtExists(cmd: String) =
+        try
+          os.call(
+            cmd = (cmd, "--script-version"),
+            check = false,
+            cwd = sbtWorkspace
+          ).exitCode == 0
+        catch {
+          case _: java.io.IOException => false
+        }
       if (isWin) {
         val cmd = "sbt.bat"
         if (systemSbtExists(cmd)) cmd else sys.error(s"No system wide $cmd found")
