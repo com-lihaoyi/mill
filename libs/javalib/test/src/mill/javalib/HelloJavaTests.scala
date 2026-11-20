@@ -51,6 +51,26 @@ object HelloJavaTests extends TestSuite {
       }
     }
 
+    test("debugFlagKeepsCompileUpToDate") {
+      testEval().scoped { eval =>
+        val Right(result) = eval.apply(HelloJava.core.compile).runtimeChecked
+        assert(result.evalCount > 0)
+      }
+      val debugOut = new java.io.ByteArrayOutputStream()
+      val debugStream = new java.io.PrintStream(debugOut, true)
+      UnitTester(
+        HelloJava,
+        sourceRoot = null,
+        resetSourcePath = false,
+        debugEnabled = true,
+        outStream = debugStream,
+        errStream = debugStream
+      ).scoped { eval =>
+        val Right(result) = eval.apply(HelloJava.core.compile).runtimeChecked
+        assert(result.evalCount == 0)
+      }
+    }
+
     test("semanticDbData") {
       val expectedFile1 =
         os.rel / "META-INF/semanticdb/core/src/Core.java.semanticdb"
