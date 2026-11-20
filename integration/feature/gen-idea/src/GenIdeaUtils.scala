@@ -123,6 +123,11 @@ object GenIdeaUtils {
         "(name=\"scala-SDK)-[0-9]+\\.[0-9]+\\.[0-9]+\"",
         "$1-<version>\""
       )
+      // Normalize simple library names like name="dependency_2.13-0.3.3.jar"
+      .replaceAll(
+        "(<orderEntry.+name=\"[^\"]+)-[0-9]+\\.[0-9]+(\\.[0-9-_]+)?\\.jar\"",
+        "$1-<version>.jar\""
+      )
       // Normalize Scala language level like <language-level>Scala_3_8</language-level>
       .replaceAll(
         "<language-level>Scala_3_[0-9]+</language-level>",
