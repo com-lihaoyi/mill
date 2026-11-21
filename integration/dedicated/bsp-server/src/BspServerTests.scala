@@ -664,7 +664,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
           "/coursierEnv.dest",
           "/javaHome.dest",
           "/scalaCompilerClasspath.dest",
-          "/zincLogDebug.dest",
           "/useFileLocks.dest"
         )
         val unexpectedWaits = cliResult.err.linesIterator

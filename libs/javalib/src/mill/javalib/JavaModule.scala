@@ -1584,8 +1584,10 @@ trait JavaModule
     val treeTask = mvnDepsTree(args)
     Task.Command(exclusive = true) {
       val rendered = treeTask()
-      Task.log.unprefixedStreams.out.println(rendered)
-      rendered
+      if (rendered.replace("\n", "").trim.nonEmpty) {
+        Task.log.unprefixedStreams.out.println(rendered)
+        rendered
+      } else ""
     }
   }
 

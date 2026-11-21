@@ -247,6 +247,13 @@ object Format {
   ) extends Step derives ReadWriter
 
   /**
+   * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/markdown/FlexmarkStep.java FlexmarkStep]]
+   */
+  case class Flexmark(
+      version: String = null
+  ) extends Step derives ReadWriter
+
+  /**
    * A lint suppression definition.
    * @note When all members are `null`, all lints are suppressed.
    * @param path Relative path to file.

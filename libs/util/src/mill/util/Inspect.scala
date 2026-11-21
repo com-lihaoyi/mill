@@ -33,10 +33,14 @@ private[mill] object Inspect {
 
   /** Find a parent classes of the given class queue. */
   @tailrec
-  def resolveParents(queue: List[Class[?]], seen: Seq[Class[?]] = Seq()): Seq[Class[?]] = {
+  def resolveParents(
+      queue: List[Class[?]],
+      seen: Seq[Class[?]] = Seq()
+  ): Seq[Class[?]] = {
     queue match {
       case Nil => seen
-      case cand :: rest if seen.contains(cand) => resolveParents(rest, seen)
+      case cand :: rest if seen.contains(cand) =>
+        resolveParents(rest, seen)
       case cand :: rest =>
         val sups = Option(cand.getSuperclass).toList ++ cand.getInterfaces.toList
         resolveParents(sups ::: rest, seen ++ Seq(cand))
@@ -79,6 +83,7 @@ private[mill] object Inspect {
   def inspect(evaluator: Evaluator, tasks: Seq[String]) = {
 
     def renderPath(path: String, lineNum: String) = {
+      // FIXME: Review this, looks obsolete since os-lib 0.11.9/10
       // handle both Windows or Unix separators
       val fullFileName = path.replaceAll(raw"\\", "/")
       val basePath = BuildCtx.workspaceRoot.toString.replaceAll(raw"\\", "/") + "/"
@@ -188,12 +193,31 @@ private[mill] object Inspect {
       val cls = module.getClass
 
       val scaladocOpt = scaladocForModule(cls)
-      def parentFilter(parent: Class[?]) =
-        classOf[Module].isAssignableFrom(parent) && classOf[Module] != parent
 
-      val parents = (Option(cls.getSuperclass).toSeq ++ cls.getInterfaces).distinct
+      def parentFilter(parent: Class[?]) = {
+        // leave out non-modules
+        classOf[Module].isAssignableFrom(parent) &&
+        // obvious
+        parent != classOf[Module] &&
+        // internal stuff
+        !(parent.getPackage().getName() == "mill.api.internal") &&
+        // Some generated class
+        !(parent.getName().startsWith("build_.") && parent.getName().endsWith(".package_")) &&
+        !(parent.getSimpleName() == "_MillR") &&
+        !(parent.getSimpleName() == "_MillRootM")
 
-      val inheritedModules = parents.filter(parentFilter)
+      }
+
+      // the direct parents
+      val parents = (Option(cls.getSuperclass()).toSeq ++ cls.getInterfaces())
+        .distinct
+        .filter(parentFilter)
+
+      // additional indirect parents
+      val moreParents = resolveParents(List(cls.getSuperclass()) ++ cls.getInterfaces())
+        .filterNot(parents.toSet)
+        .filter(parentFilter)
+
       val subModules = module.moduleDirectChildren.map(_.toString)
 
       def getModuleDeps(methodName: String): Seq[Module] = cls
@@ -236,7 +260,8 @@ private[mill] object Inspect {
             ctx.applyPrefixColor("Inherited Modules").toString,
             ":"
           ),
-          inheritedModules.map("\n" + inspectItemIndent + _.getName),
+          parents.map("\n" + inspectItemIndent + _.getName),
+          moreParents.map("\n" + inspectItemIndent + _.getName),
           // Sub-Modules:
           if (subModules.nonEmpty) Iterator(
             "\n\n",

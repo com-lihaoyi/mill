@@ -20,7 +20,7 @@ object Deps {
   val scalaVersionJava11 = "3.7.4"
   val scala2Version = "2.13.18"
   // The Scala 2.12.x version to use for some workers
-  val workerScalaVersion212 = "2.12.20"
+  val workerScalaVersion212 = "2.12.21"
   val sbtScalaVersion212 = workerScalaVersion212
 
   val testScala213Version = "2.13.18"
@@ -102,7 +102,7 @@ object Deps {
   val asmTree = mvn"org.ow2.asm:asm-tree:${asmVersion}"
 
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
-  val bouncyCastleVersion = "1.86"
+  val bouncyCastleVersion = "1.87"
   val keytoolDeps = Seq(
     mvn"org.bouncycastle:bcpkix-jdk18on:${bouncyCastleVersion}",
     mvn"org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}",
@@ -112,7 +112,7 @@ object Deps {
   val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.200"
-  val coursierVersion = "2.1.26"
+  val coursierVersion = "2.1.27"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
     mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
@@ -125,7 +125,7 @@ object Deps {
   val coursierUtil =
     mvn"io.get-coursier::coursier-util:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierVersions = mvn"io.get-coursier::versions:0.7.0".withDottyCompat(scalaVersion)
-  val coursierInterface = mvn"io.get-coursier:interface:1.0.30"
+  val coursierInterface = mvn"io.get-coursier:interface:1.0.31"
   val coursierJvm =
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
 
@@ -133,8 +133,12 @@ object Deps {
   val castor = mvn"com.lihaoyi::castor:0.3.2"
   val fastparse = mvn"com.lihaoyi::fastparse:3.1.1"
   val flywayCore = mvn"org.flywaydb:flyway-core:11.20.3"
-  // compile-time only: at runtime the Vaadin plugin uses the Flow version of the user's application
-  val vaadinFlowPluginBase_api = mvn"com.vaadin:flow-plugin-base:25.2.0" // scala-steward:off
+  // compile-time only: at runtime the Vaadin plugin uses the Flow version of the user's application.
+  // One worker per incompatible flow-plugin-base API, named after the first Flow version it supports
+  val vaadinFlowPluginBase_api = Map(
+    "25.2.0" -> mvn"com.vaadin:flow-plugin-base:25.2.0", // scala-steward:off
+    "25.3.4" -> mvn"com.vaadin:flow-plugin-base:25.3.4" // scala-steward:off
+  )
   val jibCore = mvn"com.google.cloud.tools:jib-core:0.28.2"
   val graphvizJava = Seq(
     mvn"guru.nidi:graphviz-java-min-deps:0.18.1",
@@ -206,7 +210,7 @@ object Deps {
     mvn"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = mvn"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
-  val scalaCliBsp = mvn"org.virtuslab.scala-cli:scala-cli-bsp:1.18.0"
+  val scalaCliBsp = mvn"org.virtuslab.scala-cli:scala-cli-bsp:1.19.0"
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.5.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala_runtime = mvn"org.scalameta:::semanticdb-scalac:4.17.4"
@@ -224,10 +228,10 @@ object Deps {
     mvn"io.quarkus:quarkus-core-deployment:3.31.4" // scala-steward:off
   val upickle = mvn"com.lihaoyi::upickle:4.4.3"
   val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:${upickle.version}"
-  // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
-  // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
-  val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
-  val zinc = mvn"org.scala-sbt::zinc:2.0.5"
+  // native-terminal uses FFM on Java >= 22, which requires GraalVM >= 25 for native images
+  // on AArch64 (see oracle/graal#8113 and Settings.graalvmJvmId)
+  val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal:0.1.0"
+  val zinc = mvn"org.scala-sbt::zinc:2.1.0"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
   // https://github.com/google/gson/releases/tag/gson-parent-2.13.2
@@ -236,7 +240,7 @@ object Deps {
   val javaparser = mvn"com.github.javaparser:javaparser-core:3.28.2"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.18.1"
   val requests = mvn"com.lihaoyi::requests:0.9.3"
-  val logback = mvn"ch.qos.logback:logback-classic:1.6.6"
+  val logback = mvn"ch.qos.logback:logback-classic:1.6.7"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
@@ -386,9 +390,9 @@ object Deps {
     val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
     val screenshotValidationJunitEngine =
       mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
-    // https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip
+    // https://dl.google.com/android/repository/commandlinetools-linux-16111833_latest.zip
     // https://developer.android.com/studio?hl=de#command-tools
-    val cmdlineToolsVersion = "22.0"
+    val cmdlineToolsVersion = "23.0"
     // TODO: uiTooling is needed for screenshot tests
     // so we handle it diferrently.
     // Removed it from updaetable for now

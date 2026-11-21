@@ -79,6 +79,17 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
   }
 
   /**
+   * The folder holding the build files. The wrapped sources contain the build files' absolute
+   * paths, but Mill hashes their other inputs with paths relative to the workspace, so without
+   * this input a moved checkout would keep wrapped sources that point at the old folder.
+   * It is a `String` because an `os.Path` would also be hashed relative to the workspace.
+   * It can go once the generated code no longer contains absolute paths.
+   */
+  private[mill] def scriptSourcesLocation: T[String] = Task.Input {
+    (rootModuleInfo.projectRoot / os.up).toString
+  }
+
+  /**
    * Additional script files, we generate, since not all Mill source
    * files (`*.mill` can be fed to the compiler as-is.
    *
@@ -92,6 +103,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
           resources: Seq[PathRef],
           mappings: Seq[(original: PathRef, generated: PathRef)]
       )] = Task {
+    scriptSourcesLocation() // regenerates the sources after the checkout moves
     val wrapped = Task.dest / "wrapped"
     val support = Task.dest / "support"
     val resources = Task.dest / "resources"

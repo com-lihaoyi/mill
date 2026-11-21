@@ -5,7 +5,8 @@
     ],
     "steps": [
       {
-        "$type": "ScalaFmt"
+        "$type": "ScalaFmt",
+        "version": "3.8.5"
       }
     ]
   },
@@ -31,6 +32,16 @@
       {
         "$type": "LicenseHeader",
         "delimiter": "(package|import|public|class|module) "
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**.md"
+    ],
+    "steps": [
+      {
+        "$type": "Flexmark"
       }
     ]
   }

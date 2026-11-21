@@ -161,12 +161,19 @@ object MillLauncherMain {
     val maxRetries = 10
     var retries = 0
     var exitCode = launcher.run(daemonDir, javaHome, log)
-    while (exitCode == ClientUtil.ServerExitPleaseRetry && retries < maxRetries) {
+    while (
+      exitCode == ClientUtil.ServerExitPleaseRetry && retries < maxRetries &&
+      !launcher.forwardedStdin
+    ) {
       exitCode = launcher.run(daemonDir, javaHome, log)
       retries += 1
     }
     if (exitCode == ClientUtil.ServerExitPleaseRetry)
-      stderr.println(s"Max launcher retries exceeded ($maxRetries), exiting")
+      if (launcher.forwardedStdin)
+        stderr.println(
+          "Mill daemon restarted after input was forwarded to it; exiting instead of retrying"
+        )
+      else stderr.println(s"Max launcher retries exceeded ($maxRetries), exiting")
     exitCode
   }
 

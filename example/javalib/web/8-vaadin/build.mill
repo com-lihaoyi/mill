@@ -33,7 +33,7 @@
 /** Usage
 
 > ./mill show vaadinFlowVersion
-"25.3.0"
+"25.3.7"
 
 > ./mill runBackground
 

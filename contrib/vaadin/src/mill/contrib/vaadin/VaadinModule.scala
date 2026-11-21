@@ -64,7 +64,10 @@ trait VaadinModule extends JavaModule { outer =>
    * The production build uses a folder of its own in
    * [[VaadinProdModule.vaadinFrontendBuild]].
    */
-  def vaadinDevBuildToolsDir: T[os.Path] = Task(persistent = true) { Task.dest }
+  def vaadinDevBuildToolsDir: T[os.Path] = Task(persistent = true) {
+    VaadinModule.linkNodeModules(Task.dest, moduleDir)
+    Task.dest
+  }
 
   /** Identifier of the application's frontend bundle. */
   def vaadinApplicationIdentifier: T[String] = Task {
@@ -98,7 +101,9 @@ trait VaadinModule extends JavaModule { outer =>
    */
   def vaadinWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-contrib-vaadin-worker"),
+      Dep.millProjectModule(
+        s"mill-contrib-vaadin-worker-${VaadinModule.workerFor(vaadinFlowVersion())}"
+      ),
       mvn"com.vaadin:flow-plugin-base:${vaadinFlowVersion()}",
       // Vaadin's build tasks log npm/Vite progress and errors via SLF4J (to stderr)
       mvn"org.slf4j:slf4j-simple:${BuildInfo.slf4jSimpleVersion}"
@@ -142,12 +147,17 @@ trait VaadinModule extends JavaModule { outer =>
    * dependencies of the production build, e.g. a JDBC driver, go into the
    * sub-module's own `runMvnDeps`.
    *
+   * To publish it, mix in [[PublishModule]] after it
+   * (`object prod extends VaadinProdModule with PublishModule`), so that
+   * `PublishModule` narrows `moduleDeps` to published modules.
+   *
    * As a regular [[JavaModule]], it provides `run`, `runBackground`, `assembly`
    * and `launcher` for the production application. Mix in
    * [[mill.javalib.repackage.RepackageModule]] for an executable Spring Boot jar
    * (`repackagedJar`).
    */
   trait VaadinProdModule extends JavaModule {
+
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
     override def runModuleDeps: Seq[JavaModule] = outer.runModuleDeps
     override def mvnDeps: T[Seq[Dep]] = outer.mvnDeps()
@@ -204,12 +214,30 @@ trait VaadinModule extends JavaModule { outer =>
         buildToolsDir = buildTools,
         stageDir = stage,
         classpath = classpath.map(_.path),
-        applicationIdentifier = outer.vaadinApplicationIdentifier()
+        applicationIdentifier = outer.vaadinApplicationIdentifier(),
+        forceProductionBuild = vaadinForceProductionBuild(),
+        ciBuild = vaadinCiBuild()
       )
+      VaadinModule.linkNodeModules(buildTools, outer.moduleDir)
       outer.vaadinWorker().buildFrontend(config, VaadinModule.logger(Task.log))
 
       PathRef(stage)
     }
+
+    /**
+     * Always build the production bundle with npm and Vite. Vaadin would otherwise
+     * reuse a pre-compiled bundle it finds on the classpath or wrote into the
+     * project earlier (`src/main/bundles/prod.bundle`), whose themes it copies to
+     * `VAADIN/static/themes`; Mill's task cache already decides when to rebuild.
+     */
+    def vaadinForceProductionBuild: T[Boolean] = Task { true }
+
+    /**
+     * Install the npm packages with `npm ci`: strictly from the project's
+     * `package-lock.json`, failing when it does not match `package.json`, so the
+     * bundle is reproducible. Needs both files in the project.
+     */
+    def vaadinCiBuild: T[Boolean] = Task { false }
 
     /** Command wrapper around [[vaadinFrontendBuild]]. */
     def vaadinBuildFrontend(): Command[PathRef] = Task.Command {
@@ -241,10 +269,52 @@ object VaadinModule {
    */
   private[vaadin] val FrontendFolderProperty = "vaadin.vaadin.frontend.folder"
 
-  /** Whether the worker, compiled against [[BuildInfo.flowPluginBaseVersion]], supports `flowVersion`. */
+  /** The workers, each named after the first Flow version it supports, oldest first. */
+  private[vaadin] val workers: Seq[String] =
+    BuildInfo.workerFlowVersions.split(",").toSeq
+      .sortBy(Version.parse)(using Version.MavenOrdering)
+
+  /** The worker for `flowVersion`: the one compiled against the newest Flow version not above it. */
+  private[vaadin] def workerFor(flowVersion: String): String = {
+    val flow = Version.parse(flowVersion)
+    workers.filter(w => flow.isAtLeast(Version.parse(w))(using Version.MavenOrdering))
+      .lastOption
+      .getOrElse(workers.head)
+  }
+
+  /** Whether the oldest worker, compiled against [[BuildInfo.flowPluginBaseVersion]], supports `flowVersion`. */
   private[vaadin] def isSupportedFlowVersion(flowVersion: String): Boolean =
     Version.parse(flowVersion)
       .isAtLeast(Version.parse(BuildInfo.flowPluginBaseVersion))(using Version.MavenOrdering)
+
+  /**
+   * Links the project's `node_modules` into a Vaadin build folder.
+   *
+   * Vaadin generates files into its build folder (the service worker `sw.ts`, the
+   * Vite plugins) whose imports Vite resolves by walking up from the files. With
+   * Maven or Gradle the build folder lies inside the project, so this reaches the
+   * project's `node_modules`; Mill's build folders lie in `out/` and only reach it
+   * by chance, when the project is the workspace root.
+   */
+  private[vaadin] def linkNodeModules(
+      buildFolder: os.Path,
+      projectDir: os.Path
+  ): Unit = {
+    val link = (buildFolder / "node_modules").toNIO
+    if (!java.nio.file.Files.exists(link, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+      try java.nio.file.Files.createSymbolicLink(link, (projectDir / "node_modules").toNIO)
+      catch {
+        case e: (java.io.IOException | UnsupportedOperationException) =>
+          throw Exception(
+            s"Could not link ${projectDir / "node_modules"} into $buildFolder: Vite resolves the " +
+              "imports of the files Vaadin generates there by walking up to a node_modules folder, " +
+              "and Mill's build folders lie outside the project. On Windows, creating symbolic " +
+              "links needs Developer Mode or the corresponding privilege.",
+            e
+          )
+      }
+    }
+  }
 
   private def logger(log: mill.api.Logger): VaadinLogger = new VaadinLogger {
     def error(msg: String): Unit = log.error(msg)
@@ -261,7 +331,9 @@ object VaadinModule {
       buildToolsDir: os.Path,
       stageDir: os.Path,
       classpath: Seq[os.Path],
-      applicationIdentifier: String
+      applicationIdentifier: String,
+      forceProductionBuild: Boolean,
+      ciBuild: Boolean
   ): FrontendBuildConfig = FrontendBuildConfig(
     projectDir = projectDir.toNIO,
     frontendDir = frontendDir.toNIO,
@@ -270,6 +342,8 @@ object VaadinModule {
     buildToolsDir = buildToolsDir.toNIO,
     stageDir = stageDir.toNIO,
     classpath = classpath.map(_.toNIO),
-    applicationIdentifier = applicationIdentifier
+    applicationIdentifier = applicationIdentifier,
+    forceProductionBuild = forceProductionBuild,
+    ciBuild = ciBuild
   )
 }

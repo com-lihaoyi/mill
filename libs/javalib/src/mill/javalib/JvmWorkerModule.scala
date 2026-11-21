@@ -51,7 +51,14 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     ))
   }
 
-  /** Whether Zinc debug logging is enabled. */
+  /**
+   * Whether `--debug` was given. No longer used by the worker: Zinc logs at debug level
+   * whenever the logger of the task calling it has debug enabled.
+   */
+  @deprecated(
+    "Not used anymore: Zinc follows the calling task's `--debug` setting",
+    "Mill after 1.4.0-M2"
+  )
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
   /** Whether to use file-based locking instead of PID-based locking. */
@@ -170,7 +177,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       zincCompilerBridge,
       classPath = classpath().map(_.path),
       jobs = jobs,
-      zincLogDebug = zincLogDebug(),
+      zincLogDebug = false,
       useFileLocks = useFileLocks(),
       close0 = () => ()
     )

@@ -8,7 +8,7 @@ mainClass: com.example.Application
 
 bomMvnDeps:
 - org.springframework.boot:spring-boot-dependencies:4.1.1
-- com.vaadin:vaadin-bom:25.3.0
+- com.vaadin:vaadin-bom:25.3.5
 
 mvnDeps:
 - com.vaadin:vaadin-spring-boot-starter

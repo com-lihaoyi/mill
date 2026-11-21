@@ -10,7 +10,7 @@ import com.vaadin.flow.server.frontend.{
   Options,
   TaskCleanFrontendFiles
 }
-import com.vaadin.flow.server.frontend.scanner.{ClassFinder, FrontendDependenciesScanner}
+import com.vaadin.flow.server.frontend.scanner.ClassFinder
 import com.vaadin.pro.licensechecker.{LicenseChecker, MissingLicenseKeyException}
 import mill.contrib.vaadin.api.{FrontendBuildConfig, VaadinLogger}
 
@@ -60,15 +60,13 @@ class VaadinBuildAdapter(config: FrontendBuildConfig, log: VaadinLogger)
     val reactEnabled = isReactEnabled() && FrontendUtils.isReactRouterRequired(
       BuildFrontendUtil.getFrontendDirectory(this)
     )
-    val frontendDependencies =
-      new FrontendDependenciesScanner.FrontendDependenciesScannerFactory()
-        .createScanner(
-          !optimizeBundle(),
-          getClassFinder(),
-          generateEmbeddableWebComponents(),
-          featureFlags,
-          reactEnabled
-        )
+    val frontendDependencies = FrontendScanner.create(
+      allDependenciesScan = !optimizeBundle(),
+      finder = getClassFinder(),
+      generateEmbeddableWebComponents = generateEmbeddableWebComponents(),
+      featureFlags = featureFlags,
+      reactEnabled = reactEnabled
+    )
 
     BuildFrontendUtil.runNodeUpdater(this, frontendDependencies)
 
@@ -184,9 +182,9 @@ class VaadinBuildAdapter(config: FrontendBuildConfig, log: VaadinLogger)
 
   override def runNpmInstall(): Boolean = true
 
-  override def ciBuild(): Boolean = false
+  override def ciBuild(): Boolean = config.ciBuild
 
-  override def forceProductionBuild(): Boolean = false
+  override def forceProductionBuild(): Boolean = config.forceProductionBuild
 
   override def compressBundle(): Boolean = true
 
