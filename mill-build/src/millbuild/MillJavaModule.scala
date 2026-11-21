@@ -108,4 +108,6 @@ trait MillJavaModule extends JavaModule {
     // and significantly clutter the output.
     "-Xdoclint:all,-missing"
   )
+
+  override def jvmIndexVersion = Settings.jvmIndexVersion
 }
