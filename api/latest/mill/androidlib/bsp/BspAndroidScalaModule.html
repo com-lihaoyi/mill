@@ -274,7 +274,7 @@ node14 -> node0;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="BspAndroidScalaModule.html#bspBuildTargetWrappedSources-0" t="n" class="documentableName ">bspBuildTargetWrappedSources</a>: <a href="../../api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span data-unresolved-link="" t="t">Seq</span>[(<span data-unresolved-link="" t="t">Path</span>, <span data-unresolved-link="" t="t">Path</span>)]]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="BspAndroidScalaModule.html#bspBuildTargetWrappedSources-0" t="n" class="documentableName ">bspBuildTargetWrappedSources</a>: <a href="../../api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[(magicOffsetHeader: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">String</span>], sources: <span data-unresolved-link="" t="t">Seq</span>[(<span data-unresolved-link="" t="t">Path</span>, <span data-unresolved-link="" t="t">Path</span>)])]
            </div>
           </div>
          </div>
@@ -283,8 +283,13 @@ node14 -> node0;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The wrapped sources of the module (original source, wrapped source), along with the header passed to the compiler via <code>-Ymagic-offset-header</code>, that marks where the code from the original source starts in them</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>The wrapped sources of the module (original source, wrapped source), along with the header passed to the compiler via <code>-Ymagic-offset-header</code>, that marks where the code from the original source starts in them</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">Definition Classes</dt>
