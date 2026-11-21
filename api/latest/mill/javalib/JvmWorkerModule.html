@@ -610,39 +610,6 @@ node18 -> node0;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="zincLogDebug-0">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="JvmWorkerModule.html#zincLogDebug-0" t="n" class="documentableName ">zincLogDebug</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Whether Zinc debug logging is enabled.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Whether Zinc debug logging is enabled.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">Source</dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/website/apidocs/compile.dest/libs/javalib/src/mill/javalib/JvmWorkerModule.scala" target="_blank">JvmWorkerModule.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
        </div>
       </section>
       <section id="Deprecated-methods">
@@ -672,6 +639,43 @@ node18 -> node0;
               <dt class="body-small">Deprecated</dt>
               <dd class="body-medium">
                <code>[Since version Mill 1.0.2] </code>This is an internal API that has been accidentally exposed.
+              </dd>
+              <dt class="body-small">Source</dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/website/apidocs/compile.dest/libs/javalib/src/mill/javalib/JvmWorkerModule.scala" target="_blank">JvmWorkerModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="zincLogDebug-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="JvmWorkerModule.html#zincLogDebug-0" t="n" class="documentableName deprecated">zincLogDebug</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Whether <code>--debug</code> was given. No longer used by the worker: Zinc logs at debug level whenever the logger of the task calling it has debug enabled.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Whether <code>--debug</code> was given. No longer used by the worker: Zinc logs at debug level whenever the logger of the task calling it has debug enabled.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">Deprecated</dt>
+              <dd class="body-medium">
+               <code>[Since version Mill after 1.4.0-M2] </code>Not used anymore: Zinc follows the calling task\'s `--debug` setting
               </dd>
               <dt class="body-small">Source</dt>
               <dd class="body-medium">
