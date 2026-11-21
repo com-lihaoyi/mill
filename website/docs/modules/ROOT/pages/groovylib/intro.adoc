@@ -50,3 +50,7 @@ include::partial$example/groovylib/testing/3-spock.adoc[]
 == Using Spock in Java projects with Maven layout
 
 include::partial$example/groovylib/testing/4-spock-for-java.adoc[]
+
+== Vaadin Flow Web App
+
+include::partial$example/groovylib/web/11-vaadin.adoc[]

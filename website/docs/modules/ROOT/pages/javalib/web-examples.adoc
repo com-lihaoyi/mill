@@ -42,4 +42,4 @@ include::partial$example/javalib/web/7-quarkus-todo.adoc[]
 
 == Vaadin Flow Example
 
-include::partial$example/javalib/web/8-vaadin.adoc[]
+include::partial$example/javalib/web/11-vaadin.adoc[]
