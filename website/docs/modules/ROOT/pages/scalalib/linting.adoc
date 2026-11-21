@@ -33,9 +33,13 @@ include::partial$example/scalalib/linting/2-scalafmt.adoc[]
 
 include::partial$example/scalalib/linting/5-spotless.adoc[]
 
+=== In-Code Configuration
+
+include::partial$example/scalalib/linting/6-spotless-code.adoc[]
+
 === Ratchet
 
-include::partial$example/javalib/linting/6-spotless-ratchet.adoc[]
+include::partial$example/javalib/linting/7-spotless-ratchet.adoc[]
 
 == Code Coverage with Scoverage
 

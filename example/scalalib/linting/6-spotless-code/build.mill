@@ -1,0 +1,42 @@
+// :api-spotless: {site-url}/api/latest/mill/javalib/spotless
+//
+// By default, the format specifications are read from the `.spotless-formats.json`
+// configuration file. When that is not flexible enough, override the
+// link:{api-spotless}/SpotlessModule.html[SpotlessModule]`spotlessFormats` task instead.
+
+package build
+import mill.*, scalalib.*
+import mill.javalib.spotless.*
+
+object `package` extends ScalaModule, SpotlessModule {
+  def scalaVersion = "3.7.0"
+
+  def scalafmtConf = Task.Source(".scalafmt.conf")
+  def licenseHeader = Task.Source("LICENSE")
+
+  // Override the formats in code, instead of using a `.spotless-formats.json` file.
+  override def spotlessFormats: Task[Seq[Format]] = Task {
+    val _ = scalafmtConf()
+    val header = licenseHeader()
+    Seq(
+      // All Scala files are to be formatted using the `ScalaFmt` step
+      // with the configuration in `.scalafmt.conf`.
+      Format("glob:**.scala")(
+        Format.ScalaFmt(version = "3.8.5")
+      ),
+      // All Java files are to be formatted using `GoogleJavaFormat` and `LicenseHeader` steps.
+      Format("glob:**.java")(
+        Format.GoogleJavaFormat(version = "1.35.0"),
+        Format.LicenseHeader(
+          delimiter = "(package|import|public|class|module) ",
+          header = Format.ContentOrFile(file = Format.RelPathRef(header)))
+      ),
+      // All Markdown files are formatted using the `Flexmark` step.
+      Format("glob:**.md")(
+        Format.Flexmark()
+      )
+    )
+  }
+}
+
+// Use the same commands to check and format as before in the previous example

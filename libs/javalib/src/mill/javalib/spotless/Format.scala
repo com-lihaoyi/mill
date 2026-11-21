@@ -272,7 +272,7 @@ object Format {
    * A relative path reference resolved against a [[RelPathRef.withDynamicRoot configurable]] root
    * path. This is meant for usages where the machine specific root path prefix should be omitted.
    */
-  case class RelPathRef private (ref: PathRef) {
+  case class RelPathRef(ref: PathRef) {
     @scala.annotation.nowarn("msg=unused")
     private def copy(ref: PathRef = ref) = RelPathRef(ref)
   }
