@@ -16,6 +16,8 @@ import os.Path
 
 import java.io.File
 import java.nio.charset.Charset
+import java.util
+import java.util.Collection
 import scala.jdk.CollectionConverters.*
 
 class ToFormatterStep(charset: Charset, provisioner: Provisioner)
@@ -125,6 +127,24 @@ class ToFormatterStep(charset: Charset, provisioner: Provisioner)
         style,
         formatJavadoc,
         provisioner
+      )
+    case step: OpenJavaFormat =>
+      import step.*
+      PalantirJavaFormatStep.create(
+        version,
+        style,
+        formatJavadoc,
+        // Replace the Palantir library with the drop in OpenCode library
+        (withTransitives: Boolean, mavenCoordinates: util.Collection[String]) =>
+          val openJavaFormatCoordinates = mavenCoordinates.asScala
+            .map(c =>
+              c.replace(
+                PalantirJavaFormatStep.MAVEN_COORDINATE,
+                "dev.openjavaformat:open-java-format:"
+              )
+            )
+            .asJavaCollection
+          provisioner.provisionWithTransitives(withTransitives, openJavaFormatCoordinates)
       )
     case step: RemoveUnusedImports =>
       import step.*

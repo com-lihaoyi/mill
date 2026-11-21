@@ -166,6 +166,17 @@
   },
   {
     "includes": [
+      "glob:**/OpenJavaFormat"
+    ],
+    "steps": [
+      {
+        "$type": "OpenJavaFormat",
+        "version": "21.0.2"
+      }
+    ]
+  },
+  {
+    "includes": [
       "glob:**/RemoveUnusedImports"
     ],
     "steps": [

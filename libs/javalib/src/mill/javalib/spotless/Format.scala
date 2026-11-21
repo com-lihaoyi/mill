@@ -199,6 +199,17 @@ object Format {
   ) extends Step derives ReadWriter
 
   /**
+   * This uses the Palantir format support of the Spotless plugin,
+   * but will use the OpenFormat implementation: https://openjavaformat.dev/
+   * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/java/PalantirJavaFormatStep.java PalantirJavaFormatStep]]
+   */
+  case class OpenJavaFormat(
+      version: String,
+      style: String = "OJF",
+      formatJavadoc: Boolean = false
+  ) extends Step derives ReadWriter
+
+  /**
    * @param formatter `google-java-format` | `cleanthat-javaparser-unnecessaryimport`
    * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/java/RemoveUnusedImportsStep.java RemoveUnusedImportsStep]]
    */
