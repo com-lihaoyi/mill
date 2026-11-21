@@ -5,6 +5,7 @@ import mill.api.BuildCtx
 import mill.*
 import mill.api.Result
 import mill.api.daemon.internal.internal
+import mill.constants.CodeGenConstants
 import mill.constants.OutFiles.OutFiles.*
 import mill.api.{Discover, PathRef, Task}
 import mill.api.internal.RootModule
@@ -274,7 +275,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       Seq(
         "-deprecation",
         "-Wconf:msg=will be encoded on the classpath:silent",
-        "-Ymagic-offset-header:SOURCE_CODE_START"
+        s"-Ymagic-offset-header:${CodeGenConstants.magicOffsetHeader}"
       )
   }
 

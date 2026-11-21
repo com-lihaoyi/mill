@@ -26,9 +26,15 @@ trait BspJavaModuleApi extends ModuleApi {
           generatedSources: Seq[java.nio.file.Path]
       )]
 
+  /**
+   * The wrapped sources of the module (original source, wrapped source), along with
+   * the header passed to the compiler via `-Ymagic-offset-header`, that marks
+   * where the code from the original source starts in them
+   */
   private[mill] def bspBuildTargetWrappedSources
       : TaskApi[(
-        Seq[(java.nio.file.Path, java.nio.file.Path)]
+          magicOffsetHeader: Option[String],
+          sources: Seq[(java.nio.file.Path, java.nio.file.Path)]
       )]
 
   private[mill] def bspBuildTargetResources: TaskApi[Seq[java.nio.file.Path]]
