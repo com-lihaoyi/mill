@@ -47,7 +47,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       logDebugEnabled = log.debugEnabled,
       logPromptColored = log.prompt.colored,
       workspaceRoot = mill.api.BuildCtx.workspaceRoot,
-      forkJavaHome = if (forkJavaRelease.isDefined) javaHome else None
+      forkJavaHome = if (forkJavaRelease.isDefined) javaHome else None,
+      rootPaths = mill.api.MappedRoots.get.map(r => (r.key, r.path.toString))
     )
 
     val zincApi =

@@ -24,7 +24,9 @@ import xsbti.{PathBasedFile, VirtualFile}
 
 import java.io.File
 import java.net.URLClassLoader
+import java.nio.file.Paths
 import java.util.Optional
+import scala.collection.immutable.ListMap
 import scala.collection.mutable
 
 /**
@@ -411,6 +413,12 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     val maxErrors = reporter.map(_.maxErrors).getOrElse(CompileProblemReporter.defaultMaxErrors)
 
+    // Zinc's file ids, in memory and in the analysis, are relative to Mill's roots (e.g.
+    // `${WORKSPACE}/foo/src/A.scala`), so the analysis stays valid in a checkout moved or copied
+    // together with `out/`, and a compile there never touches the original's files
+    val converter = fileConverter(localConfig.rootPaths)
+    val mappers = ZincRootMappers(localConfig.rootPaths, converter)
+
     val analysisMap0 = upstreamCompileOutput.map(c => c.classes.path -> c.analysisFile).toMap
 
     def analysisMap(f: VirtualFile): Optional[CompileAnalysis] = {
@@ -419,17 +427,15 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
         case _ => None
       }
       analysisFile match {
-        case Some(zincPath) => fileAnalysisStore(zincPath).get().map(_.getAnalysis)
+        case Some(zincPath) => fileAnalysisStore(zincPath, mappers).get().map(_.getAnalysis)
         case None => Optional.empty[CompileAnalysis]
       }
     }
 
     val lookup = MockedLookup(analysisMap)
 
-    val store = fileAnalysisStore(workDir / zincCache)
+    val store = fileAnalysisStore(workDir / zincCache, mappers)
 
-    // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
-    val converter = MappedFileConverter.empty
     val classpath = (compileClasspathPaths.iterator ++ Some(classesDir))
       .map(path => converter.toVirtualFile(path.toNIO))
       .toArray
@@ -486,12 +492,15 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
 
     val finalScalacOptions = addColorNeverOption.toSeq ++ scalacOptions
 
+    // Every reported problem, also those replayed from the analysis, is shown and forwarded with
+    // real paths in place of Zinc's file ids
+    val positionMapper = VirtualFileUtil.sourcePositionMapper(converter)
     val newReporter = reporter match {
       case None =>
-        new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter
+        new ManagedLoggedReporter(maxErrors, logger, positionMapper) with RecordingReporter
           with TransformingReporter(localConfig.logPromptColored, localConfig.workspaceRoot) {}
       case Some(forwarder) =>
-        new ManagedLoggedReporter(maxErrors, logger)
+        new ManagedLoggedReporter(maxErrors, logger, positionMapper)
           with ForwardingReporter(forwarder)
           with RecordingReporter
           with TransformingReporter(localConfig.logPromptColored, localConfig.workspaceRoot) {}
@@ -712,7 +721,13 @@ object ZincWorker {
       logPromptColored: Boolean,
       workspaceRoot: os.Path,
       /** If set, forks `javac`/`javadoc` to this JDK instead of using the in-process tool API. */
-      forkJavaHome: Option[os.Path] = None
+      forkJavaHome: Option[os.Path] = None,
+      /**
+       * Mill's mapped roots as `(key, absolute path)`, which Zinc's file ids and analysis are
+       * relative to, see [[fileConverter]] and [[ZincRootMappers]]. Strings, since `os.Path`s
+       * would be serialized relative to these same roots.
+       */
+      rootPaths: Seq[(String, String)]
   ) derives upickle.ReadWriter
 
   private case class ScalaCompilerCacheKey(
@@ -746,10 +761,22 @@ object ZincWorker {
   private def libraryJarNameGrep(compilerClasspath: Seq[PathRef], scalaVersion: String): PathRef =
     JvmWorkerUtil.grepJar(compilerClasspath, "scala-library", scalaVersion, sources = false)
 
-  private def fileAnalysisStore(path: os.Path): AnalysisStore =
+  /**
+   * Zinc's converter between paths and file ids, ids being `${KEY}/rel/path` for paths under a
+   * root. Machine paths outside the roots keep their absolute path as id. It also keeps JDK
+   * classes out of the binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
+   */
+  private[zinc] def fileConverter(rootPaths: Seq[(String, String)]): MappedFileConverter =
+    MappedFileConverter(
+      // Zinc maps a path with the first root it is under, so the most specific comes first
+      ListMap.from(rootPaths.sortBy(-_._2.length).map((key, root) => key -> Paths.get(root))),
+      allowMachinePath = true
+    )
+
+  private def fileAnalysisStore(path: os.Path, mappers: ReadWriteMappers): AnalysisStore =
     ConsistentFileAnalysisStore.binary(
       file = path.toIO,
-      mappers = ReadWriteMappers.getEmptyMappers,
+      mappers = mappers,
       reproducible = true,
       // No need to utilize more than 8 cores to serialize a small file
       parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)

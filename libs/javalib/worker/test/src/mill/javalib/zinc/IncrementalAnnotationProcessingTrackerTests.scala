@@ -148,5 +148,43 @@ object IncrementalAnnotationProcessingTrackerTests extends TestSuite {
         assert(os.exists(IncrementalAnnotationProcessing.snapshotPath(workDir)))
       } finally os.remove.all(workDir)
     }
+
+    // Zinc's ids are relative to Mill's roots, see `ZincWorker.fileConverter`
+    test("persistResolvesRootRelativeProductIds") {
+      val workDir = os.temp.dir()
+      try {
+        val classesDir = workDir / "out/app/classes"
+        val source = workDir / "src/example/Foo.java"
+        val product = classesDir / "example/Foo.class"
+        os.write(product, "", createFolders = true)
+        val tracker = new IncrementalAnnotationProcessing.CompileTracker(
+          trackingMode = IncrementalAnnotationProcessing.TrackingMode.Isolating,
+          sources = Set(source),
+          classesDir = classesDir
+        )
+        tracker.recordOwnedGenerated(Some(product.toNIO), Set(source))
+        IncrementalAnnotationProcessing.persist(
+          workDir = workDir,
+          classesDir = classesDir,
+          analysis = Analysis.empty.copy(relations =
+            Relations.empty.addSource(
+              src = VirtualFileRef.of("${WORKSPACE}/src/example/Foo.java"),
+              products = Seq(VirtualFileRef.of("${MILL_OUT}/app/classes/example/Foo.class")),
+              classes = Nil,
+              internalDeps = Nil,
+              externalDeps = Nil,
+              libraryDeps = Nil
+            )
+          ),
+          auxiliaryClassFileExtensions = Nil,
+          sourceStamps = Map.empty,
+          tracker = tracker
+        )
+
+        // Zinc manages the class file, so the snapshot doesn't track it
+        val snapshotPath = IncrementalAnnotationProcessing.snapshotPath(workDir)
+        assert(IncrementalAnnotationProcessing.readSnapshot(snapshotPath).products.isEmpty)
+      } finally os.remove.all(workDir)
+    }
   }
 }

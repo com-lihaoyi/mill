@@ -284,6 +284,9 @@ private[mill] object IncrementalAnnotationProcessing {
       removedSources: Set[os.Path],
       currentSources: Set[os.Path]
   ): LookupData = {
+    // Absolute paths, unlike Zinc's root-relative ids (`${WORKSPACE}/...`): they'd need
+    // `converter.toVirtualFileRef` if used. Zinc doesn't read them: `LookupImpl` only takes them
+    // from an `sbt.internal.inc.ExternalLookup`, which MillExternalLookup isn't.
     val removedProducts = staleProducts.map(p => VirtualFileRef.of(p.toString)).asJava
     val changedSourcesOpt =
       if (changedSources.nonEmpty || removedSources.nonEmpty)

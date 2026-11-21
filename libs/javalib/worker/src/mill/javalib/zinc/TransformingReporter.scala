@@ -1,12 +1,20 @@
 package mill.javalib.zinc
 
-private trait TransformingReporter(color: Boolean, workspaceRoot: os.Path) extends xsbti.Reporter {
+import sbt.internal.inc.ManagedLoggedReporter
 
-  // Overriding this is necessary because for some reason the LoggedReporter doesn't transform positions
-  // of Actions and DiagnosticRelatedInformation
-  abstract override def log(problem0: xsbti.Problem): Unit = {
-    super.log(TransformingReporter.transformProblem(color, problem0, workspaceRoot))
-  }
+private trait TransformingReporter(color: Boolean, workspaceRoot: os.Path)
+    extends ManagedLoggedReporter {
+
+  // Transforms the problems as displayed, whose positions the LoggedReporter mapped to real
+  // paths. The problems it records for Zinc's analysis keep Zinc's file ids.
+  override def logError(problem: xsbti.Problem): Unit =
+    super.logError(TransformingReporter.transformProblem(color, problem, workspaceRoot))
+
+  override def logWarning(problem: xsbti.Problem): Unit =
+    super.logWarning(TransformingReporter.transformProblem(color, problem, workspaceRoot))
+
+  override def logInfo(problem: xsbti.Problem): Unit =
+    super.logInfo(TransformingReporter.transformProblem(color, problem, workspaceRoot))
 }
 
 private object TransformingReporter {
@@ -102,7 +110,8 @@ private object TransformingReporter {
         val lineContent0 = if (scraped == "" || isJavaFile) {
           try os.read.lines(absPath).apply(line - 1)
           catch { case _: Exception => "" }
-        } else scraped
+        } else if (color) scraped
+        else fansi.Str(scraped).plainText
 
         // Apply syntax highlighting to Java source code lines
         val lineContent =
