@@ -234,9 +234,10 @@ Advanced Options:
           a.copy(
             hidden = false,
             // Hack to work around `a.copy` not propagating the name mapping correctly, so we have
-            // to manually map the name ourselves. Doesn't affect runtime behavior since this is
-            // just used for --help-advanced printing and not for argument parsing
-            unMappedName = a.mappedName(mainargs.Util.kebabCaseNameMapper)
+            // to manually map the name ourselves. `longName` also keeps names given with
+            // `@arg(name = ...)`, for which `mappedName` is empty. Doesn't affect runtime behavior
+            // since this is just used for --help-advanced printing and not for argument parsing
+            unMappedName = a.longName(mainargs.Util.kebabCaseNameMapper)
           )
       }),
       parser.companion
