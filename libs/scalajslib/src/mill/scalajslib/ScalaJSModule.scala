@@ -177,7 +177,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       case Right(_) =>
         ScalaJSWorkerExternalModule.scalaJSWorker().run(
           scalaJSToolsClasspath(),
-          jsEnvConfig(),
+          ScalaJSModule.withEnv(jsEnvConfig(), if (propagateEnv()) Task.env else Map()),
           fastLinkJS()
         )
         ()
@@ -388,6 +388,23 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
 
 }
 
+object ScalaJSModule {
+
+  /**
+   * Adds `env` to the environment of `config`, for the JavaScript environments
+   * that take one. Variables set in `config` take precedence.
+   */
+  private[scalajslib] def withEnv(config: JsEnvConfig, env: Map[String, String]): JsEnvConfig =
+    if (env.isEmpty) config
+    else config match {
+      case c: JsEnvConfig.NodeJs => c.copy(env = env ++ c.env)
+      case c: JsEnvConfig.JsDom => c.copy(env = env ++ c.env)
+      case c: JsEnvConfig.ExoegoJsDomNodeJs => c.copy(env = env ++ c.env)
+      case c: JsEnvConfig.Phantom => c.copy(env = env ++ c.env)
+      case other => other
+    }
+}
+
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
   override def resources: T[Seq[PathRef]] = super[ScalaJSModule].resources
 
@@ -447,7 +464,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   protected def testFrameworkInstance: Task[(close: () => Unit, framework: Framework)] = Task.Anon {
     ScalaJSWorkerExternalModule.scalaJSWorker().getFramework(
       scalaJSToolsClasspath(),
-      jsEnvConfig(),
+      ScalaJSModule.withEnv(jsEnvConfig(), if (propagateEnv()) Task.env else Map()),
       testFramework(),
       fastLinkJSTest()
     )
