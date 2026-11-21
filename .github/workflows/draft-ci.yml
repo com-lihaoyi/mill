@@ -12,7 +12,8 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    permissions: write
+    permissions:
+      statuses: write
     steps:
       # We want to always create a status, even if the PR is not a draft, so that  
       # if there was a previous `pending` draft status it can get over-written by a
