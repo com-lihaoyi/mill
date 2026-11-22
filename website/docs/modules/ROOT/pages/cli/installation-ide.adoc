@@ -509,7 +509,88 @@ JVM package repository. Under such circumstances, you
 will normally have access to some proxy, or other corporate repository which resolves
 maven artifacts.
 
-To resolve this, you can set an environment variable `COURSIER_REPOSITORIES` (see coursier docs)
+The sections below describe, in order: installing the Mill launcher from a Maven
+repository, using the JDK provided by your organization, pointing Mill at an internal
+repository or proxy, and trusting the certificates of a TLS-inspecting proxy.
+
+=== Installing the launcher from a Maven repository
+
+The JVM launcher of Mill is published to Maven Central as `com.lihaoyi:mill-dist:{mill-version}`
+with the file type `exe`. Despite that name it is not a Windows executable: it is one file
+for Linux, macOS and Windows, a shell and batch script followed by a jar. The `exe` in the
+coordinates is required, because the artifact has no `jar` file. A `.asc` signature and a
+`.sha1` checksum are published next to it. If your organization proxies Maven Central through
+an internal repository, Maven can fetch the launcher through it, using your
+`~/.m2/settings.xml`:
+
+[source,console,subs="verbatim,attributes"]
+----
+> mvn dependency:copy -Dartifact=com.lihaoyi:mill-dist:{mill-version}:exe -DoutputDirectory=.
+> chmod +x mill-dist-{mill-version}.exe
+> ./mill-dist-{mill-version}.exe version
+{mill-version}
+----
+
+The launcher starts Mill with the `java` from `JAVA_HOME` or the `PATH`, and it can also be
+run with `java -jar mill-dist-{mill-version}.exe`. The file name does not matter on Linux and
+macOS; on Windows the file needs the extension `.bat`. To use it as the `mill` command, copy
+it under the name `mill` (`mill.bat` on Windows) to a directory on your `PATH`.
+
+The `./mill` bootstrap script is published in the same way, as
+`com.lihaoyi:mill-dist:{mill-version}:sh:mill`:
+
+[source,console,subs="verbatim,attributes"]
+----
+> mvn dependency:copy -Dartifact=com.lihaoyi:mill-dist:{mill-version}:sh:mill -DoutputDirectory=.
+> mv mill-dist-{mill-version}-mill.sh mill
+> chmod +x mill
+----
+
+A project's `./mill` bootstrap script downloads the launcher with `curl` only if it is not
+present yet. For a project whose Mill version is `{mill-version}-jvm` (see
+<<_mill_native_and_jvm_executables>>), the script looks for the launcher at
+`~/.cache/mill/download/{mill-version}` (under `$XDG_CACHE_HOME/mill/download/` if
+`XDG_CACHE_HOME` is set), a file without extension. Copy the file there and the script uses it
+without downloading:
+
+[source,console,subs="verbatim,attributes"]
+----
+> mkdir -p ~/.cache/mill/download
+> cp mill-dist-{mill-version}.exe ~/.cache/mill/download/{mill-version}
+----
+
+Running the script with `MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT=1` prints the download URL and the
+path it expects, without downloading.
+
+The launcher still resolves the Mill daemon and its dependencies from Maven repositories,
+see <<_using_an_internal_repository_or_proxy>>.
+
+=== Using your organization's JDK
+
+Unless configured otherwise, Mill downloads a JDK (`{default-mill-jvm-version}`, see
+<<_jvm_version>>). It first resolves a JVM index, the artifact
+`io.get-coursier.jvm.indices:index-<os>-<arch>`, from the configured Maven repositories, and
+then downloads the JDK archive from the vendor's server, for example `cdn.azul.com` for Zulu
+builds or `github.com` for Temurin builds. The same happens for a module that sets a
+xref:fundamentals/configuring-jvm-versions.adoc[per-module JVM version].
+
+To use the JDK that is installed on the machine instead:
+
+* use the JVM launcher (a `-jvm` suffix on the Mill version, or the launcher installed as
+  described above), which runs on the `java` from `JAVA_HOME` or the `PATH`, and
+* set `mill-jvm-version: system` in the xref:cli/build-header.adoc[build header]:
+
+[source,scala]
+----
+//| mill-jvm-version: system
+----
+
+The key can also be set in a `.mill-jvm-version` file next to `build.mill`, containing
+`system`. With both, Mill does not request a JVM index or a JDK archive.
+
+=== Using an internal repository or proxy
+
+You can set an environment variable `COURSIER_REPOSITORIES` (see coursier docs)
 to point at your own server that mirrors the Maven Central artifacts.
 The below command should pass the environment variable to the `mill` command.
 
@@ -520,6 +601,45 @@ The below command should pass the environment variable to the `mill` command.
 
 If you are using bootstrap script, a more permanent solution could be to set the environment variable
 at the top of the bootstrap script, or as a user environment variable.
+
+You can also configure the repositories in the build with
+xref:cli/build-header.adoc#_mill_repositories[`mill-repositories`]. They are used to resolve
+Mill's own daemon jars, the JVM index, and as the default repositories of modules. They are
+added in front of Maven Central, which stays in the list.
+
+For an HTTP proxy, Coursier, which Mill uses to download artifacts, reads the proxy
+configuration described in its https://get-coursier.io/docs/other-proxy[proxy documentation],
+including the `<proxies>` section of `~/.m2/settings.xml`. That documentation also states that
+encrypted passwords from `settings-security.xml` are not decrypted. The JVM's own proxy
+properties can be passed in `JAVA_OPTS`; with the JVM launcher they apply to the launcher and
+to the Mill daemon:
+
+[source,console]
+----
+> JAVA_OPTS="-Dhttps.proxyHost=proxy.corp.com -Dhttps.proxyPort=3128" ./mill resolve _
+----
+
+The `HTTPS_PROXY` and `HTTP_PROXY` environment variables are not read by the JVM.
+
+=== Custom trust stores and TLS inspection
+
+If your network replaces TLS certificates (TLS inspection), the JVM that makes the requests must
+trust your organization's certificate authority. Mill's downloads use the JVM's default trust
+store, so the options are:
+
+* a JDK whose `cacerts` contains the certificate authority, used through the JVM launcher and
+  `mill-jvm-version: system` (a JDK that Mill downloads has the vendor's default `cacerts`), or
+* a trust store passed in `JAVA_OPTS`, which with the JVM launcher applies to the launcher and to
+  the Mill daemon:
+
+[source,console]
+----
+> JAVA_OPTS="-Djavax.net.ssl.trustStore=/path/to/cacerts -Djavax.net.ssl.trustStorePassword=changeit" ./mill resolve _
+----
+
+For the native launcher, see the open issues
+https://github.com/com-lihaoyi/mill/issues/7350[mill#7350] and
+https://github.com/com-lihaoyi/mill/issues/6888[mill#6888].
 
 == Updating Mill
 
