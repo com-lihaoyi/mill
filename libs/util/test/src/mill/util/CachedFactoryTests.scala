@@ -97,7 +97,7 @@ object CachedFactoryTests extends TestSuite {
       assert(resourceCount == 2)
     }
     test("sizeTwo") {
-      // with cache of size 1, cache entries are always re-used for this small exmaple
+      // with cache of size 1, cache entries are always re-used for this small example
       object cache extends Cache(maxCacheSize = 2)
 
       assert(closedResourceIds == Set())
