@@ -18,7 +18,7 @@ import java.nio.file.Path
  *  @param module the actual Mill module that will be used to link this in the Eclipse files generator
  *  @param allSources paths to all source + resources folders (includes generated source)
  *  @param allModuleDependencies paths to all module dependencies, ignoring compile / runtime
- *  @param allLibraryDependencies paths to all library dependencies, ignoreing compile / runtime
+ *  @param allLibraryDependencies paths to all library dependencies, ignoring compile / runtime
  */
 final case class ResolvedModule(
     segments: Segments,
