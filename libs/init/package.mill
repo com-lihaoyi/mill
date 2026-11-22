@@ -101,7 +101,7 @@ object `package` extends MillPublishScalaModule {
         )
     trait ApiModule extends MillPublishCrossScalaModule {
       def mvnDeps = Seq(Deps.osLib, Deps.upickle)
-      def jvmId = if (crossScalaVersion == Deps.scalaVersion) "" else "11"
+      def jvmVersion = if (crossScalaVersion == Deps.scalaVersion) "" else "11"
       def crossFullScalaVersion = true
     }
   }
@@ -143,11 +143,11 @@ object `package` extends MillPublishScalaModule {
     }
 
     object api extends MillPublishJavaModule {
-      def jvmId = "11"
+      def jvmVersion = "11"
     }
 
     object exportplugin extends ScalaModule {
-      def jvmId = "11"
+      def jvmVersion = "11"
       def scalaVersion = Deps.scalaVersionJava11
       def moduleDeps = Seq(api, buildgen.api(Deps.scalaVersionJava11))
       def compileMvnDeps = Seq(Deps.gradleApi_api)
@@ -190,7 +190,7 @@ object `package` extends MillPublishScalaModule {
     }
 
     object exportplugin extends ScalaModule {
-      def jvmId = "11"
+      def jvmVersion = "11"
       def scalaVersion = Deps.sbtScalaVersion212
       def moduleDeps = Seq(api(Deps.sbtScalaVersion212))
       def compileMvnDeps = Seq(Deps.sbt_api, Deps.mimaCore_api)

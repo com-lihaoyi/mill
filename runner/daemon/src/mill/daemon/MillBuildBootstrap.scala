@@ -658,34 +658,26 @@ class MillBuildBootstrap(
       }
     }
 
-    var readProbeOpt = Option.empty[ReuseProbe]
-    metaBuild.withMetaBuild(depth, waitReporter) { (state, scope) =>
-      reusable(state.frameAt(depth)) match {
-        case f: Result.Failure =>
-          LockUpgrade.Decision.Complete(errorState(f))
-        case Result.Success(probe) =>
-          readProbeOpt = Some(probe)
-          probe.reusableFrameOpt match {
-            case Some(frame) =>
-              LockUpgrade.Decision.Complete(reuseFrame(frame, scope.retain()))
-            case None => LockUpgrade.Decision.Escalate
-          }
-      }
-    } { writeScope =>
-      val currentFrame = writeScope.snapshot().frameAt(depth)
-      val reuseResult = readProbeOpt.filter(_.frameOpt == currentFrame) match {
-        case Some(probe) => Result.Success(probe)
-        case None => reusable(currentFrame)
-      }
-
-      reuseResult match {
-        case f: Result.Failure =>
-          errorState(f)
-        case Result.Success(probe) =>
-          probe.reusableFrameOpt match {
-            case Some(frame) => reuseFrame(frame, writeScope.scope.downgradeAndRetain())
-            case None => evaluateAndPublish(writeScope)
-          }
+    MillBuildBootstrap.repeatUntilSome {
+      var readProbeOpt = Option.empty[ReuseProbe]
+      metaBuild.withMetaBuild(depth, waitReporter) { (state, scope) =>
+        reusable(state.frameAt(depth)) match {
+          case f: Result.Failure =>
+            LockUpgrade.Decision.Complete(Some(errorState(f)))
+          case Result.Success(probe) =>
+            readProbeOpt = Some(probe)
+            probe.reusableFrameOpt match {
+              case Some(frame) =>
+                LockUpgrade.Decision.Complete(Some(reuseFrame(frame, scope.retain())))
+              case None => LockUpgrade.Decision.Escalate
+            }
+        }
+      } { writeScope =>
+        val currentFrame = writeScope.snapshot().frameAt(depth)
+        // If another launcher published while this one waited for Write, re-probe
+        // under Read rather than here, where the probe would hold off all other
+        // launchers queued for this lock.
+        Option.when(readProbeOpt.exists(_.frameOpt == currentFrame))(evaluateAndPublish(writeScope))
       }
     }
   }
@@ -796,6 +788,12 @@ class MillBuildBootstrap(
 }
 
 object MillBuildBootstrap {
+
+  @scala.annotation.tailrec
+  private def repeatUntilSome[T](body: => Option[T]): T = body match {
+    case Some(value) => value
+    case None => repeatUntilSome(body)
+  }
 
   // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
   // tend to capture the entire enclosing instance, causing memory leaks

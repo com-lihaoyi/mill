@@ -1,6 +1,7 @@
 package mill.script
 import mill.*
 import mill.api.{Discover, ExternalModule, PathRef, Result, ScriptModule}
+import mill.constants.CodeGenConstants
 import mill.javalib.{TestModule, DepSyntax, Dep}
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerUtil
@@ -18,7 +19,9 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
   )
 
   override protected def mandatoryScalacOptions: T[Seq[String]] = Task {
-    super.mandatoryScalacOptions() ++ Seq("-Ymagic-offset-header:SOURCE_CODE_START")
+    super.mandatoryScalacOptions() ++ Seq(
+      s"-Ymagic-offset-header:${CodeGenConstants.magicOffsetHeader}"
+    )
   }
 
   override def allSourceFiles = Task {
@@ -42,7 +45,7 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
         if (originalContent.startsWith("#!")) "//" + originalContent.drop(2) else originalContent
       os.write(
         modified,
-        s"///SOURCE_CODE_START:$originalSourcecodePath\n" +
+        s"///${CodeGenConstants.magicOffsetHeader}:$originalSourcecodePath\n" +
           sourceContent +
           System.lineSeparator +
           // Squeeze this onto one line so as not to affect line counts too much

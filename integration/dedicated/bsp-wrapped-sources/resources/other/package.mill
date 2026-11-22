@@ -1,0 +1,6 @@
+package build.other
+
+import mill.*
+import mill.javalib.*
+
+object nested extends JavaModule

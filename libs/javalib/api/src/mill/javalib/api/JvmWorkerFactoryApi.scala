@@ -14,6 +14,10 @@ case class JvmWorkerArgs(
     compilerBridge: ZincCompilerBridgeProvider,
     classPath: Seq[os.Path],
     jobs: Int,
+    @deprecated(
+      "Not used anymore: Zinc follows the calling task's `--debug` setting",
+      "Mill after 1.4.0-M2"
+    )
     zincLogDebug: Boolean,
     useFileLocks: Boolean,
     close0: () => Unit
