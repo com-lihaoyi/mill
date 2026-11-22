@@ -530,9 +530,9 @@ trait GroupExecution {
         def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
             : GroupExecution.Results =
           taskLocks.readThenWrite(_ => LockUpgrade.Decision.Escalate) { scope =>
-            val fileName = labelled.ctx.fileName
+            val fileName = labelled.ctx.fileName.replace('\\', '/')
             val (execRes, serializedPaths) =
-              if (fileName.replace('\\', '/').endsWith("/mill-build/build.mill")) {
+              if (fileName.endsWith("/mill-build/build.mill") || fileName == "mill-build/build.mill") {
                 val display =
                   scala.util.Try(os.Path(fileName, os.pwd).relativeTo(workspace).toString)
                     .getOrElse(fileName)

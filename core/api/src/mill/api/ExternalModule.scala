@@ -14,7 +14,7 @@ import mill.api.internal.RootModule0
 abstract class ExternalModule(using
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
-    millFile0: sourcecode.File
+    millFile0: sourcecode.RelFile
 ) extends RootModule0(BuildCtx.workspaceRoot, external0 = true)(
       using
       millModuleEnclosing0,

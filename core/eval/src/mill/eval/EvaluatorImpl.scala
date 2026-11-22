@@ -236,7 +236,7 @@ final class EvaluatorImpl(
         }
       }
 
-      val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
+      val filePath = os.Path(module.moduleCtx.fileName, workspace).relativeTo(workspace)
 
       val isRootBuildFile =
         filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "build.mill.yaml"

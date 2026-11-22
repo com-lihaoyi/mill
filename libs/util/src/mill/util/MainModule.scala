@@ -16,7 +16,7 @@ abstract class MainRootModule()(using
     baseModuleInfo: RootModule.Info,
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
-    millFile0: sourcecode.File
+    millFile0: sourcecode.RelFile
 ) extends RootModule with MainModule
 
 /**

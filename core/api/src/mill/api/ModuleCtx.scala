@@ -22,8 +22,9 @@ trait ModuleCtx extends ModuleCtx.Nested {
   def lineNum: Int
 
   /**
-   * the file name that this module is defined in. Useful for
-   * error reporting purposes
+   * The file name that this module is defined in.
+   * Useful for error reporting purposes. The path is relative
+   * to the project base directory, also known as the workspace directory.
    */
   def fileName: String
 
@@ -112,7 +113,7 @@ object ModuleCtx extends LowPriCtx {
       implicit
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
-      fileName: sourcecode.File,
+      fileName: sourcecode.RelFile,
       enclosingClass: EnclosingClass,
       ctx: ModuleCtx.Nested
   ): ModuleCtx = {
@@ -146,7 +147,7 @@ object ModuleCtx extends LowPriCtx {
       millSourcePath: os.Path,
       segments0: Segments,
       external0: Boolean,
-      fileName: sourcecode.File
+      fileName: sourcecode.RelFile
   ): ModuleCtx = {
 
     Impl(

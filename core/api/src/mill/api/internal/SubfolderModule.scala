@@ -21,7 +21,7 @@ object SubfolderModule {
 
 abstract class SubfolderModule(millDiscover: Discover)(using
     millModuleLine0: sourcecode.Line,
-    millFile0: sourcecode.File,
+    millFile0: sourcecode.RelFile,
     rootModuleInfo: RootModule.Info
 ) extends mill.api.Module.BaseClass(using
       null.asInstanceOf[ModuleCtx]

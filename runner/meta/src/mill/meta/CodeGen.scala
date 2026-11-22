@@ -616,7 +616,7 @@ object CodeGen {
             // byte offset), rather than at the stub definition (which is after the
             // user code and maps to a wrong position).
             generatedStub =
-              s"abstract class $stub(using _root_.sourcecode.Line, _root_.sourcecode.File) extends $newParent$sep${objectData.parent.text}"
+              s"abstract class $stub(using _root_.sourcecode.Line, _root_.sourcecode.RelFile) extends $newParent$sep${objectData.parent.text}"
 
             stub
           }
