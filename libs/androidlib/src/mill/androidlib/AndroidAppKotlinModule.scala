@@ -45,6 +45,15 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
 
   }
 
+  /**
+   * Screenshot tests of the Compose `@Preview`s of the application, run by the
+   * [[https://developer.android.com/studio/preview/compose-screenshot-testing Preview Screenshot Test Engine]].
+   * Only the previews annotated with `@PreviewTest` (from `com.android.tools.screenshot`) are tested,
+   * previews without it are skipped, so a module with none of them runs no tests.
+   *
+   * `testForked` validates the previews against the reference images in
+   * [[androidScreenshotReferenceImageDir]], and `updateScreenshots` records them.
+   */
   trait AndroidAppKotlinScreenshotTests extends AndroidAppKotlinModule, TestModule, Junit5 {
 
     override def androidApplicationId: T[String] = outer.androidApplicationId
@@ -173,7 +182,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
     def updateScreenshots(args: String*): Command[(
         msg: String,
         results: Seq[TestResult]
-    )] = Task.Command {
+    )] = Task.Command(exclusive = true) {
       screenshotTestTask(
         Task.Anon(testArgsDefault() ++ args),
         Task.Anon(Seq.empty[String]),
