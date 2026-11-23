@@ -217,7 +217,7 @@ object Deps {
   val semanticDbJava_runtime = mvn"com.sourcegraph:semanticdb-java:0.12.3"
   val semanticDbShared =
     mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala_runtime.version}"
-  val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
+  val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.5"
 
   val springBootTools_api =
     mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0" // scala-steward:off
