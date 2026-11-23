@@ -212,7 +212,7 @@ case class Execution(
       val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
       val keySuffix = s"/${indexToTerminal.size}"
-      // Add a extra marker if we're on a deeper level, https://github.com/com-lihaoyi/mill/issues/6817
+      // Add an extra marker if we're on a deeper level, https://github.com/com-lihaoyi/mill/issues/6817
       val extraKeySuffix = if (isFinalDepth) "" else "+"
 
       def formatHeaderPrefix(completed: Boolean = false) = {

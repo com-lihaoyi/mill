@@ -980,7 +980,7 @@ override def typescriptExports = Seq("MyClass")
 // The output file which will contain the typescript interfaces
 override def typescriptOutputFile = millSourcePath / "model.ts"
 // Include the package(s) of the classes here
-// Optionally import your own TSType implicits to override default default generated
+// Optionally import your own TSType implicits to override default generated
 override def typescriptGenerationImports = Seq("mymodel._", "MyTypescript._")
 }
 ----
