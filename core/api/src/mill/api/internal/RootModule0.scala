@@ -27,6 +27,20 @@ abstract class RootModule0(
       )
     ) with Module with BaseModuleApi {
 
+  // bin-compat shim
+  @deprecated("Use constructor accepting a sourcecode.RelFile instead", "Mill after 1.4.0-M3")
+  def this(
+      millSourcePath0: os.Path,
+      external0: Boolean,
+      millModuleEnclosing0: sourcecode.Enclosing,
+      millModuleLine0: sourcecode.Line,
+      millFile0: sourcecode.File
+  ) = this(millSourcePath0, external0)(using
+    millModuleEnclosing0,
+    millModuleLine0,
+    sourcecode.RelFile(millFile0.value)
+  )
+
   // `Discover` needs to be defined by every concrete `BaseModule` object, to gather
   // compile-time metadata about the tasks and commands at for use at runtime
   // TODO: make protected, according to documentation

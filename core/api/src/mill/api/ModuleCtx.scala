@@ -3,7 +3,7 @@ package mill.api
 import mill.api.internal.OverrideMapping
 import upickle.core.BufferedValue
 
-import scala.annotation.implicitNotFound
+import scala.annotation.{implicitNotFound, publicInBinary, targetName}
 import scala.quoted.*
 
 /**
@@ -110,7 +110,7 @@ object ModuleCtx extends LowPriCtx {
     def crossValues: Seq[Any]
   }
   implicit def makeNested(
-      implicit
+      using
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
       fileName: sourcecode.RelFile,
@@ -141,6 +141,7 @@ object ModuleCtx extends LowPriCtx {
       ctx.discover
     )
   }
+
   def makeRoot(
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
@@ -162,6 +163,46 @@ object ModuleCtx extends LowPriCtx {
       null
     )
   }
+
+  // bin-compat shim
+  @deprecated("Use makeNested accepting a sourcecode.RelFile instead", "Mill after 1.4.0-M3")
+  @targetName("makeNested")
+  @publicInBinary
+  private[ModuleCtx] def makeNested_old(
+      millModuleEnclosing0: sourcecode.Enclosing,
+      millModuleLine0: sourcecode.Line,
+      fileName: sourcecode.File,
+      enclosingClass: EnclosingClass,
+      ctx: ModuleCtx.Nested
+  ): ModuleCtx = makeNested(
+    using
+    millModuleEnclosing0,
+    millModuleLine0,
+    new sourcecode.RelFile(fileName.value),
+    enclosingClass,
+    ctx
+  )
+
+  // bin-compat shim
+  @deprecated("Use makeRoot accepting a sourcecode.RelFile instead", "Mill after 1.4.0-M3")
+  @targetName("makeRoot")
+  @publicInBinary
+  private[ModuleCtx] def makeRoot_old(
+      millModuleEnclosing0: sourcecode.Enclosing,
+      millModuleLine0: sourcecode.Line,
+      millSourcePath: os.Path,
+      segments0: Segments,
+      external0: Boolean,
+      fileName: sourcecode.File
+  ): ModuleCtx = makeRoot(
+    millModuleEnclosing0 = millModuleEnclosing0,
+    millModuleLine0 = millModuleLine0,
+    millSourcePath = millSourcePath,
+    segments0 = segments0,
+    external0 = external0,
+    fileName = new sourcecode.RelFile(fileName.value)
+  )
+
 }
 
 trait LowPriCtx {

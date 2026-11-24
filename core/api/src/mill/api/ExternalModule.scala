@@ -22,6 +22,18 @@ abstract class ExternalModule(using
       millFile0
     ) {
 
+  // bin-compat shim
+  @deprecated("Use constructor accepting a sourcecode.RelFile instead", "Mill after 1.4.0-M3")
+  def this(
+      millModuleEnclosing0: sourcecode.Enclosing,
+      millModuleLine0: sourcecode.Line,
+      millFile0: sourcecode.File
+  ) = this(using
+    millModuleEnclosing0,
+    millModuleLine0,
+    sourcecode.RelFile(millFile0.value)
+  )
+
   private[mill] def allowNestedExternalModule = false
   if (!allowNestedExternalModule) assert(
     !" #".exists(millModuleEnclosing0.value.contains(_)),

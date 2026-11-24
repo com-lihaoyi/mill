@@ -20,6 +20,20 @@ abstract class RootModule()(using
 ) extends RootModule0(baseModuleInfo.projectRoot)
     with RootModuleApi {
 
+  // bin-compat shim
+  @deprecated("Use constructor accepting a sourcecode.RelFile instead", "Mill after 1.4.0-M3")
+  def this(
+      baseModuleInfo: RootModule.Info,
+      millModuleEnclosing0: sourcecode.Enclosing,
+      millModuleLine0: sourcecode.Line,
+      millFile0: sourcecode.File
+  ) = this()(using
+    baseModuleInfo,
+    millModuleEnclosing0,
+    millModuleLine0,
+    sourcecode.RelFile(millFile0.value)
+  )
+
   // Dummy `millDiscover` defined but never actually used and overridden by codegen.
   // Provided for IDEs to think that one is available and not show errors in
   // build.mill/package.mill even though they can't see the codegen
