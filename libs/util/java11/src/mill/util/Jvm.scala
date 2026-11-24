@@ -860,6 +860,28 @@ object Jvm {
       .unsafeRun()(using coursierCache0.ec)
   }
 
+  /**
+   * Lists the versions of `module` available in `repositories`.
+   *
+   * @return the per-repository results, so that callers can report why a repository
+   *         didn't return any version (e.g. when offline and nothing is cached)
+   */
+  def versions(
+      repositories: Seq[Repository],
+      module: coursier.Module,
+      ctx: Option[mill.api.TaskCtx] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      config: CoursierConfig = CoursierConfig.default()
+  ): coursier.Versions.Result = {
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
+    coursierCache0.logger.use(
+      coursier.Versions(coursierCache0)
+        .withModule(module)
+        .withRepositories(repositories)
+        .result()
+    ).unsafeRun()(using coursierCache0.ec)
+  }
+
   def jvmIndex0(
       ctx: Option[mill.api.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
