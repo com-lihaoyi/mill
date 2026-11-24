@@ -69,7 +69,8 @@ trait CoursierConfigModule extends Module {
   )
 
   private val envVars = entries.map(_.envName).toSet
-  private val propNames = entries.map(_.propName).toSet
+  private val propNames =
+    entries.map(_.propName).toSet + mill.util.CoursierConfig.userAgentProperty
 
   extension (entry: EnvEntry)
     private def readFrom(env: Map[String, String], props: Map[String, String]): EnvValues =
@@ -176,7 +177,8 @@ trait CoursierConfigModule extends Module {
       defaultArchiveCacheLocation(),
       defaultCredentials(),
       defaultTtl(),
-      defaultCachePolicies()
+      defaultCachePolicies(),
+      Some(mill.util.CoursierConfig.defaultUserAgent(coursierEnv().props))
     )
   }
 }

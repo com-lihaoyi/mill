@@ -54,19 +54,35 @@ object CoursierConfig {
       CacheEnv.defaultCachePolicies(
         CacheEnv.cachePolicy.read()
       ),
-      Some(
-        s"Mill${
-            Try(Version.parse(BuildInfo.millVersion)) match {
-              case Success(v) => s"/${v.major}. ${v.minor}"
-              case _ => ""
-            }
-          } (${BuildInfo.millProjectUrl}) Coursier${
-            Try(Version.parse(BuildInfo.coursierVersion)) match {
-              case Success(v) => s"/${v.major}. ${v.minor}"
-              case _ => ""
-            }
-          }"
-      )
+      Some(defaultUserAgent())
     )
+  }
+
+  /** Java property that overrides the `User-Agent` Mill sends to repositories, as for coursier */
+  private[mill] val userAgentProperty = "coursier.http.agent"
+
+  /**
+   * The `User-Agent` Mill sends to repositories when fetching metadata or artifacts:
+   * Mill's own one (see [[userAgent]]), unless overridden with the `coursier.http.agent`
+   * Java property, the way coursier lets its default agent be overridden.
+   */
+  private[mill] def defaultUserAgent(props: Map[String, String] = sys.props.toMap): String =
+    props.getOrElse(
+      userAgentProperty,
+      userAgent(BuildInfo.millVersion, BuildInfo.coursierVersion)
+    )
+
+  /**
+   * A Mill-specific `User-Agent`, as Maven Central asks tools to send, e.g.
+   * `Mill/1.3 (https://github.com/com-lihaoyi/mill) Coursier/2.1`
+   */
+  private[mill] def userAgent(millVersion: String, coursierVersion: String): String = {
+    def versionSuffix(version: String): String =
+      Try(Version.parse(version)) match {
+        case Success(v) => s"/${v.major}${v.minor.fold("")("." + _)}"
+        case _ => ""
+      }
+    s"Mill${versionSuffix(millVersion)} (${BuildInfo.millProjectUrl}) " +
+      s"Coursier${versionSuffix(coursierVersion)}"
   }
 }
