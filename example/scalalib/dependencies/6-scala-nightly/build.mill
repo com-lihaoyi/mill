@@ -1,6 +1,9 @@
 // To use Scala 3 nightly releases, you need to add the Scala 3 nightly repository
 // to your module's `repositories`. This allows the Scala compiler and library
 // to be resolved from the nightly repository.
+//
+// Alternatively, `extends: ScalaNightlyModule` adds the nightly repository for you, and
+// picks the latest nightly version unless you set `scalaVersion` explicitly.
 
 /** See Also: build.mill.yaml */
 /** See Also: src/Foo.scala */
