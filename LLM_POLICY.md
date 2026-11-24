@@ -3,10 +3,10 @@
 A high bar is held for all contributions to this project. Contributors are
 expected to be responsible for any code they publish.
 
-Nowadays, Large Language Models ([LLM](https://en.wikipedia.org/wiki/Large_language_model), also called "AI") are getting more and more powerful. We
-encourage you to think and learn yourself instead of sourcing this important
-aspect of open source software development out to some corporate-owned
-machinery.
+Nowadays, Large Language Models ([LLM](https://en.wikipedia.org/wiki/Large_language_model), 
+also called "AI") are getting more and more powerful. We encourage you to think
+and learn yourself instead of sourcing this important aspect of open source
+software development out to some corporate-owned machinery.
 
 **LLMs should not be used to generate comments when communicating with
 maintainers**. Comments are expected to be written by humans. Comments that are
