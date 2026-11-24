@@ -50,6 +50,12 @@ object CoursierClient {
     }
   }
 
+  private[launcher] def coursierCache(): FileCache[Task] =
+    FileCache.create[Task]().copy(
+      logger = coursier.cache.loggers.RefreshLogger.create(),
+      userAgent = Some(mill.util.CoursierConfig.defaultUserAgent())
+    )
+
   def resolveMillDaemon(outDir: String, millRepositories: Seq[String]): Seq[os.Path] = {
     // FIXME All the messing with COURSIER_REPOSITORIES assumes user override repos only via this env var,
     // rather than via Java properties or config files, whose use is less likely. Things might go wrong
@@ -68,9 +74,7 @@ object CoursierClient {
       cacheKey = cacheKey,
       validate = paths => paths.forall(os.exists(_))
     ) {
-      val coursierCache0 = FileCache.create[Task]().copy(
-        logger = coursier.cache.loggers.RefreshLogger.create()
-      )
+      val coursierCache0 = coursierCache()
 
       val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories0).get
 
@@ -115,9 +119,7 @@ object CoursierClient {
       cacheKey = cacheKey,
       validate = os.isDir(_)
     ) {
-      val coursierCache0 = FileCache.create[Task]().copy(
-        logger = coursier.cache.loggers.RefreshLogger.create()
-      )
+      val coursierCache0 = coursierCache()
 
       val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories).get
       val jvmCache = JvmCache().copy(
