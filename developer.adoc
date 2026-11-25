@@ -6,6 +6,10 @@ When starting out, please run:
 1. Run `./mill --help` for a quick primer on how to use `./mill` as a build tool.
 2. Run `./mill visualizeMillModules` to see the dependency structure of the codebase
 
+Unless stated otherwise, contributions are published under the link:LICENSE[project license].
+
+Please read and respect our link:LLM_POLICY.md[https://github.com/com-lihaoyi/mill/blob/main/LLM_POLICY.md].
+
 == Common Developer Workflow
 
 1. Import code into IntelliJ IDEA
@@ -198,6 +202,7 @@ $ ./mill dist.installLocal --binFile /tmp/mill --ivyRepo /tmp/millRepo
 ...
 Published 44 modules and installed /tmp/mill
 ----
+
 === Testing Documentation Changes
 
 For testing documentation changes locally, you can generate documentation for the current checkout via
@@ -328,6 +333,7 @@ Currently, Mill does not offer compatibility guarantees for `mill.contrib`
 packages, although they tend to evolve slowly.
 This may change over time as these packages mature over time.
 
+
 == Project Maintenance
 
 === Pull Requests
@@ -343,7 +349,7 @@ Exceptions are preparation commits for releases, which are meant to be pushed wi
 * The title should be meaningful and may contain the pull request number in parentheses (typically automatically generated on GitHub)
 * The description should contain additional required details, which typically reflect the content of the first PR comment
 * A full link to the pull request should be added via a line: `Pull request: <link>`
-* If the PR has multiple authors but is merged as merge commit, those authors should be included via a line for each co-author: `Co-authored-by: <author>`
+* If the PR has multiple authors but is merged as a single sqashed commit, those authors should be included via a line for each co-author: `Co-authored-by: <author>`
 * If the message contains links to other issues or pull requests, you should use full URLs to reference them
 
 == Misc

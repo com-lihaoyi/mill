@@ -1,13 +1,13 @@
 #!/usr/bin/env sh
 
 # Mill Build Tool: https://github.com/com-lihaoyi/mill
-# Download: https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-M3/mill-dist-1.4.0-M3-mill.sh
+# Download: https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0/mill-dist-1.4.0-mill.sh
 # Documentation: https://mill-build.org/mill/cli/installation-ide.html#_bootstrap_scripts
-# Script Version: 1.4.0-M3
+# Script Version: 1.4.0
 
 set -e
 
-if [ -z "${DEFAULT_MILL_VERSION}" ] ; then DEFAULT_MILL_VERSION="1.4.0-M3"; fi
+if [ -z "${DEFAULT_MILL_VERSION}" ] ; then DEFAULT_MILL_VERSION="1.4.0"; fi
 
 if [ -z "${GITHUB_RELEASE_CDN}" ] ; then GITHUB_RELEASE_CDN=""; fi
 
@@ -64,7 +64,7 @@ ARTIFACT_SUFFIX=""
 # Check if GLIBC version is at least the required version
 # Returns 0 (true) if GLIBC >= required version, 1 (false) otherwise
 check_glibc_version() {
-  required_version="2.39"
+  required_version="2.43"
   required_major=$(echo "$required_version" | cut -d. -f1)
   required_minor=$(echo "$required_version" | cut -d. -f2)
   # Get GLIBC version from ldd --version (first line contains version like "ldd (GNU libc) 2.31")

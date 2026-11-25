@@ -144,5 +144,6 @@
 // *somewhere*.
 * Reference
 ** {mill-doc-url}/api/latest/mill.html[Mill API Reference]
-** {mill-github-url}/blob/main/changelog.adoc[Changelog]
+** {mill-github-url}/blob/main/changelog.adoc[Changelog (GitHub)]
+** {mill-github-url}/blob/main/LLM_POLICY.md[LLM Policy (GitHub)]
 ** xref:reference/talks-blog-posts.adoc[]]

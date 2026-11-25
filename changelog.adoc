@@ -15,6 +15,51 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#1.4.0]
+=== 1.4.0
+:version: 1.4.0
+:milestone-name: 1.4.0
+:milestone: 160
+:prev-version: 1.4.0-M3
+_2026-11-20_
+
+__Changes since Mill {prev-version}:__
+
+*We added a {link-github}/blob/main/LLM_POLICY.md[LLM Policy] to the project ({link-pr}/7982[7982])*
+
+**Features and Improvements**
+
+* Queue for the meta-build write lock after repeated failed try-writes ({link-pr}/7957[7957]) - this should fix some live-locks in multi-client scenarios or concurrent BSP requests.
+* Regenerate wrapped build sources when the build moves to another folder ({link-pr}/7965[7965])
+* Keep `--debug` from re-running every compile ({link-pr}/7959[7959])
+* BSP: Fix wrapped sources and their semanticdb handling ({link-pr}/7897[7897])
+* Send Mill's coursier User-Agent from the launcher and module resolution ({link-pr}/7979[7979])
+* Add `ScalaNightlyModule` trait to simplify using Scala 3 nightlies ({link-pr}/7981[7981])
+* Make Zinc's incremental state relative relocatable ({link-pr}/7977[7977])
+* Add more precompiled Scala compiler bridge versions ({link-pr}/7267[7267])
+* Port android screenshot tests to preview screenshot test engine `0.0.1-alpha17` ({link-pr}/7945[7945])
+
+**Internal changes and dependency updates**
+
+* Update GraalVM to 25 ({link-pr}/7947[7947])
+* Fix detection of a usable sbt executable/script ({link-pr}/7962[7962])
+* GenIdeaUtils: Tweak test literal handling to contain less versions ({link-pr}/7960[7960])
+* Update coursier to 2.1.27 ({link-pr}/7955[7955])
+* Update docs and rebootstrap Mill ({link-pr}/7963[7963])
+* Update coursier interface to 1.0.31 ({link-pr}/7952[7952])
+* Doc: Show the names of flags with an explicit `name` in `--help-advanced` ({link-pr}/7964[7964])
+* CI: Fix the draft workflow's `permissions` value ({link-pr}/7966[7966])
+* Tolerate the racy command-lock wait in the test ({link-pr}/7958[7958])
+* Enforce LF line endings with gitattributes ({link-pr}/7944[7944])
+* docs: fix doc and comment typos ({link-pr}/7970[7970])
+* Update sourcecode to 0.4.6 ({link-pr}/7983[7983])
+* Update gradle to 9.5.2 ({link-pr}/7968[7968])
+* CI: Use SonatypeCentralPublishModule for compiler bridge publishing ({link-pr}/7989[7989])
+* CI: Fix script syntax
+* Update logback-classic to 1.6.8 ({link-pr}/7948[7948])
+* Cut CI's downloads from Maven Central ({link-pr}/7988[7988])
+
+
 [#1.4.0-M3]
 === 1.4.0-M3
 :version: 1.4.0-M3
