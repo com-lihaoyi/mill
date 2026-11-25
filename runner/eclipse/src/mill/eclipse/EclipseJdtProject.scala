@@ -49,7 +49,7 @@ final case class SourceFolder(
 
 /**
  *  This contains the information about a Mill Module library. As this not necessarily has to be a
- *  Jar archive and if it is, there is no garantee that a sources or Javadoc Jar archive exists.
+ *  Jar archive and if it is, there is no guarantee that a sources or Javadoc Jar archive exists.
  *
  *  @param jarPath path to the main library (most likely a Jar archive)
  *  @param sourcesJarPath (optional) path to sources archive

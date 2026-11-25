@@ -1,0 +1,8 @@
+package build.thing
+
+import mill.*
+import mill.javalib.*
+
+object `package` extends JavaModule {
+  def javacOptions = Seq("-deprecation")
+}

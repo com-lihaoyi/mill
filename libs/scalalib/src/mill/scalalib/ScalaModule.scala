@@ -14,6 +14,7 @@ import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTar
 import mill.api.daemon.internal.{ScalaModuleApi, ScalaPlatform, internal}
 import mill.javalib.dependency.versions.{ValidVersion, Version}
 import mill.javalib.{CompileFor, SemanticDbJavaModule}
+import mill.javalib.internal.WrappedSources
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
 // this import requires scala-reflect library to be on the classpath
@@ -734,7 +735,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
               BuildCtx.workspaceRoot,
               Task.dest / "data",
               SemanticDbJavaModule.workerClasspath().map(_.path),
-              allSourceFiles().map(_.path)
+              allSourceFiles().map(_.path),
+              WrappedSources.magicOffsetHeader(scalacOptions)
             )
           }
 

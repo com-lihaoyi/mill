@@ -39,4 +39,12 @@ public class CodeGenConstants {
    * The user-facing name for the root of the module tree.
    */
   public static final String rootModuleAlias = "build";
+
+  /**
+   * The header passed to the Scala compiler via `-Ymagic-offset-header`, in the sources
+   * generated out of build files and scripts. In those, a `///<header>:<original file path>`
+   * line precedes the user code, which lets the compiler report positions in the original
+   * files.
+   */
+  public static final String magicOffsetHeader = "SOURCE_CODE_START";
 }

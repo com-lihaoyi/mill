@@ -61,4 +61,4 @@ jobs:
       - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
 
-      - run: ./mill mill.scalalib.SonatypeCentralPublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}
+      - run: ./mill mill.javalib.SonatypeCentralPublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}

@@ -6,7 +6,7 @@ import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.*
 import utest.*
 
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 
 object CoursierParametersTests extends TestSuite {
 
@@ -54,6 +54,22 @@ object CoursierParametersTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  // User-Agent of the cache Mill resolves dependencies with, recorded by the customizer below
+  val resolutionUserAgent = new AtomicReference[Option[String]]
+
+  object UserAgentTest extends TestRootModule {
+    object core extends JavaModule {
+      def mvnDeps = Seq(mvn"com.google.guava:guava:33.0.0-jre")
+      def coursierCacheCustomizer = Task.Anon {
+        Some { (cache: FileCache[coursier.util.Task]) =>
+          resolutionUserAgent.set(cache.userAgent)
+          cache
+        }
+      }
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
+
   def tests: Tests = Tests {
     test("coursierParams") - UnitTester(CoursierTest, null).scoped { eval =>
       val Right(result) = eval.apply(CoursierTest.core.compileClasspath).runtimeChecked
@@ -78,6 +94,14 @@ object CoursierParametersTests extends TestSuite {
         val Right(_) = eval.apply(CustomLoggerTest.core.compileClasspath).runtimeChecked
         assert(customLoggerInitCalled.get())
         assert(customLoggerStopCalled.get())
+      }
+    }
+
+    test("coursierCacheUsesMillUserAgent") {
+      resolutionUserAgent.set(null)
+      UnitTester(UserAgentTest, null).scoped { eval =>
+        val Right(_) = eval.apply(UserAgentTest.core.compileClasspath).runtimeChecked
+        assert(resolutionUserAgent.get() == Some(mill.util.CoursierConfig.defaultUserAgent()))
       }
     }
   }

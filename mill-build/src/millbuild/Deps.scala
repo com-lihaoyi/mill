@@ -112,7 +112,7 @@ object Deps {
   val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.200"
-  val coursierVersion = "2.1.26"
+  val coursierVersion = "2.1.27"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
     mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
@@ -125,7 +125,7 @@ object Deps {
   val coursierUtil =
     mvn"io.get-coursier::coursier-util:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierVersions = mvn"io.get-coursier::versions:0.7.0".withDottyCompat(scalaVersion)
-  val coursierInterface = mvn"io.get-coursier:interface:1.0.30"
+  val coursierInterface = mvn"io.get-coursier:interface:1.0.31"
   val coursierJvm =
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
 
@@ -217,7 +217,7 @@ object Deps {
   val semanticDbJava_runtime = mvn"com.sourcegraph:semanticdb-java:0.12.3"
   val semanticDbShared =
     mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala_runtime.version}"
-  val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
+  val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.6"
 
   val springBootTools_api =
     mvn"org.springframework.boot:spring-boot-loader-tools:3.3.0" // scala-steward:off
@@ -228,9 +228,9 @@ object Deps {
     mvn"io.quarkus:quarkus-core-deployment:3.31.4" // scala-steward:off
   val upickle = mvn"com.lihaoyi::upickle:4.4.3"
   val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:${upickle.version}"
-  // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
-  // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
-  val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
+  // native-terminal uses FFM on Java >= 22, which requires GraalVM >= 25 for native images
+  // on AArch64 (see oracle/graal#8113 and Settings.graalvmJvmId)
+  val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal:0.1.0"
   val zinc = mvn"org.scala-sbt::zinc:2.1.0"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
@@ -283,7 +283,7 @@ object Deps {
   val coursierJvmIndexVersion = "0.0.5"
   val gradleApi_api = mvn"dev.gradleplugins:gradle-api:8.11.1" // scala-steward:off
 
-  val androidTools = mvn"com.android.tools.build:gradle:9.5.1"
+  val androidTools = mvn"com.android.tools.build:gradle:9.5.2"
   val androidDataBindingCompiler = mvn"androidx.databinding:databinding-compiler:9.5.1"
   val androidDataBindingCompilerCommon =
     mvn"androidx.databinding:databinding-compiler-common:9.5.1"

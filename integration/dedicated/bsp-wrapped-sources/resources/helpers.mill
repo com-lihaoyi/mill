@@ -1,0 +1,3 @@
+package build
+
+def javacRelease = "--release=17"

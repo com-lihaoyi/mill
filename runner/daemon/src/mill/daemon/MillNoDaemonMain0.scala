@@ -15,7 +15,7 @@ object MillNoDaemonMain0 {
     val initialSystemStreams = mill.api.SystemStreams.original
 
     if (Properties.isWin && Util.hasConsole())
-      io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
+      io.github.alexarchambault.nativeterm.NativeTerminal.setupAnsi()
 
     if (Properties.isWin)
       // temporarily disabling FFM use by coursier, which has issues with the way

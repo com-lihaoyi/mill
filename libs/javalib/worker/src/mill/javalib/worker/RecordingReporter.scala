@@ -14,11 +14,11 @@ import scala.collection.mutable
 @internal
 trait RecordingReporter extends xsbti.Reporter {
   // `lazy` to allow initialization before first access
-  private lazy val seenProblems: mutable.Set[xsbti.Problem] = mutable.Set()
+  private lazy val seenProblems: mutable.Set[RecordingReporter.Key] = mutable.Set()
 
   abstract override def log(problem: xsbti.Problem): Unit = {
     super.log(problem)
-    seenProblems.add(problem)
+    seenProblems.add(RecordingReporter.key(problem))
   }
 
   abstract override def reset(): Unit = {
@@ -42,11 +42,40 @@ trait RecordingReporter extends xsbti.Reporter {
         )
       case _ => Nil
     }
-    val oldProblems = problems.filterNot(seenProblems)
+    val oldProblems = problems.filterNot(p => seenProblems(RecordingReporter.key(p)))
     if (oldProblems.nonEmpty) {
       oldProblems.foreach(log)
       // show a summary again
       super.printSummary()
     }
+  }
+}
+
+private object RecordingReporter {
+  import sbt.util.InterfaceUtil.jo2o
+
+  private case class Key(
+      category: String,
+      severity: xsbti.Severity,
+      message: String,
+      rendered: Option[String],
+      path: Option[String],
+      line: Option[Integer],
+      offset: Option[Integer]
+  )
+
+  // Compares problems by value: the compiler bridges' problems have no value equality (Scala 3's
+  // makes new DiagnosticCode and Action objects on every call), unlike the copies in the analysis
+  private def key(p: xsbti.Problem): Key = {
+    val pos = p.position
+    Key(
+      p.category,
+      p.severity,
+      p.message,
+      jo2o(p.rendered),
+      jo2o(pos.sourcePath),
+      jo2o(pos.line),
+      jo2o(pos.offset)
+    )
   }
 }

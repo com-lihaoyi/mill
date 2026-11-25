@@ -7,6 +7,7 @@ import mill.Task
 import mill.api.daemon.internal.{EvaluatorApi, internal}
 import mill.api.ModuleCtx
 import mill.javalib.{JavaModule, SemanticDbJavaModule}
+import mill.javalib.internal.WrappedSources
 import mill.api.JsonFormatters.given
 import mill.api.daemon.internal.TaskApi
 
@@ -96,15 +97,19 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
     }
   }
 
-  override def bspBuildTargetWrappedSources: TaskApi[Seq[(Path, Path)]] =
+  override def bspBuildTargetWrappedSources
+      : TaskApi[(magicOffsetHeader: Option[String], sources: Seq[(Path, Path)])] =
     if (isScript)
-      Task(Nil)
+      Task((magicOffsetHeader = Option.empty[String], sources = Seq.empty[(Path, Path)]))
     else
       Task {
-        jm.wrappedSources().map {
-          case (original, generated) =>
-            (original.path.toNIO, generated.path.toNIO)
-        }
+        (
+          magicOffsetHeader = WrappedSources.magicOffsetHeader(scalacOptionsTask()),
+          sources = jm.wrappedSources().map {
+            case (original, generated) =>
+              (original.path.toNIO, generated.path.toNIO)
+          }
+        )
       }
 
   override private[mill] def bspBuildTargetResources = Task.Anon {

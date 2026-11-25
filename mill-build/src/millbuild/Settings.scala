@@ -24,7 +24,7 @@ object Settings {
     // can't build, as it requires Mill 2.0.0-M2 features, due to early bootstrapping
     // "2.0.0-M2",
     "1.3.1",
-    "1.4.0-M2"
+    "1.4.0-M3"
   )
   val mimaBaseVersions: Seq[String] = Seq(
     "1.0.0",
@@ -46,8 +46,11 @@ object Settings {
     "1.1.9",
     "1.1.10",
     "1.3.0",
-    "1.3.1"
+    "1.3.1",
+    // detect late breakages
+    "1.4.0-M3"
   )
 
-  val graalvmJvmId = "graalvm-community:23.0.1"
+  val graalvmJvmId = "liberica-nik:25.0.5.0.3"
+  val jvmIndexVersion = "github"
 }

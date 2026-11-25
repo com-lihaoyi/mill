@@ -52,7 +52,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
   }
 
   /**
-   * Specifiy the bytecode version for the Groovy compiler.
+   * Specify the bytecode version for the Groovy compiler.
    * Values represent the JDK version.
    * Allowed values are "1.8", "9", "10", "11", ..., "17", ..., "21", ...
    * {{{

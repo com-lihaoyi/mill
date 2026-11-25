@@ -242,7 +242,7 @@ your custom logic. While this does work, it can be problematic for a number of r
 
 Most build tools thus provide some kind of _"plugin system"_ to let you
 implement your custom logic in a more comfortable programming environment
-than Bash: Maven's https://maven.apache.org/plugin-developers/[MOJO] interface interface
+than Bash: Maven's https://maven.apache.org/plugin-developers/[MOJO] interface
 lets you write plugins in Java, Webpack allows you to write https://webpack.js.org/plugins/[Webpack Plugins]
 in Javascript, Bazel provides the https://bazel.build/rules/language[Starlark Language]
 for writing extensions, and so on. The Mill build tool's custom logic is

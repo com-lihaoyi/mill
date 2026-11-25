@@ -64,7 +64,7 @@ object `package` extends MillStableScalaModule {
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
     def mvnDeps = Seq(Deps.sbtTestInterface_api)
-    def jvmId = "11"
+    def jvmVerison = "11"
   }
 
   object api extends MillStableScalaModule with BuildInfo with MillJava11ScalaModule {
@@ -142,7 +142,7 @@ object `package` extends MillStableScalaModule {
   // Java 11 / Scala 3.7 plugin-compat toolchain. Older user JDKs are supported by
   // forking javac in [[JvmWorkerImpl]] rather than subprocessing the whole worker.
   object worker extends MillPublishScalaModule with BuildInfo {
-    override def jvmId = Task { "17" }
+    override def jvmVersion = "17"
     def moduleDeps = Seq(api, build.libs.javalib.testrunner)
     def mvnDeps = Seq(
       Deps.zinc,
