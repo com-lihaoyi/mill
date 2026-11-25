@@ -27,10 +27,10 @@ jobs:
       LC_ALL: "en_US.UTF-8"
       REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
       MILL_COMPILER_BRIDGE_VERSIONS: ${{ inputs.bridge_versions }}
+
     steps:
       - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
 
-      - run: ./mill mill.scalalib.PublishModule/ --publishArtifacts bridge.__.publishArtifacts
-
-
+      - name: Publish Bridges ${{ inputs.bridge_versions }}
+      - run: ./mill mill.scalalib.SonatypeCentralPublishModule/ --publishArtifacts bridge.__.publishArtifacts
