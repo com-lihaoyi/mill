@@ -74,9 +74,13 @@ trait AndroidSdkModule extends Module {
   }
 
   /**
-   * Specifies the Android platform version (e.g., Android API level).
+   * Specifies the Android platform version (e.g., `android-37.0`).
+   * Defaults to the major version of [[buildToolsVersion]].
    */
-  def platformsVersion: T[String] = Task { "android-" + buildToolsVersion().split('.').head }
+  def platformsVersion: T[String] = Task {
+    val apiLevel = buildToolsVersion().split('.').head.toInt
+    if (apiLevel <= 36) s"android-$apiLevel" else s"android-$apiLevel.0"
+  }
 
   /**
    * Specifies the version of the Command Line Tools to be used.
