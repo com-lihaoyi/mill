@@ -51,7 +51,7 @@ object Deps {
     val scalajsLinkerInterface =
       mvn"org.scala-js::scalajs-linker-interface:$scalaJsVersion".withDottyCompat(scalaVersion)
     val scalajsImportMap =
-      mvn"com.armanbilge::scalajs-importmap:0.1.1".withDottyCompat(scalaVersion)
+      mvn"com.armanbilge::scalajs-importmap:0.2.0".withDottyCompat(scalaVersion)
   }
 
   object Scalanative_0_5 {
