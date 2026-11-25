@@ -382,7 +382,7 @@ object Deps {
     val bundleTool = mvn"com.android.tools.build:bundletool:1.18.3"
     val ndkVersion = "27.0.12077973"
     val cmakeVersion = "3.22.1"
-    val layoutLibVersion = "16.1.0"
+    val layoutLibVersion = "16.1.1"
     val layoutLibRenderer = mvn"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
     val layoutLibRuntime = mvn"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
     val composePreviewRenderer =
