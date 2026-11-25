@@ -637,8 +637,14 @@ node36 -> node35;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Screenshot tests of the Compose <code>@Preview</code>s of the application, run by the <a href="https://developer.android.com/studio/preview/compose-screenshot-testing">Preview Screenshot Test Engine</a>. Only the previews annotated with <code>@PreviewTest</code> (from <code>com.android.tools.screenshot</code>) are tested, previews without it are skipped, so a module with none of them runs no tests.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>Screenshot tests of the Compose <code>@Preview</code>s of the application, run by the <a href="https://developer.android.com/studio/preview/compose-screenshot-testing">Preview Screenshot Test Engine</a>. Only the previews annotated with <code>@PreviewTest</code> (from <code>com.android.tools.screenshot</code>) are tested, previews without it are skipped, so a module with none of them runs no tests.</p>
+              <p><code>testForked</code> validates the previews against the reference images in <a href="AndroidAppKotlinModule$AndroidAppKotlinScreenshotTests.html#androidScreenshotReferenceImageDir-0">androidScreenshotReferenceImageDir</a>, and <code>updateScreenshots</code> records them.</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">Inherited from:</dt>
