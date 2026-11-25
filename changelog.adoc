@@ -21,7 +21,7 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 :milestone-name: 1.4.0
 :milestone: 160
 :prev-version: 1.4.0-M3
-_2026-11-20_
+_2026-11-25_
 
 __Changes since Mill {prev-version}:__
 
