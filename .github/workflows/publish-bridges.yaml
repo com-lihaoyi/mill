@@ -33,4 +33,4 @@ jobs:
         with: { fetch-depth: 0 }
 
       - name: Publish Bridges ${{ inputs.bridge_versions }}
-      - run: ./mill mill.scalalib.SonatypeCentralPublishModule/ --publishArtifacts bridge.__.publishArtifacts
+      - run: ./mill mill.javalib.SonatypeCentralPublishModule/ --publishArtifacts bridge.__.publishArtifacts
