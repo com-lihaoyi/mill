@@ -24,7 +24,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 // Actual android application
 object app extends AndroidAppKotlinModule {
 
-  def kotlinVersion = "2.0.21"
+  def kotlinVersion = "2.2.10"
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidApplicationId = "com.example.screenshottest"
   def androidApplicationNamespace = "com.example.screenshottest"
@@ -41,31 +41,29 @@ object app extends AndroidAppKotlinModule {
     mvn"androidx.compose.material3:material3:1.3.1"
   )
 
-  object screenshotTest extends AndroidAppKotlinScreenshotTests {
-
-    // TODO this exists until auto discovery of methods is implemented
-    override def androidScreenshotTestMethods: Seq[(String, Seq[String])] = Seq(
-      "com.example.screenshottest.ExampleMessageCardScreenshots.oMessageCardScreenshot" -> Seq.empty
-    )
-  }
+  // Previews annotated with `@PreviewTest` (see `src/screenshotTest/kotlin`) are discovered
+  // and rendered by the Preview Screenshot Test Engine, and compared to the reference images
+  // in `src/screenshotTest/reference`
+  object screenshotTest extends AndroidAppKotlinScreenshotTests
 }
 
 //// SNIPPET:END
 
+// The first time, and whenever the UI intentionally changes, run `updateScreenshots`
+// to render the previews and record them as the reference images. These are meant to be
+// source controlled.
+
 /** Usage
 
-> ./mill show app.screenshotTest.generatePreviews
-...
-[
-  "ref:...com/example/screenshottest/ExampleMessageCardScreenshots/oMessageCardScreenshot_spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420_0.png"
-]
+> ./mill app.screenshotTest.updateScreenshots
 ...
 
+> ls app/src/screenshotTest/reference/com/example/screenshottest/ExampleMessageCardScreenshots
+...oMessageCardScreenshot...
 
 */
 
-// This command generates previews using the Compose Preview features. Then, tests can be run
-// using the generated previews as a base
+// Then, the tests render the previews again and fail if they differ from the reference images
 
 /** Usage
 
@@ -79,21 +77,9 @@ object app extends AndroidAppKotlinModule {
       "selector": "oMessageCardScreenshot()",
       "duration": ...,
       "status": "Success"
-    }
+    },
+...
   ]
 }
-...
-
-> cat out/app/screenshotTest/testForked.dest/test-report.xml
-...
-<?xml version='1.0' encoding='UTF-8'?>
-<testsuites tests="1" failures="0" errors="0" skipped="0" time="...">
-        <testsuite name="com.example.screenshottest.ExampleMessageCardScreenshots" tests="1" failures="0" errors="0" skipped="0" time="..." timestamp="...">
-        <properties>
-      </properties>
-        <testcase classname="com.example.screenshottest.ExampleMessageCardScreenshots" name="oMessageCardScreenshot()" time="...">
-        </testcase>
-      </testsuite>
-      </testsuites>
 ...
 */
