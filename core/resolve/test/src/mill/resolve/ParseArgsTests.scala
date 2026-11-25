@@ -150,6 +150,14 @@ object ParseArgsTests extends TestSuite {
         expectedArgs = Seq.empty,
         multiSelect = false
       )
+//      test("singleSelectorWithEmptyCrossAtEnd") - check(
+//        input = Seq("foo[]"),
+//        expectedSelectors = List(
+//          "" -> List(Label("foo"), Cross(Seq()))
+//        ),
+//        expectedArgs = Seq.empty,
+//        multiSelect = false
+//      )
       test("multiSelectorsBraceExpansion") - check(
         input = Seq("{core,application}.compile"),
         expectedSelectors = List(
