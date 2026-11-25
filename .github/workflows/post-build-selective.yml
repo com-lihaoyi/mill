@@ -53,12 +53,18 @@ jobs:
       run:
         shell: ${{ inputs.shell }}
     steps:
-      - uses: coursier/cache-action@v9
-
       - uses: actions/download-artifact@v7
         with:
           path: .
           name: ${{ inputs.os }}-artifact
+
+      # After the download, as the cache keys hash the build files. Pull requests only read
+      # the caches, so that they don't fill the repository's cache storage.
+      - uses: coursier/cache-action@v9
+        with:
+          # Where dependency versions live, so that dependency bumps also refresh the cache
+          extraFiles: mill-build/src/millbuild/Deps.scala
+          cacheMode: ${{ github.event_name == 'pull_request' && 'read' || 'write' }}
 
       - uses: ./.github/actions/post-build-setup
         with:
