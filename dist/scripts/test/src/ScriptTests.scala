@@ -446,5 +446,67 @@ object ScriptTests extends TestSuite {
         }
       }
     }
+
+    // https://central.sonatype.org/faq/429-tooling-provider/#identify-your-tool-in-the-user-agent
+    def curlUserAgent(millVersion: String): String = {
+      val shScript = os.Path(sys.env("MILL_TEST_SH_SCRIPT"), os.pwd)
+      val tmp = os.temp.dir()
+      val recordedArgs = tmp / "curl-args.txt"
+      val fakeBin = tmp / "bin"
+      os.write(
+        fakeBin / "curl",
+        """#!/bin/sh
+          |for arg in "$@"; do printf '%s\n' "$arg" >> "$MILL_TEST_CURL_ARGS"; done
+          |while [ $# -gt 0 ]; do
+          |  if [ "$1" = "-o" ]; then : > "$2"; fi
+          |  shift
+          |done
+          |exit 22
+          |""".stripMargin,
+        perms = "rwxr-xr-x",
+        createFolders = true
+      )
+
+      val res = os.call(
+        cmd = Seq("sh", shScript.toString),
+        cwd = tmp,
+        env = Map(
+          "MILL_VERSION" -> millVersion,
+          "MILL_FINAL_DOWNLOAD_FOLDER" -> (tmp / "download").toString,
+          "MILL_TEST_CURL_ARGS" -> recordedArgs.toString,
+          "PATH" -> s"$fakeBin${java.io.File.pathSeparator}${sys.env("PATH")}",
+          "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> null
+        ),
+        check = false,
+        stderr = os.Pipe
+      )
+      // The fake `curl` fails, so the script must fail rather than launch Mill
+      assert(res.exitCode == 22)
+
+      val args = os.read.lines(recordedArgs)
+      val flag = args.indexOf("-A")
+      assert(flag >= 0)
+      args(flag + 1)
+    }
+
+    // `mill.sh` is not run on Windows, which uses `mill.bat`
+    test("downloadUserAgent") {
+      val projectUrl = sys.env("MILL_EXPECTED_PROJECT_URL")
+      test("release") {
+        if (!scala.util.Properties.isWin)
+          assert(curlUserAgent("1.4.0") == s"Mill/1.4 ($projectUrl)")
+      }
+      test("qualifier") {
+        if (!scala.util.Properties.isWin)
+          assert(curlUserAgent("1.4.0-RC1") == s"Mill/1.4 ($projectUrl)")
+      }
+      test("nativeSuffix") {
+        if (!scala.util.Properties.isWin)
+          assert(curlUserAgent("1.4.0-native") == s"Mill/1.4 ($projectUrl)")
+      }
+      test("unparseableVersion") {
+        if (!scala.util.Properties.isWin) assert(curlUserAgent("custom") == s"Mill ($projectUrl)")
+      }
+    }
   }
 }

@@ -159,6 +159,31 @@ if not exist "%MILL%" (
     )
 )
 
+rem https://central.sonatype.org/faq/429-tooling-provider/#identify-your-tool-in-the-user-agent
+set "MILL_DOWNLOAD_USER_AGENT="
+if not [!MILL_RESOLVE_DOWNLOAD!]==[true] goto :user_agent_done
+set "MILL_UA_OPEN=("
+set "MILL_UA_CLOSE=)"
+set "MILL_DOWNLOAD_USER_AGENT=Mill !MILL_UA_OPEN!%MILL_REPO_URL%!MILL_UA_CLOSE!"
+set "MILL_UA_MAJOR="
+set "MILL_UA_MINOR="
+for /f "tokens=1,2 delims=." %%A in ("!MILL_VERSION!") do (
+    set "MILL_UA_MAJOR=%%A"
+    set "MILL_UA_MINOR=%%B"
+)
+if "!MILL_UA_MINOR!"=="" goto :user_agent_done
+rem Drop a qualifier such as `-RC1` from the minor version
+for /f "tokens=1 delims=-" %%A in ("!MILL_UA_MINOR!") do set "MILL_UA_MINOR=%%A"
+echo !MILL_UA_MAJOR!| findstr /R /X "[0-9][0-9]*" >nul
+if errorlevel 1 goto :user_agent_done
+echo !MILL_UA_MINOR!| findstr /R /X "[0-9][0-9]*" >nul
+if errorlevel 1 goto :user_agent_done
+set "MILL_DOWNLOAD_USER_AGENT=Mill/!MILL_UA_MAJOR!.!MILL_UA_MINOR! !MILL_UA_OPEN!%MILL_REPO_URL%!MILL_UA_CLOSE!"
+:user_agent_done
+set MILL_UA_OPEN=
+set MILL_UA_CLOSE=
+set MILL_UA_MAJOR=
+set MILL_UA_MINOR=
 
 if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
     set MILL_VERSION_PREFIX=%MILL_VERSION:~0,4%
@@ -251,13 +276,14 @@ if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
 
     echo Downloading mill !MILL_VERSION! from !MILL_DOWNLOAD_URL! ... 1>&2
 
-    curl -f -L "!MILL_DOWNLOAD_URL!" -o "!MILL_TEMP_DOWNLOAD_FILE!"
+    curl -f -L -A "!MILL_DOWNLOAD_USER_AGENT!" "!MILL_DOWNLOAD_URL!" -o "!MILL_TEMP_DOWNLOAD_FILE!"
 
     if not exist "%MILL_FINAL_DOWNLOAD_FOLDER%" mkdir "%MILL_FINAL_DOWNLOAD_FOLDER%"
     move /y "!MILL_TEMP_DOWNLOAD_FILE!" "%MILL%"
 
     set MILL_TEMP_DOWNLOAD_FILE=
     set MILL_DOWNLOAD_SUFFIX=
+    set MILL_DOWNLOAD_USER_AGENT=
 )
 
 set MILL_FINAL_DOWNLOAD_FOLDER=
