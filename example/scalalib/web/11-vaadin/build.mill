@@ -12,14 +12,17 @@
 //
 // Development-only dependencies such as `com.vaadin:vaadin-dev` go into the
 // `runMvnDeps` of the Vaadin module: `./mill run` uses them, while `prod` leaves
-// them out. Runtime dependencies of the production build go into `prod`'s own
+// them out. Runtime dependencies of the production build go into ``prod``'s own
 // `runMvnDeps`.
 
+//// SNIPPET:SOURCES
 /** See Also: build.mill.yaml */
 
-/** See Also: src/com/example/Application.java */
+/** See Also: src/com/example/Application.scala */
 
-/** See Also: src/com/example/MainView.java */
+/** See Also: src/com/example/MainView.scala */
+
+//// SNIPPET:END
 
 // The frontend build uses the Flow version of the application's classpath, here
 // managed by `vaadin-bom`. Vaadin's build tooling requires Java 21, hence the

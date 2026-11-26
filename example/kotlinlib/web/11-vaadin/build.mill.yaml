@@ -1,0 +1,25 @@
+mill-build:
+  mvnDeps:
+  - com.lihaoyi::mill-contrib-vaadin:$MILL_VERSION
+
+mill-jvm-version: 21
+extends: [KotlinModule, mill.contrib.vaadin.VaadinModule]
+kotlinVersion: 2.2.20
+# Vaadin 25 needs Java 21+ bytecode, Kotlin targets Java 1.8 by default
+kotlincOptions: !append [-jvm-target, "21"]
+mainClass: com.example.ApplicationKt
+
+bomMvnDeps:
+- org.springframework.boot:spring-boot-dependencies:4.1.1
+- com.vaadin:vaadin-bom:25.3.5
+
+mvnDeps:
+- com.vaadin:vaadin-spring-boot-starter
+
+# Development mode only: used by `./mill run`, left out of the production build
+runMvnDeps:
+- com.vaadin:vaadin-dev
+
+# Production build, packaged as an executable Spring Boot jar
+object prod:
+  extends: [VaadinProdModule, mill.javalib.repackage.RepackageModule]

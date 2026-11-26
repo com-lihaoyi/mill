@@ -51,4 +51,8 @@ include::partial$example/kotlinlib/web/10-spring-boot-aot.adoc[]
 
 include::partial$example/kotlinlib/web/9-hello-micronaut.adoc[]
 
+== Vaadin Flow Example
+
+include::partial$example/kotlinlib/web/11-vaadin.adoc[]
+
 

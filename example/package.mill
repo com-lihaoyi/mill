@@ -93,6 +93,7 @@ object `package` extends Module {
   object groovylib extends Module {
     object basic extends Cross[ExampleCrossModuleGroovy](build.listCross)
     object testing extends Cross[ExampleCrossModuleGroovy](build.listCross)
+    object web extends Cross[ExampleCrossModuleGroovy](build.listCross)
   }
 
   object cli extends Module {
@@ -397,7 +398,7 @@ $frontMatter
     override def selectiveInputs = Seq(sources, build.libs.pythonlib.sources)
   }
 
-  trait ExampleCrossModuleGroovy extends ExampleCrossModule {
+  trait ExampleCrossModuleGroovy extends ExampleCrossModuleJava {
     override def selectiveInputs = Seq(sources, build.libs.groovylib.sources)
   }
 

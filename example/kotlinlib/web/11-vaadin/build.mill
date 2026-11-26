@@ -1,0 +1,14 @@
+//// SNIPPET:SOURCES
+/** See Also: build.mill.yaml */
+
+/** See Also: src/com/example/Application.kt */
+
+/** See Also: src/com/example/MainView.kt */
+
+// Kotlin compiles for Java 1.8 by default, while Spring Boot 4 requires Java 17+
+// and Vaadin 25 requires Java 21+, hence `-jvm-target 21` in `kotlincOptions`. Kotlin classes are final
+// by default, and Spring subclasses the `@SpringBootApplication` class, so it is
+// declared `open`; the `kotlin-spring` compiler plugin would do the same for all
+// Spring-annotated classes.
+
+//// SNIPPET:END
