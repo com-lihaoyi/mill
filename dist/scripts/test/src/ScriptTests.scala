@@ -448,6 +448,14 @@ object ScriptTests extends TestSuite {
     }
 
     // https://central.sonatype.org/faq/429-tooling-provider/#identify-your-tool-in-the-user-agent
+    // The `User-Agent` is the name and `major.minor` version of the script itself, fixed when the
+    // script is generated, and does not depend on the Mill version being downloaded.
+    def expectedUserAgent(scriptName: String): String =
+      """\d+\.\d+""".r.findPrefixOf(sys.env("MILL_EXPECTED_DEFAULT_VERSION")) match {
+        case Some(majorMinor) => s"$scriptName/$majorMinor"
+        case None => scriptName
+      }
+
     def curlUserAgent(millVersion: String): String = {
       val shScript = os.Path(sys.env("MILL_TEST_SH_SCRIPT"), os.pwd)
       val tmp = os.temp.dir()
@@ -467,6 +475,8 @@ object ScriptTests extends TestSuite {
         createFolders = true
       )
 
+      // The dry run exits before `curl`, so put a fake `curl` on the `PATH` that records its
+      // arguments, and run the compiled `mill.sh` with `sh` up to that point.
       val res = os.call(
         cmd = Seq("sh", shScript.toString),
         cwd = tmp,
@@ -489,23 +499,23 @@ object ScriptTests extends TestSuite {
       args(flag + 1)
     }
 
-    // `mill.sh` is not run on Windows, which uses `mill.bat`
     test("downloadUserAgent") {
-      val projectUrl = sys.env("MILL_EXPECTED_PROJECT_URL")
-      test("release") {
-        if (!scala.util.Properties.isWin)
-          assert(curlUserAgent("1.4.0") == s"Mill/1.4 ($projectUrl)")
+      test("shScript") {
+        val shScript = os.Path(sys.env("MILL_TEST_SH_SCRIPT"), os.pwd)
+        assert(os.read(shScript).contains(s"""-A "${expectedUserAgent("mill.sh")}" """))
       }
-      test("qualifier") {
-        if (!scala.util.Properties.isWin)
-          assert(curlUserAgent("1.4.0-RC1") == s"Mill/1.4 ($projectUrl)")
+      test("batScript") {
+        val batScript = os.Path(sys.env("MILL_TEST_BAT_SCRIPT"), os.pwd)
+        assert(os.read(batScript).contains(s"""-A "${expectedUserAgent("mill.bat")}" """))
       }
-      test("nativeSuffix") {
-        if (!scala.util.Properties.isWin)
-          assert(curlUserAgent("1.4.0-native") == s"Mill/1.4 ($projectUrl)")
-      }
-      test("unparseableVersion") {
-        if (!scala.util.Properties.isWin) assert(curlUserAgent("custom") == s"Mill ($projectUrl)")
+      // `mill.sh` is not run on Windows, which uses `mill.bat`
+      test("shScriptCurlArgs") {
+        if (!scala.util.Properties.isWin) {
+          val expected = expectedUserAgent("mill.sh")
+          assert(curlUserAgent("1.4.0") == expected)
+          assert(curlUserAgent("0.12.0") == expected)
+          assert(curlUserAgent("custom") == expected)
+        }
       }
     }
   }

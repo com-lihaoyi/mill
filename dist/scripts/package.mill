@@ -17,8 +17,27 @@ object `package` extends mill.Module { scripts =>
     override def moduleDir = scripts.moduleDir
     def templateFile: T[PathRef]
     def finalName: T[String]
+
+    /** The name of the script as users know it (the in-repo `./mill` is the `mill.sh` script) */
+    def scriptName: T[String]
+
+    /**
+     * The `User-Agent` the script sends when downloading Mill, e.g. `mill.sh/1.4`: the name of this
+     * script and its `major.minor` version, as it is known when the script is generated. It is not
+     * derived from the Mill version being downloaded, since a script can bootstrap much older
+     * or newer versions of Mill than itself.
+     * See https://central.sonatype.org/faq/429-tooling-provider/#identify-your-tool-in-the-user-agent
+     */
+    def downloadUserAgent: T[String] = Task {
+      """\d+\.\d+""".r.findPrefixOf(build.millVersion()) match {
+        case Some(majorMinor) => s"${scriptName()}/$majorMinor"
+        case None => scriptName()
+      }
+    }
+
     def substitutions: T[Map[String, String]] = Map(
       "mill-version" -> build.millVersion(),
+      "mill-download-user-agent" -> downloadUserAgent(),
       "mill-repo-url" -> Settings.projectUrl,
       "mill-download-url" -> build.millDownloadUrlCurrent(),
       "mill-bootstrap-doc-url" -> bootstrapDocumentationUrl,
@@ -87,10 +106,12 @@ object `package` extends mill.Module { scripts =>
   object millSh extends BootstrapScriptModule {
     def templateFile = Task.Source("src/mill.sh")
     def finalName = "mill"
+    def scriptName = "mill.sh"
   }
   object millBat extends BootstrapScriptModule {
     def templateFile = Task.Source("src/mill.bat")
     def finalName = "mill.bat"
+    def scriptName = "mill.bat"
   }
 
   object test extends ScalaModule with TestModule.Utest {
