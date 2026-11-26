@@ -28,16 +28,7 @@ import scala.util.Properties
 import mill.api.{BuildCtx, Evaluator}
 import mill.androidlib.AndroidSdkModule
 
-def millVersion: T[String] = Task.Input {
-  val vcsState = VcsVersion.calcVcsState(Task.log)
-  // Fall back to SNAPSHOT if no git tag found (e.g., shallow clone in CI)
-  if (vcsState.lastTag.isEmpty) "SNAPSHOT"
-  // Ignore local changes when computing the VCS version string in CI,
-  // since we make those in CI and can promise they are safe, but make
-  // sure we include local dirty changes when iterating locally.
-  else if (Task.env.contains("CI")) vcsState.copy(dirtyHash = None).format()
-  else vcsState.format()
-}
+def millVersion: T[String] = "1.4.0"
 
 def latestUnstableVersion = Task.Input {
   val mavenMetadataXml = requests
