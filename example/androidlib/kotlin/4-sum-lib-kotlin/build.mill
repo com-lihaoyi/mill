@@ -13,7 +13,7 @@ import publish.*
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
-  def buildToolsVersion = "35.0.0"
+  def buildToolsVersion = "37.0.0"
 }
 
 object lib extends AndroidKotlinModule, AndroidLibModule {
@@ -21,7 +21,7 @@ object lib extends AndroidKotlinModule, AndroidLibModule {
   def artifactName = "sumlib-kotlin"
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
-  def androidCompileSdk = 35
+  def androidCompileSdk = 37
   def kotlinVersion = "2.0.20"
 
   def androidLibPackage = "com.example"
@@ -47,7 +47,7 @@ object app extends AndroidAppKotlinModule {
   def kotlinVersion = "2.0.20"
   def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
-  def androidCompileSdk = 35
+  def androidCompileSdk = 37
 
   def androidApplicationId = "com.example.app"
   def androidApplicationNamespace = "com.example.app"
