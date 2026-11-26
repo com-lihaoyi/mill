@@ -32,15 +32,13 @@ trait ScalaNightlyModule extends ScalaModule {
   }
 
   /**
-   * The newest Scala 3 nightly version available in [[repositories]] and matching
-   * [[scalaNightlyVersionPrefix]].
+   * All the Scala 3 nightly versions available in [[repositories]].
    *
    * This is re-checked on every run, but the repository metadata listing the
    * versions is cached by coursier (see `COURSIER_TTL`, 24 hours by default),
    * and only the cached metadata is used when running with `--offline`.
    */
-  def scalaNightlyVersion: T[String] = Task.Uncached {
-    val prefix = scalaNightlyVersionPrefix()
+  def scalaNightlyVersions: T[Seq[String]] = Task.Uncached {
     val result = Jvm.versions(
       repositories = repositoriesTask(),
       module = coursier.Module(
@@ -51,7 +49,25 @@ trait ScalaNightlyModule extends ScalaModule {
       coursierCacheCustomizer = coursierCacheCustomizer(),
       config = coursierConfigModule().coursierConfig()
     )
-    ScalaNightlyModule.latestNightlyVersion(result.versions.available, prefix) match {
+    val nightlies = result.versions.available.filter(ScalaNightlyModule.NightlyVersion.matches)
+    if (nightlies.nonEmpty) Result.Success(nightlies)
+    else {
+      val errors = result.results.collect { case (repo, Left(err)) => s"  ${repo.repr}: $err" }
+      val errorsMsg =
+        if (errors.isEmpty) "" else errors.mkString("\nRepository errors:\n", "\n", "")
+      Result.Failure(s"No Scala nightly version found$errorsMsg")
+    }
+  }
+
+  /**
+   * The newest version from [[scalaNightlyVersions]] matching [[scalaNightlyVersionPrefix]].
+   *
+   * This is only re-computed when [[scalaNightlyVersions]] or
+   * [[scalaNightlyVersionPrefix]] change.
+   */
+  def scalaNightlyVersion: T[String] = Task {
+    val prefix = scalaNightlyVersionPrefix()
+    ScalaNightlyModule.latestNightlyVersion(scalaNightlyVersions(), prefix) match {
       case Some(version) =>
         Task.log.warn(
           s"Using Scala nightly version $version. Scala nightly versions are meant for " +
@@ -59,11 +75,7 @@ trait ScalaNightlyModule extends ScalaModule {
         )
         Result.Success(version)
       case None =>
-        val prefixMsg = if (prefix.isEmpty) "" else s" with prefix '$prefix'"
-        val errors = result.results.collect { case (repo, Left(err)) => s"  ${repo.repr}: $err" }
-        val errorsMsg =
-          if (errors.isEmpty) "" else errors.mkString("\nRepository errors:\n", "\n", "")
-        Result.Failure(s"No Scala nightly version$prefixMsg found$errorsMsg")
+        Result.Failure(s"No Scala nightly version with prefix '$prefix' found")
     }
   }
 

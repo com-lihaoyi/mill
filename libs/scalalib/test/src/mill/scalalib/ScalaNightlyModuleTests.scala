@@ -46,7 +46,25 @@ object ScalaNightlyModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  object FixedNightlies extends TestRootModule {
+    var versions = Seq(
+      "3.8.3-RC1-bin-20260128-3882481-NIGHTLY",
+      "3.9.0-RC1-bin-20260101-aaaaaaa-NIGHTLY"
+    )
+    var prefix = ""
+
+    object foo extends ScalaNightlyModule {
+      override def scalaNightlyVersions = Task.Input { versions }
+      override def scalaNightlyVersionPrefix = Task.Input { prefix }
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "dotty213"
+
+  def nightlyWarnings(log: String): Int =
+    log.linesIterator.count(_.contains("Using Scala nightly version"))
 
   def isNightly(version: String): Boolean =
     ScalaNightlyModule.NightlyVersion.matches(version)
@@ -111,6 +129,36 @@ object ScalaNightlyModuleTests extends TestSuite {
 
           val Right(runResult) = eval.apply(LatestNightly.foo.run()).runtimeChecked
           assert(runResult.evalCount > 0)
+      }
+    }
+
+    test("cachedSelection") {
+      val err = new ByteArrayOutputStream()
+      UnitTester(PrefixedNightly, resourcePath, errStream = new PrintStream(err, true)).scoped {
+        eval =>
+          val Right(first) = eval.apply(PrefixedNightly.foo.scalaVersion).runtimeChecked
+          assert(nightlyWarnings(err.toString) == 1)
+
+          val Right(second) = eval.apply(PrefixedNightly.foo.scalaVersion).runtimeChecked
+          assert(second.value == first.value)
+          assert(second.evalCount == 0)
+          assert(nightlyWarnings(err.toString) == 1)
+      }
+    }
+
+    test("prefixChange") {
+      FixedNightlies.prefix = ""
+      UnitTester(FixedNightlies, resourcePath).scoped { eval =>
+        val Right(all) = eval.apply(FixedNightlies.foo.scalaVersion).runtimeChecked
+        assert(all.value == "3.9.0-RC1-bin-20260101-aaaaaaa-NIGHTLY")
+
+        FixedNightlies.prefix = "3.8"
+        val Right(prefixed) = eval.apply(FixedNightlies.foo.scalaVersion).runtimeChecked
+        assert(prefixed.value == "3.8.3-RC1-bin-20260128-3882481-NIGHTLY")
+
+        FixedNightlies.prefix = "3.7"
+        val Left(failure) = eval.apply(FixedNightlies.foo.scalaVersion).runtimeChecked
+        assert(failure.toString.contains("'3.7'"))
       }
     }
 
