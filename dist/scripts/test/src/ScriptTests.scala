@@ -449,12 +449,14 @@ object ScriptTests extends TestSuite {
 
     // https://central.sonatype.org/faq/429-tooling-provider/#identify-your-tool-in-the-user-agent
     // The `User-Agent` is the name and `major.minor` version of the script itself, fixed when the
-    // script is generated, and does not depend on the Mill version being downloaded.
-    def expectedUserAgent(scriptName: String): String =
-      """\d+\.\d+""".r.findPrefixOf(sys.env("MILL_EXPECTED_DEFAULT_VERSION")) match {
+    // script is generated, followed by `curl`. It does not depend on the Mill version being downloaded.
+    def expectedUserAgent(scriptName: String): String = {
+      val script = """\d+\.\d+""".r.findPrefixOf(sys.env("MILL_EXPECTED_DEFAULT_VERSION")) match {
         case Some(majorMinor) => s"$scriptName/$majorMinor"
         case None => scriptName
       }
+      s"$script curl"
+    }
 
     def curlUserAgent(millVersion: String): String = {
       val shScript = os.Path(sys.env("MILL_TEST_SH_SCRIPT"), os.pwd)
