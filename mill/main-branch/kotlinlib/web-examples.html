@@ -792,7 +792,7 @@ It covers setting up a basic backend server with a variety of server frameworks<
 <p>This example shows off running a simple webserver in a module configured via <code>build.mill.yaml</code></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-3-bf0300/mill-dist-1.4.0-example-kotlinlib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/1-web-example/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/1-web-example/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: KotlinModule
 kotlinVersion: 2.2.20
@@ -804,7 +804,7 @@ mvnDeps: [io.ktor:ktor-server-core:2.3.7, io.ktor:ktor-server-cio:2.3.7]</code><
 to run the web server</p>
 </div>
 <div class="listingblock">
-<div class="title">src/WebServer.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-3-bf0300/mill-dist-1.4.0-example-kotlinlib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/1-web-example/src/WebServer.kt">browse</a>)</div>
+<div class="title">src/WebServer.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/1-web-example/src/WebServer.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package example
 import io.ktor.server.application.*
@@ -855,7 +855,7 @@ configured by <code>test/package.mill.yaml</code>. This test suite spins up the 
 makes a single HTTP request against and checks it behaves as expected.</p>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-3-bf0300/mill-dist-1.4.0-example-kotlinlib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/1-web-example/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/1-web-example/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.KotlinTests, TestModule.Junit5]
 mvnDeps:
@@ -880,7 +880,7 @@ Test example.WebServerTests#testReverseString() finished...</code></pre>
 <div class="sect2">
 <h3 id="_ktor_hello_world_app"><a class="anchor" href="#_ktor_hello_world_app"></a>Ktor Hello World App</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-3-bf0300/mill-dist-1.4.0-example-kotlinlib-web-2-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/2-hello-ktor">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-2-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/2-hello-ktor">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -906,7 +906,7 @@ object `package` extends KotlinModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/com/example/HelloKtor.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-3-bf0300/mill-dist-1.4.0-example-kotlinlib-web-2-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/2-hello-ktor/src/com/example/HelloKtor.kt">browse</a>)</div>
+<div class="title">src/com/example/HelloKtor.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-2-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/2-hello-ktor/src/com/example/HelloKtor.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package com.example
 
@@ -934,7 +934,7 @@ fun Application.module() {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/src/com/example/HelloKtorTest.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-3-bf0300/mill-dist-1.4.0-example-kotlinlib-web-2-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/2-hello-ktor/test/src/com/example/HelloKtorTest.kt">browse</a>)</div>
+<div class="title">test/src/com/example/HelloKtorTest.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-2-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/2-hello-ktor/test/src/com/example/HelloKtorTest.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package com.example
 
@@ -987,7 +987,7 @@ Test com.example.HelloKtorTest HelloKtorTest finished, took...
 <a href="https://todomvc.com/">TodoMVC</a> example app using Kotlin and Ktor.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-3-bf0300/mill-dist-1.4.0-example-kotlinlib-web-3-todo-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/3-todo-ktor/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-3-todo-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/3-todo-ktor/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: KotlinModule
 kotlinVersion: 2.2.20
@@ -1008,7 +1008,7 @@ mvnDeps:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-3-bf0300/mill-dist-1.4.0-example-kotlinlib-web-3-todo-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/3-todo-ktor/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-3-todo-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/3-todo-ktor/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.KotlinTests, TestModule.Junit5]
 mvnDeps:
@@ -1072,7 +1072,7 @@ fully developing Kotlin/JS support, see the following ticket:</p>
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-3-bf0300/mill-dist-1.4.0-example-kotlinlib-web-4-hello-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/4-hello-kotlinjs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-4-hello-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/4-hello-kotlinjs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*, kotlinlib.js.*
@@ -1121,7 +1121,7 @@ we replace the <code>main.js</code> client side code with the Javascript output 
 <code>ClientApp.kt</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-3-bf0300/mill-dist-1.4.0-example-kotlinlib-web-5-webapp-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/5-webapp-kotlinjs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-5-webapp-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/5-webapp-kotlinjs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1206,7 +1206,7 @@ page updates, it sends HTML for the initial load and JSON for page updates
 which is then rendered into HTML on the client.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-3-bf0300/mill-dist-1.4.0-example-kotlinlib-web-6-webapp-kotlinjs-shared.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/6-webapp-kotlinjs-shared">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-6-webapp-kotlinjs-shared.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/6-webapp-kotlinjs-shared">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*, kotlinlib.js.*
@@ -1324,7 +1324,7 @@ is beyond the scope of this example.</p>
 <div class="sect2">
 <h3 id="_spring_boot_hello_world_app"><a class="anchor" href="#_spring_boot_hello_world_app"></a>Spring Boot Hello World App</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-3-bf0300/mill-dist-1.4.0-example-kotlinlib-web-7-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/7-hello-spring-boot">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-7-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/7-hello-spring-boot">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1370,7 +1370,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <div class="sect2">
 <h3 id="_spring_boot_todomvc_app"><a class="anchor" href="#_spring_boot_todomvc_app"></a>Spring Boot TodoMvc App</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-3-bf0300/mill-dist-1.4.0-example-kotlinlib-web-8-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/8-todo-spring-boot">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-8-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/8-todo-spring-boot">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1461,7 +1461,7 @@ this example also demonstrates:</p>
 <div class="sect2">
 <h3 id="_spring_boot_aot"><a class="anchor" href="#_spring_boot_aot"></a>Spring Boot AOT</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-3-bf0300/mill-dist-1.4.0-example-kotlinlib-web-10-spring-boot-aot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/10-spring-boot-aot">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-10-spring-boot-aot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/10-spring-boot-aot">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1566,7 +1566,7 @@ object `package` extends SpringBootModule, KotlinModule { outer =&gt;
 <h2 id="_micronaut_app"><a class="anchor" href="#_micronaut_app"></a>Micronaut App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-3-bf0300/mill-dist-1.4.0-example-kotlinlib-web-9-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/9-hello-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-9-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/9-hello-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1675,6 +1675,178 @@ trait MicronautModule extends KspModule { outer =&gt;
 ...
 
 &gt; ./mill show clean</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_vaadin_flow_example"><a class="anchor" href="#_vaadin_flow_example"></a>Vaadin Flow Example</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This example builds a <a href="https://vaadin.com/flow">Vaadin Flow</a> web application
+running on Spring Boot, using the <code>mill-contrib-vaadin</code> plugin:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The module mixes in <code>mill.contrib.vaadin.VaadinModule</code>: <code>./mill run</code> starts
+the application in Vaadin&#8217;s development mode</p>
+</li>
+<li>
+<p>The <code>prod</code> sub-module extends <code>VaadinProdModule</code>: it is the production build
+of the same application. <code>prod.vaadinBuildFrontend</code> runs Vaadin&#8217;s production
+frontend build, the equivalent of the <code>prepare-frontend</code> and <code>build-frontend</code>
+goals of the Maven plugin: <code>npm install</code> and a Vite bundle in <code>META-INF/VAADIN</code>.
+<code>prod.run</code> runs the application with this bundle, and as <code>prod</code> also mixes in
+<code>RepackageModule</code>, <code>prod.repackagedJar</code> packages it as an executable jar</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Development-only dependencies such as <code>com.vaadin:vaadin-dev</code> go into the
+<code>runMvnDeps</code> of the Vaadin module: <code>./mill run</code> uses them, while <code>prod</code> leaves
+them out. Runtime dependencies of the production build go into <code>prod</code>'s own
+<code>runMvnDeps</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-11-vaadin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/11-vaadin/build.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-build:
+  mvnDeps:
+  - com.lihaoyi::mill-contrib-vaadin:$MILL_VERSION
+
+mill-jvm-version: 21
+extends: [KotlinModule, mill.contrib.vaadin.VaadinModule]
+kotlinVersion: 2.2.20
+# Vaadin 25 needs Java 21+ bytecode, Kotlin targets Java 1.8 by default
+kotlincOptions: !append [-jvm-target, "21"]
+mainClass: com.example.ApplicationKt
+
+bomMvnDeps:
+- org.springframework.boot:spring-boot-dependencies:4.1.1
+- com.vaadin:vaadin-bom:25.3.5
+
+mvnDeps:
+- com.vaadin:vaadin-spring-boot-starter
+
+# Development mode only: used by `./mill run`, left out of the production build
+runMvnDeps:
+- com.vaadin:vaadin-dev
+
+# Production build, packaged as an executable Spring Boot jar
+object prod:
+  extends: [VaadinProdModule, mill.javalib.repackage.RepackageModule]</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/com/example/Application.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-11-vaadin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/11-vaadin/src/com/example/Application.kt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package com.example
+
+import com.vaadin.flow.component.page.AppShellConfigurator
+import com.vaadin.flow.theme.Theme
+import com.vaadin.flow.theme.lumo.Lumo
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.runApplication
+
+// `open`: Spring subclasses configuration classes, Kotlin classes are final by default
+@SpringBootApplication
+@Theme(themeClass = Lumo::class)
+open class Application : AppShellConfigurator
+
+fun main(args: Array&lt;String&gt;) {
+    runApplication&lt;Application&gt;(*args)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/com/example/MainView.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.4.0-4-1afccf/mill-dist-1.4.0-example-kotlinlib-web-11-vaadin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.4.0/example/kotlinlib/web/11-vaadin/src/com/example/MainView.kt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package com.example
+
+import com.vaadin.flow.component.button.Button
+import com.vaadin.flow.component.html.H1
+import com.vaadin.flow.component.notification.Notification
+import com.vaadin.flow.component.orderedlayout.VerticalLayout
+import com.vaadin.flow.component.textfield.TextField
+import com.vaadin.flow.router.Route
+
+@Route("")
+class MainView : VerticalLayout() {
+
+    init {
+        val name = TextField("Your name")
+        val greet = Button("Say hello") { Notification.show("Hello, ${name.value}!") }
+        add(H1("Hello Vaadin"), name, greet)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Kotlin compiles for Java 1.8 by default, while Spring Boot 4 requires Java 17+
+and Vaadin 25 requires Java 21+, hence <code>-jvm-target 21</code> in <code>kotlincOptions</code>. Kotlin classes are final
+by default, and Spring subclasses the <code>@SpringBootApplication</code> class, so it is
+declared <code>open</code>; the <code>kotlin-spring</code> compiler plugin would do the same for all
+Spring-annotated classes.</p>
+</div>
+<div class="paragraph">
+<p>The frontend build uses the Flow version of the application&#8217;s classpath, here
+managed by <code>vaadin-bom</code>. Vaadin&#8217;s build tooling requires Java 21, hence the
+<code>mill-jvm-version</code> above.</p>
+</div>
+<div class="paragraph">
+<p>Frontend sources such as themes, stylesheets or TypeScript views go into
+<code>frontend/</code>, next to <code>src/</code> and <code>resources/</code>; Vaadin also generates files into
+<code>frontend/generated/</code>. A <code>MavenModule</code> uses Vaadin&#8217;s default <code>src/main/frontend</code>
+instead, and <code>vaadinFrontendDir</code> can point anywhere else.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show vaadinFlowVersion
+"25.3.7"
+
+&gt; ./mill runBackground
+
+&gt; for i in $(seq 1 300); do curl -sf localhost:${PORT:-8080} -o page.html &amp;&amp; ! grep -q devServerIsNotLoaded page.html &amp;&amp; break; sleep 1; done # mac/linux
+
+&gt; curl http://localhost:${PORT:-8080} # mac/linux
+...window.Vaadin.developmentMode = true;...
+
+&gt; ls frontend/generated # mac/linux
+...jar-resources...
+
+&gt; ./mill clean runBackground
+
+&gt; ./mill prod.vaadinBuildFrontend
+...
+
+&gt; ls out/prod/vaadinFrontendBuild.dest/servlet-resources/META-INF/VAADIN/config
+...flow-build-info.json...
+
+&gt; ./mill prod.runBackground
+
+&gt; curl http://localhost:${PORT:-8080} # mac/linux
+...&lt;script type="module" crossorigin src="VAADIN/build/indexhtml-...
+
+&gt; ./mill clean prod.runBackground
+
+&gt; ./mill show prod.repackagedJar
+...$MILL_OUT/prod/repackagedJar.dest/out.jar...
+
+&gt; java -jar out/prod/repackagedJar.dest/out.jar &gt; prod.log 2&gt;&amp;1 &amp; echo $! &gt; prod.pid # mac/linux
+
+&gt; curl http://localhost:${PORT:-8080} # mac/linux
+...&lt;script type="module" crossorigin src="VAADIN/build/indexhtml-...
+
+&gt; kill $(cat prod.pid) # mac/linux</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The executable jar runs the application in Vaadin&#8217;s production mode:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; java -jar out/prod/repackagedJar.dest/out.jar</code></pre>
 </div>
 </div>
 </div>
