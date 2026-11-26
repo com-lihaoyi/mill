@@ -41,8 +41,8 @@ public class CodeGenConstants {
   public static final String rootModuleAlias = "build";
 
   /**
-   * The header passed to the Scala compiler via `-Ymagic-offset-header`, in the sources
-   * generated out of build files and scripts. In those, a `///<header>:<original file path>`
+   * The header passed to the Scala compiler via <code>-Ymagic-offset-header</code>, in the sources
+   * generated out of build files and scripts. In those, <code>///&lt;header&gt;:&lt;original file path&gt;</code>
    * line precedes the user code, which lets the compiler report positions in the original
    * files.
    */
