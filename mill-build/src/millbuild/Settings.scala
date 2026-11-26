@@ -16,6 +16,7 @@ object Settings {
     "0.9.12",
     "0.10.15"
   )
+  // A git tag/branch, optional with the associated version number after a `:`.
   val docTags: Seq[String] = Seq(
     "0.11.13",
     "0.12.17",
@@ -24,7 +25,8 @@ object Settings {
     // can't build, as it requires Mill 2.0.0-M2 features, due to early bootstrapping
     // "2.0.0-M2",
     "1.3.1",
-    "1.4.0-M3"
+    // this is a branch - due to javadoc issues in the 1.4.0 tag
+    "release-1.4.0:1.4.0"
   )
   val mimaBaseVersions: Seq[String] = Seq(
     "1.0.0",
@@ -47,8 +49,7 @@ object Settings {
     "1.1.10",
     "1.3.0",
     "1.3.1",
-    // detect late breakages
-    "1.4.0-M3"
+    "1.4.0"
   )
 
   val graalvmJvmId = "liberica-nik:25.0.5.0.3"

@@ -306,15 +306,38 @@ object `package` extends mill.Module {
        |""".stripMargin
   }
 
-  val versionLabels =
-    Settings.docTags.map { v =>
-      (v, v, v, v.split('.').dropRight(1).mkString(".") + ".x", v.startsWith("1."))
+  type VersionLabel = (String, String, String, String, Boolean)
+
+  val versionLabels: Seq[VersionLabel] = {
+    val versionWithTag = Settings.docTags.map { v =>
+      val parts = v.split(":", 2)
+      (
+        version = Option.when(parts.length > 1)(parts(1)).getOrElse(parts(0)),
+        tag = parts(0)
+      )
+    }
+
+    versionWithTag.map { v =>
+      (
+        v.version,
+        v.tag,
+        v.version,
+        v.version.split('.').dropRight(1).mkString(".") + ".x",
+        v.version.startsWith("1.")
+      )
     }.dropRight(1) ++
       // Set the latest stable branch as the "master" docs that people default to
       Seq(
-        (Settings.docTags.last, Settings.docTags.last, Settings.docTags.last, "master", true),
+        (
+          versionWithTag.last.version,
+          versionWithTag.last.tag,
+          versionWithTag.last.version,
+          "master",
+          true
+        ),
         ("dev", "dev", "dev", "dev", true)
       )
+  }
 
   def oldDocSources = Task {
     Task.traverse(oldDocs.items.map(_.module))(_().oldDocSource)().flatten
@@ -324,6 +347,10 @@ object `package` extends mill.Module {
   trait OldDocModule extends Cross.Module5[String, String, String, String, Boolean] {
 
     def oldDocSource: T[Option[PathRef]] = Task {
+      def progress(msg: String): Unit = {
+        Task.log.ticker(msg)
+        Task.log.streams.err.println(msg)
+      }
       val millVersion =
         if (crossValue == "dev") build.latestUnstableVersion()
         else crossValue
@@ -348,8 +375,10 @@ object `package` extends mill.Module {
         val newWebsiteTask: Boolean = crossValue5
 
         val checkout = Task.dest / millVersion
+        progress(s"Cloning working copy for ${millVersion}")
         os.proc("git", "clone", BuildCtx.workspaceRoot / ".git", checkout).call(stdout = os.Inherit)
 
+        progress(s"Checkout ${gitVersion}")
         try os.proc("git", "checkout", gitVersion).call(cwd = checkout, stdout = os.Inherit)
         catch {
           case e: os.SubprocessException =>
@@ -370,15 +399,18 @@ object `package` extends mill.Module {
         )
 
         val outputFolder = if (newWebsiteTask) {
+          progress("Running: mill website.source")
           os.proc("./mill", "-i", "website.source")
             .call(cwd = checkout, env = oldDocsEnv, stdout = os.Inherit)
           checkout / "out/website/source.dest"
         } else {
+          progress("Running: mill docs.source")
           os.proc("./mill", "-i", "docs.source")
             .call(cwd = checkout, env = oldDocsEnv, stdout = os.Inherit)
           checkout / "out/docs/source.dest"
         }
 
+        progress("Render diagrams")
         expandDiagramsInDirectoryAdocFile(
           outputFolder,
           mill.util.VisualizeModule.toolsClasspath().map(_.path)
@@ -392,6 +424,7 @@ object `package` extends mill.Module {
           if (useOldDownloadUrl) s"${Settings.projectUrl}/releases/download/$millVersion"
           else s"${build.millDownloadPrefix()}/$millVersion"
 
+        progress("Sanitizing rendered HTML")
         sanitizeAntoraYml(
           outputFolder,
           antoraVersion,
@@ -409,23 +442,19 @@ object `package` extends mill.Module {
   }
 
   def localPages: T[PathRef] = Task {
-    val pages = generatePages(true, apidocs.unidocLocal).apply().apply(Nil)
-    Task.log.streams.out.println(
-      s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
-    )
-    pages
+    generatePages(true, apidocs.unidocLocal).apply().apply(Nil)
   }
   def fastPages: T[PathRef] = Task {
-    val pages = generatePages(true, apidocs.dummy).apply().apply(Nil)
-    Task.log.streams.out.println(
-      s"You can browse the pages at: ${(pages.path / "index.html").toNIO.toUri()}"
-    )
-    pages
+    generatePages(true, apidocs.dummy).apply().apply(Nil)
   }
 
-  def generatePages(authorMode: Boolean, apiDocTask: Task[PathRef]) =
+  def generatePages(authorMode: Boolean, apiDocTask: Task[PathRef]): Task[Seq[os.Path] => PathRef] =
     Task.Anon { (extraSources: Seq[os.Path]) =>
-      Task.log.streams.err.println("Creating Antora playbook ...")
+      def progress(msg: String): Unit = {
+        Task.log.ticker(msg)
+        Task.log.streams.err.println(msg)
+      }
+      progress("Creating Antora playbook")
       // dependency to sources
       source()
       val docSite = Task.dest
@@ -436,7 +465,7 @@ object `package` extends mill.Module {
         data = githubPagesPlaybookText(authorMode).apply().apply(extraSources),
         createFolders = true
       )
-      Task.log.streams.err.println("Running Antora ...")
+      progress("Running Antora")
       runAntora(
         npmDir = npmBase(),
         workDir = docSite,
@@ -452,7 +481,7 @@ object `package` extends mill.Module {
       os.write(siteDir / ".nojekyll", "")
 
       // sanitize devAntora source URLs
-      Task.log.streams.err.println("Sanitizing links ...")
+      progress("Sanitizing links")
       sanitizeDevUrls(
         siteDir,
         devAntoraSources().path,
@@ -468,9 +497,12 @@ object `package` extends mill.Module {
 
       // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
       val unidocSrc = apiDocTask().path
-      Task.log.streams.err.println(s"Copying API docs from ${unidocSrc} ...")
+      progress(s"Copying API docs from ${unidocSrc}")
       os.copy(unidocSrc, siteDir / "api/latest", createFolders = true)
 
+      Task.log.streams.out.println(
+        s"You can browse the pages at: ${(siteDir / "index.html").toNIO.toUri()}"
+      )
       PathRef(siteDir)
     }
 
