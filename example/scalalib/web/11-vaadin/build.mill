@@ -12,7 +12,7 @@
 //
 // Development-only dependencies such as `com.vaadin:vaadin-dev` go into the
 // `runMvnDeps` of the Vaadin module: `./mill run` uses them, while `prod` leaves
-// them out. Runtime dependencies of the production build go into `prod`'s own
+// them out. Runtime dependencies of the production build go into ``prod``'s own
 // `runMvnDeps`.
 
 //// SNIPPET:SOURCES
