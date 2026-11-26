@@ -104,6 +104,17 @@ object ScalaNightlyModuleTests extends TestSuite {
         val res = ScalaNightlyModule.latestNightlyVersion(versions, "3.8.3-RC1-bin-20260128")
         assert(res == Some("3.8.3-RC1-bin-20260128-3882481-NIGHTLY"))
       }
+      test("laterReleaseCandidate") {
+        val res = ScalaNightlyModule.latestNightlyVersion(
+          Seq(
+            "3.8.3-RC2-bin-20260201-1234567-NIGHTLY",
+            "3.8.3-RC1-bin-20260129-40075f7-NIGHTLY",
+            "3.8.2-RC9-bin-20260301-89abcde-NIGHTLY"
+          ),
+          ""
+        )
+        assert(res == Some("3.8.3-RC2-bin-20260201-1234567-NIGHTLY"))
+      }
       test("noNightlies") {
         val res = ScalaNightlyModule.latestNightlyVersion(Seq("3.7.4", "3.8.0-RC1"), "")
         assert(res == None)

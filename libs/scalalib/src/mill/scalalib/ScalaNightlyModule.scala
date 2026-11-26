@@ -1,9 +1,8 @@
 package mill.scalalib
 
-import coursier.core.Version
 import mill.*
 import mill.api.Result
-import mill.util.Jvm
+import mill.util.{Jvm, Version}
 
 /**
  * Mix this trait into a [[ScalaModule]] to build it with a Scala 3 nightly version.
@@ -117,6 +116,6 @@ object ScalaNightlyModule {
 
     versions
       .filter(v => NightlyVersion.matches(v) && matchesPrefix(v))
-      .maxByOption(Version(_))
+      .maxByOption(Version.parse)(using Version.MavenOrdering)
   }
 }
