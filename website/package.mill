@@ -318,11 +318,23 @@ object `package` extends mill.Module {
     }
 
     versionWithTag.map { v =>
-      (v.version, v.tag, v.version, v.version.split('.').dropRight(1).mkString(".") + ".x", v.version.startsWith("1."))
+      (
+        v.version,
+        v.tag,
+        v.version,
+        v.version.split('.').dropRight(1).mkString(".") + ".x",
+        v.version.startsWith("1.")
+      )
     }.dropRight(1) ++
       // Set the latest stable branch as the "master" docs that people default to
       Seq(
-        (versionWithTag.last.version, versionWithTag.last.tag, versionWithTag.last.version, "master", true),
+        (
+          versionWithTag.last.version,
+          versionWithTag.last.tag,
+          versionWithTag.last.version,
+          "master",
+          true
+        ),
         ("dev", "dev", "dev", "dev", true)
       )
   }
