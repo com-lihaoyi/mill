@@ -693,10 +693,14 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog (GitHub)</a>
   </li>
 
   <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/LLM_POLICY.md">LLM Policy (GitHub)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
   </li>
 </ul>
@@ -709,7 +713,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.4.0-M3</span>
+    <span class="version">1.4.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -719,7 +723,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.4.0-M3</a>
+          <a href="../index.html">1.4.0</a>
         </li>
         <li class="version">
           <a href="../1.3.x/index.html">1.3.1</a>
@@ -883,16 +887,14 @@ Usage: mill [options] task [task-options] [+ task ...]
 Advanced and internal command-line flags not intended for common usage. Use at your own risk!
 
 Advanced Options:
-  &lt;bool&gt;                    Use filesystem based file watching instead of polling based one
-                            (defaults to true).
   --allow-positional        Allows command args to be passed positionally without `--arg` by default
-  -b                        Ring the bell once if the run completes successfully, twice if it fails.
+  -b --bell                 Ring the bell once if the run completes successfully, twice if it fails.
   --bsp                     Enable BSP server mode. Typically used by a BSP client when starting the
                             Mill BSP server.
   --bsp-install             Create mill-bsp.json with Mill details under .bsp/
   --bsp-watch &lt;bool&gt;        Automatically reload the build when its sources change when running the
                             BSP server (defaults to true).
-  -d                        Show debug output on STDOUT
+  -d --debug                Show debug output on STDOUT
   --disable-ticker          Deprecated, use `--ticker false` instead
   -i --interactive          Alias for now `--no-daemon`. No longer needed for interactive commands
                             since Mill 1.1.0
@@ -905,6 +907,8 @@ Advanced Options:
   --no-server               Deprecated, use `--no-daemon` instead
   --no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to
                             evaluate tasks / commands.
+  --notify-watch &lt;bool&gt;     Use filesystem based file watching instead of polling based one
+                            (defaults to true).
   --offline                 Try to work offline. This tells modules that support it to work offline
                             and avoid any access to the internet. This is on a best effort basis.
                             There are currently no guarantees that modules don't attempt to fetch
