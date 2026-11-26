@@ -162,6 +162,51 @@ object ScalaNightlyModuleTests extends TestSuite {
       }
     }
 
+    test("versionChangeMessage") {
+      val v1 = "3.8.3-RC1-bin-20260128-3882481-NIGHTLY"
+      val v2 = "3.8.3-RC1-bin-20260129-40075f7-NIGHTLY"
+      val first = ScalaNightlyModule.versionChangeMessage(None, v1)
+      assert(first.exists(_.startsWith(s"Using Scala nightly version $v1.")))
+      val changed = ScalaNightlyModule.versionChangeMessage(Some(v1), v2)
+      assert(changed.exists(_.startsWith(s"Scala nightly version changed from $v1 to $v2.")))
+      assert(ScalaNightlyModule.versionChangeMessage(Some(v1), v1) == None)
+    }
+
+    test("reportVersionChange") {
+      val v1 = "3.8.3-RC1-bin-20260128-3882481-NIGHTLY"
+      val v2 = "3.8.3-RC1-bin-20260129-40075f7-NIGHTLY"
+      FixedNightlies.versions = Seq(v1)
+      FixedNightlies.prefix = "3.8"
+      val err = new ByteArrayOutputStream()
+      UnitTester(FixedNightlies, resourcePath, errStream = new PrintStream(err, true)).scoped {
+        eval =>
+          def nightlyLogs() = {
+            val log = err.toString
+            err.reset()
+            log.linesIterator.filter(_.contains("Scala nightly version")).toSeq
+          }
+
+          val Right(first) = eval.apply(FixedNightlies.foo.scalaVersion).runtimeChecked
+          assert(first.value == v1)
+          val firstLogs = nightlyLogs()
+          assert(firstLogs.size == 1 && firstLogs.head.contains(s"Using Scala nightly version $v1"))
+
+          FixedNightlies.versions = Seq(v1, "3.9.0-RC1-bin-20260101-aaaaaaa-NIGHTLY")
+          val Right(unrelated) = eval.apply(FixedNightlies.foo.scalaVersion).runtimeChecked
+          assert(unrelated.value == v1)
+          assert(nightlyLogs().isEmpty)
+
+          FixedNightlies.versions = Seq(v1, v2)
+          val Right(changed) = eval.apply(FixedNightlies.foo.scalaVersion).runtimeChecked
+          assert(changed.value == v2)
+          val changedLogs = nightlyLogs()
+          assert(
+            changedLogs.size == 1 &&
+              changedLogs.head.contains(s"Scala nightly version changed from $v1 to $v2")
+          )
+      }
+    }
+
     test("prefixedNightly") - UnitTester(PrefixedNightly, resourcePath).scoped { eval =>
       val Right(result) = eval.apply(PrefixedNightly.foo.scalaVersion).runtimeChecked
       val version = result.value

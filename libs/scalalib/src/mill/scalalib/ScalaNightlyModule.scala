@@ -63,16 +63,17 @@ trait ScalaNightlyModule extends ScalaModule {
    * The newest version from [[scalaNightlyVersions]] matching [[scalaNightlyVersionPrefix]].
    *
    * This is only re-computed when [[scalaNightlyVersions]] or
-   * [[scalaNightlyVersionPrefix]] change.
+   * [[scalaNightlyVersionPrefix]] change, and warns when the picked version
+   * differs from the one picked previously.
    */
-  def scalaNightlyVersion: T[String] = Task {
+  def scalaNightlyVersion: T[String] = Task(persistent = true) {
     val prefix = scalaNightlyVersionPrefix()
     ScalaNightlyModule.latestNightlyVersion(scalaNightlyVersions(), prefix) match {
       case Some(version) =>
-        Task.log.warn(
-          s"Using Scala nightly version $version. Scala nightly versions are meant for " +
-            "testing upcoming compiler changes, not for building published or deployed artifacts"
-        )
+        val previousFile = Task.dest / "previous-version.txt"
+        val previous = Option.when(os.isFile(previousFile))(os.read(previousFile))
+        ScalaNightlyModule.versionChangeMessage(previous, version).foreach(Task.log.warn(_))
+        os.write.over(previousFile, version)
         Result.Success(version)
       case None =>
         Result.Failure(s"No Scala nightly version with prefix '$prefix' found")
@@ -89,6 +90,19 @@ object ScalaNightlyModule {
    */
   val NightlyVersion: scala.util.matching.Regex =
     raw"""3\.\d+\.\d+(-RC\d+)?-bin-\d+-\w+-NIGHTLY""".r
+
+  private[scalalib] def versionChangeMessage(
+      previous: Option[String],
+      current: String
+  ): Option[String] = {
+    val disclaimer = "Scala nightly versions are meant for testing upcoming compiler " +
+      "changes, not for building published or deployed artifacts"
+    previous match {
+      case Some(`current`) => None
+      case Some(prev) => Some(s"Scala nightly version changed from $prev to $current. $disclaimer")
+      case None => Some(s"Using Scala nightly version $current. $disclaimer")
+    }
+  }
 
   /**
    * Picks the newest Scala 3 nightly version from `versions`, among the ones
