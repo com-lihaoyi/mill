@@ -16,8 +16,22 @@ abstract class MainRootModule()(using
     baseModuleInfo: RootModule.Info,
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
-    millFile0: sourcecode.File
-) extends RootModule with MainModule
+    millFile0: sourcecode.RelFile
+) extends RootModule with MainModule {
+  // bin-compat shim
+  @deprecated("Use constructor accepting a sourcecode.RelFile instead", "Mill after 1.4.0-M3")
+  def this(
+      baseModuleInfo: RootModule.Info,
+      millModuleEnclosing0: sourcecode.Enclosing,
+      millModuleLine0: sourcecode.Line,
+      millFile0: sourcecode.File
+  ) = this()(using
+    baseModuleInfo,
+    millModuleEnclosing0,
+    millModuleLine0,
+    new sourcecode.RelFile(millFile0.value)
+  )
+}
 
 /**
  * [[mill.api.Module]] containing all the default tasks that Mill provides: [[resolve]],

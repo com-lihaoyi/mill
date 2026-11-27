@@ -275,7 +275,8 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
       Seq(
         "-deprecation",
         "-Wconf:msg=will be encoded on the classpath:silent",
-        s"-Ymagic-offset-header:${CodeGenConstants.magicOffsetHeader}"
+        s"-Ymagic-offset-header:${CodeGenConstants.magicOffsetHeader}",
+        s"-Xmacro-settings:sourcecode.relfile.root=${Task.ctx().workspace}"
       )
   }
 

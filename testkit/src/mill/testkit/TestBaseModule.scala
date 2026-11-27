@@ -10,7 +10,7 @@ abstract class TestRootModule(
 )(using
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
-    millModuleFile0: sourcecode.File
+    millModuleFile0: sourcecode.RelFile
 ) extends RootModule0(millSourcePath0 = baseModuleSourcePath)(
       using
       millModuleEnclosing0,
@@ -20,7 +20,7 @@ abstract class TestRootModule(
   def this()(using
       millModuleEnclosing0: sourcecode.Enclosing,
       millModuleLine0: sourcecode.Line,
-      millModuleFile0: sourcecode.File
+      millModuleFile0: sourcecode.RelFile
   ) = this({
     os.makeDir.all(os.pwd / "out/mill-test-base-module")
     os.temp.dir(os.pwd / "out/mill-test-base-module", deleteOnExit = false)

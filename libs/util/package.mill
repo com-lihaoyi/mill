@@ -38,6 +38,7 @@ object `package` extends MillStableScalaModule {
   // can include them explicitly in their YAML header or meta-build
   def mvnDeps = Seq(
     Deps.millModuledefs,
+    Deps.sourcecode,
     Deps.coursier.exclude("*" -> "*"),
     Deps.coursierArchiveCache.exclude("*" -> "*"),
     Deps.coursierCore.exclude("*" -> "*"),
