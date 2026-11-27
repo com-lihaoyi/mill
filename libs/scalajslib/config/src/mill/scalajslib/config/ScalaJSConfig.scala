@@ -41,6 +41,28 @@ private[mill] object ScalaJSConfig {
   private[mill] def isWasmComponent(moduleKind: sjs.ModuleKind): Boolean =
     moduleKind.getClass.getName == WasmComponentClassName
 
+  private final val WasmModuleClassName =
+    "org.scalajs.linker.interface.ModuleKind$WasmModule$"
+
+  // Referencing the new singleton directly can make the JVM resolve its class
+  // before the version guard, even on an older linker classpath.
+  private def wasmModuleKind(sjsVersion: String): sjs.ModuleKind = {
+    if (!minorIsGreaterThanOrEqual(sjsVersion, 23))
+      throw Exception("ModuleKind.WasmModule requires Scala.js >= 1.23.0")
+    Class.forName(WasmModuleClassName, true, classOf[sjs.ModuleKind].getClassLoader)
+      .getField("MODULE$")
+      .get(null)
+      .asInstanceOf[sjs.ModuleKind]
+  }
+
+  private[mill] def isWasmModule(moduleKind: sjs.ModuleKind): Boolean =
+    moduleKind.getClass.getName == WasmModuleClassName
+
+  private[mill] val wasmModuleRunError =
+    "Running or testing a ModuleKind.WasmModule module is not supported by Mill's " +
+      "JavaScript environments. Link it with fastLinkJS or fullLinkJS and load the .wasm " +
+      "file in a suitable WebAssembly host."
+
   /** Mill's default Scala.js linker configuration for the passed parameters */
   def config(
       sjsVersion: String,
@@ -51,7 +73,8 @@ private[mill] object ScalaJSConfig {
       scalaJSSourceMap: Boolean,
       patterns: OutputPatterns,
       useWebAssembly: Boolean,
-      useWebAssemblyJSPI: Boolean
+      useWebAssemblyJSPI: Boolean,
+      experimentalUseCustomDescriptors: Boolean
   ): sjs.StandardConfig = {
 
     val moduleSplitStyle0 = moduleSplitStyle match {
@@ -109,6 +132,7 @@ private[mill] object ScalaJSConfig {
       case ModuleKind.NoModule => sjs.ModuleKind.NoModule
       case ModuleKind.CommonJSModule => sjs.ModuleKind.CommonJSModule
       case ModuleKind.ESModule => sjs.ModuleKind.ESModule
+      case ModuleKind.WasmModule => wasmModuleKind(sjsVersion)
       case ModuleKind.WasmComponent =>
         if (!useWebAssembly)
           throw Exception(
@@ -135,7 +159,9 @@ private[mill] object ScalaJSConfig {
           .withSourceMapURI(patterns.sourceMapURI)
       )
 
-    if (useWebAssemblyJSPI && !useWebAssembly)
+    val targetsWebAssembly = useWebAssembly || moduleKind == ModuleKind.WasmModule
+
+    if (useWebAssemblyJSPI && !targetsWebAssembly)
       throw Exception(
         "scalaJSUseWebAssemblyJSPI requires the WebAssembly backend to be enabled (set scalaJSUseWebAssembly = true)"
       )
@@ -146,8 +172,6 @@ private[mill] object ScalaJSConfig {
         // withExperimentalUseWebAssembly was replaced by ESFeatures.withUseWebAssembly
         val wasmEsFeatures = esFeatures0.withUseWebAssembly(true)
         config = config.withESFeatures(wasmEsFeatures)
-        if (useWebAssemblyJSPI)
-          config = config.withWasmFeatures(_.withUseJSPI(true))
       } else if (minorIsGreaterThanOrEqual(sjsVersion, 17)) {
         config = config.withExperimentalUseWebAssembly(true)
         if (useWebAssemblyJSPI)
@@ -156,6 +180,20 @@ private[mill] object ScalaJSConfig {
           )
       } else
         throw Exception("Emitting wasm is not supported with Scala.js < 1.17")
+
+    if (useWebAssemblyJSPI && minorIsGreaterThanOrEqual(sjsVersion, 22))
+      config = config.withWasmFeatures(_.withUseJSPI(true))
+
+    if (experimentalUseCustomDescriptors) {
+      if (!minorIsGreaterThanOrEqual(sjsVersion, 23))
+        throw Exception("scalaJSExperimentalUseCustomDescriptors requires Scala.js >= 1.23.0")
+      if (!targetsWebAssembly)
+        throw Exception(
+          "scalaJSExperimentalUseCustomDescriptors requires the WebAssembly backend " +
+            "(set scalaJSUseWebAssembly = true or moduleKind = ModuleKind.WasmModule)"
+        )
+      config = config.withWasmFeatures(_.withExperimentalUseCustomDescriptors(true))
+    }
 
     config
   }

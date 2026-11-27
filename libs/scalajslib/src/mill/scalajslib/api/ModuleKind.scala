@@ -15,4 +15,12 @@ enum ModuleKind derives ReadWriter {
    * Requires [[mill.scalajslib.ScalaJSModule.scalaJSUseWebAssembly]].
    */
   case WasmComponent
+
+  /**
+   * A bare WebAssembly module, without JavaScript interop or glue code.
+   * Requires Scala.js >= 1.23.0. This module kind enables the Wasm backend
+   * automatically. Loading and running the module requires a suitable Wasm host;
+   * Mill's JavaScript run and test environments do not support it.
+   */
+  case WasmModule
 }

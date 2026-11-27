@@ -34,6 +34,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     override def scalaJSOptimizer: T[Boolean] = outer.scalaJSOptimizer()
     override def scalaJSUseWebAssembly: T[Boolean] = outer.scalaJSUseWebAssembly()
     override def scalaJSUseWebAssemblyJSPI: T[Boolean] = outer.scalaJSUseWebAssemblyJSPI()
+    override def scalaJSExperimentalUseCustomDescriptors: T[Boolean] =
+      outer.scalaJSExperimentalUseCustomDescriptors()
   }
 
   /**
@@ -161,7 +163,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       minify = scalaJSMinify(),
       importMap = scalaJSImportMap(),
       experimentalUseWebAssembly = scalaJSUseWebAssembly(),
-      useWebAssemblyJSPI = scalaJSUseWebAssemblyJSPI()
+      useWebAssemblyJSPI = scalaJSUseWebAssemblyJSPI(),
+      experimentalUseCustomDescriptors = scalaJSExperimentalUseCustomDescriptors()
     )
   }
 
@@ -214,7 +217,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       minify: Boolean,
       importMap: Seq[ESModuleImportMapping],
       experimentalUseWebAssembly: Boolean,
-      useWebAssemblyJSPI: Boolean
+      useWebAssemblyJSPI: Boolean,
+      experimentalUseCustomDescriptors: Boolean
   )(using ctx: mill.api.TaskCtx): Result[Report] = {
     val outputPath = ctx.dest
 
@@ -237,7 +241,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       minify = minify,
       importMap = importMap,
       experimentalUseWebAssembly = experimentalUseWebAssembly,
-      useWebAssemblyJSPI = useWebAssemblyJSPI
+      useWebAssemblyJSPI = useWebAssemblyJSPI,
+      experimentalUseCustomDescriptors = experimentalUseCustomDescriptors
     )
   }
 
@@ -316,23 +321,33 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
    * Specifies whether to use the WebAssembly backend. Requires Scala.js >= 1.17.0.
    * When using this setting, the following properties must also hold:
    *
-   *  - `moduleKind = ModuleKind.ESModule`
+   *  - `moduleKind = ModuleKind.ESModule` (and ECMAScript 2022+ with Scala.js >= 1.22.0)
    *  - `moduleSplitStyle = ModuleSplitStyle.FewestModules`
    *
    *  @note
-   *    Currently, the WebAssembly backend silently ignores `@JSExport` and
-   *    `@JSExportAll` annotations. This behavior may change in the future,
-   *    either by making them warnings or errors, or by adding support for them.
-   *    All other language features are supported.
+   *    The WebAssembly backend ignores `@JSExport` and `@JSExportAll` unless
+   *    [[scalaJSExperimentalUseCustomDescriptors]] is enabled with Scala.js >= 1.23.0.
+   *    [[api.ModuleKind.WasmModule]] enables the backend automatically, without
+   *    this setting or an ECMAScript version requirement, and disables JavaScript interop.
    */
   def scalaJSUseWebAssembly: T[Boolean] = Task { scalaJSExperimentalUseWebAssembly() }
 
   /**
    * Enables WebAssembly JavaScript Promise Integration (JSPI).
    *
-   * Requires [[scalaJSUseWebAssembly]] and Scala.js >= 1.22.0.
+   * Requires Scala.js >= 1.22.0 and either [[scalaJSUseWebAssembly]] or
+   * [[api.ModuleKind.WasmModule]].
    */
   def scalaJSUseWebAssemblyJSPI: T[Boolean] = Task { false }
+
+  /**
+   * Enables experimental WebAssembly Custom Descriptors. Disabled by default.
+   *
+   * Requires Scala.js >= 1.23.0 and either [[scalaJSUseWebAssembly]] or
+   * [[api.ModuleKind.WasmModule]]. The host must support the Custom Descriptors
+   * proposal. For ESModule output, this enables `@JSExport` and `@JSExportAll`.
+   */
+  def scalaJSExperimentalUseCustomDescriptors: T[Boolean] = Task { false }
 
   /** @deprecated Use [[scalaJSUseWebAssembly]] instead */
   @deprecated("Use scalaJSUseWebAssembly instead", "Mill 1.2.0")
@@ -432,7 +447,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       minify = scalaJSMinify(),
       importMap = scalaJSImportMap(),
       experimentalUseWebAssembly = scalaJSUseWebAssembly(),
-      useWebAssemblyJSPI = scalaJSUseWebAssemblyJSPI()
+      useWebAssemblyJSPI = scalaJSUseWebAssemblyJSPI(),
+      experimentalUseCustomDescriptors = scalaJSExperimentalUseCustomDescriptors()
     )
   }
 

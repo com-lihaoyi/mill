@@ -47,6 +47,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
     case api.ModuleKind.CommonJSModule => workerApi.ModuleKind.CommonJSModule
     case api.ModuleKind.ESModule => workerApi.ModuleKind.ESModule
     case api.ModuleKind.WasmComponent => workerApi.ModuleKind.WasmComponent
+    case api.ModuleKind.WasmModule => workerApi.ModuleKind.WasmModule
   }
 
   private def toWorkerApi(esFeatures: api.ESFeatures): workerApi.ESFeatures = workerApi.ESFeatures(
@@ -147,6 +148,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
     case workerApi.ModuleKind.ESModule => api.ModuleKind.ESModule
     case workerApi.ModuleKind.CommonJSModule => api.ModuleKind.CommonJSModule
     case workerApi.ModuleKind.WasmComponent => api.ModuleKind.WasmComponent
+    case workerApi.ModuleKind.WasmModule => api.ModuleKind.WasmModule
   }
 
   private def fromWorkerApi(report: workerApi.Report): api.Report = {
@@ -212,7 +214,8 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
       minify: Boolean,
       importMap: Seq[api.ESModuleImportMapping],
       experimentalUseWebAssembly: Boolean,
-      useWebAssemblyJSPI: Boolean
+      useWebAssemblyJSPI: Boolean,
+      experimentalUseCustomDescriptors: Boolean
   ): Result[api.Report] = {
     withValue(toolsClasspath) { case (_, bridge) =>
       bridge.link(
@@ -231,7 +234,8 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
         minify = minify,
         importMap = importMap.map(toWorkerApi),
         experimentalUseWebAssembly = experimentalUseWebAssembly,
-        useWebAssemblyJSPI = useWebAssemblyJSPI
+        useWebAssemblyJSPI = useWebAssemblyJSPI,
+        experimentalUseCustomDescriptors = experimentalUseCustomDescriptors
       ) match {
         case Right(report) => Result.Success(fromWorkerApi(report))
         case Left(message) => Result.Failure(message)

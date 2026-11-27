@@ -88,6 +88,9 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
     dest = dest,
     config = config
   )) { (linker, irFileCacheCache) =>
+    // Mill still uses the JavaScript test bridge and environments.
+    if (testBridgeInit && ScalaJSConfig.isWasmModule(config.moduleKind))
+      throw Exception(ScalaJSConfig.wasmModuleRunError)
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false
     val useLegacy = forceOutJs || !minorIsGreaterThanOrEqual(3)
@@ -140,10 +143,10 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
           linker.link(irFiles, moduleInitializers0, linkerOutput, logger).map { _ =>
             new org.scalajs.linker.interface.unstable.ReportImpl(
               publicModules = Seq(new org.scalajs.linker.interface.unstable.ReportImpl.ModuleImpl(
-                moduleID = "main",
-                jsFileName = jsFileName,
-                sourceMapName = sourceMapNameOpt,
-                moduleKind = config.moduleKind
+                "main",
+                jsFileName,
+                sourceMapNameOpt,
+                config.moduleKind
               ))
               // dest = dest
             )
@@ -248,6 +251,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
     case sjs.ModuleKind.NoModule => workerApi.ModuleKind.NoModule
     case sjs.ModuleKind.ESModule => workerApi.ModuleKind.ESModule
     case sjs.ModuleKind.CommonJSModule => workerApi.ModuleKind.CommonJSModule
+    case mk if ScalaJSConfig.isWasmModule(mk) => workerApi.ModuleKind.WasmModule
   }
 
   private def fromSjs(report: sjs.Report, dest: os.Path): workerApi.Report = {
@@ -281,7 +285,8 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
       minify: Boolean,
       importMap: Seq[workerApi.ESModuleImportMapping],
       experimentalUseWebAssembly: Boolean,
-      useWebAssemblyJSPI: Boolean
+      useWebAssemblyJSPI: Boolean,
+      experimentalUseCustomDescriptors: Boolean
   ): Either[String, workerApi.Report] = {
     val config = ScalaJSConfig.config(
       sjsVersion = ScalaJSVersions.current,
@@ -292,7 +297,8 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
       scalaJSSourceMap = sourceMap,
       patterns = outputPatterns,
       useWebAssembly = experimentalUseWebAssembly,
-      useWebAssemblyJSPI = useWebAssemblyJSPI
+      useWebAssemblyJSPI = useWebAssemblyJSPI,
+      experimentalUseCustomDescriptors = experimentalUseCustomDescriptors
     )
 
     rawLink(
@@ -313,6 +319,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi with ScalaJSConfigWo
     case workerApi.ModuleKind.ESModule => api0.ModuleKind.ESModule
     case workerApi.ModuleKind.CommonJSModule => api0.ModuleKind.CommonJSModule
     case workerApi.ModuleKind.WasmComponent => api0.ModuleKind.WasmComponent
+    case workerApi.ModuleKind.WasmModule => api0.ModuleKind.WasmModule
   }
 
   private def fromWorkerApi(report: workerApi.Report): api0.Report = {

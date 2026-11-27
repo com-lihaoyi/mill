@@ -53,8 +53,100 @@ include::partial$example/scalalib/web/9-cross-platform-version-publishing.adoc[]
 
 include::partial$example/scalalib/web/10-wasm.adoc[]
 
+
+==== Bare WebAssembly modules (Scala.js 1.23.0+)
+
+Use `ModuleKind.WasmModule` when you need a core WebAssembly `.wasm` file without
+JavaScript glue. Use a Mill version that supports this module kind and JDK 17
+or later for the Scala.js linker. Start with this `build.mill`:
+
+[source,scala]
+----
+package build
+
+import mill.*
+import mill.scalajslib.ScalaJSModule
+import mill.scalajslib.api.ModuleKind
+
+object wasm extends ScalaJSModule {
+  def scalaVersion = "2.13.18"
+  def scalaJSVersion = "1.23.0"
+  override def moduleKind: T[ModuleKind] = ModuleKind.WasmModule
+}
+----
+
+Put the following in `wasm/src/Exports.scala`:
+
+[source,scala]
+----
+import scala.scalajs.wasm.annotation.WasmExport
+
+object Exports {
+  @WasmExport("twice")
+  def twice(value: Int): Int = value * 2
+}
+----
+
+Run `./mill show wasm.fastLinkJS` to link and inspect the report. Despite the name,
+`fastLinkJS` (or `fullLinkJS` for an optimized build) emits WebAssembly for this
+module kind. Find the filename in `publicModules` under the historical
+`jsFileName` key, and resolve it relative to the report's `dest`. With the default
+output directory, this example writes `out/wasm/fastLinkJS.dest/main.wasm`.
+
+A host needs WebAssembly 3.0 support. For example, with a compatible Node.js
+version (such as Node.js 24.22.3) and the default output directory:
+
+[source,bash]
+----
+node --input-type=module <<'EOF'
+import { readFileSync } from "node:fs";
+const bytes = readFileSync("out/wasm/fastLinkJS.dest/main.wasm");
+const { instance } = await WebAssembly.instantiate(bytes, {});
+console.log(instance.exports.twice(21));
+EOF
+----
+
+This prints `42`. The empty imports object is sufficient for the example;
+modules declaring `@WasmImport` must supply their own host functions.
+
+[cols="1,2,2",options="header"]
+|===
+|Mode |Mill settings |Output and execution
+
+|Bare WebAssembly
+|`ModuleKind.WasmModule`; enables Wasm automatically
+|Core `.wasm` without JavaScript glue; load it in your host.
+
+|JavaScript-hosted WebAssembly
+|`ModuleKind.ESModule`, `scalaJSUseWebAssembly = true`, and
+`ModuleSplitStyle.FewestModules`; use ES2022 or later with Scala.js 1.22.0+
+|JavaScript entry point plus `.wasm`; choose this mode to use Mill's JavaScript
+`run` and `test` tasks in a supported host.
+
+|WebAssembly Component Model
+|`ModuleKind.WasmComponent` with a linker that supports the Component Model
+|A separate target, not another name for a bare WebAssembly module.
+|===
+
+Mill does not currently run or test bare modules through its JavaScript
+`run` and `test` tasks. Link them and use your own host, as shown above.
+
+Bare modules do not support JavaScript interop. Use `@WasmImport` and `@WasmExport`
+with Scala.js's supported interface types, including numeric types and numeric
+arrays. Reachable host-dependent JDK APIs such as `println`, clocks, and unseeded
+random generators may fail to link. See the
+https://www.scala-js.org/doc/project/webassembly.html[Scala.js WebAssembly documentation].
+
+==== Experimental Custom Descriptors
+
+With Scala.js 1.23.0 or later, set `scalaJSExperimentalUseCustomDescriptors = true`
+to opt in to the experimental Wasm Custom Descriptors proposal. This setting is
+independent of `scalaJSUseWebAssemblyJSPI`, and defaults to `false`.
+It requires a host with Custom Descriptors support and either `ModuleKind.WasmModule`
+or `scalaJSUseWebAssembly = true`. For `ModuleKind.ESModule` with the Wasm backend,
+it enables `@JSExport` and `@JSExportAll`; it does not enable JavaScript interop in
+bare Wasm modules.
+
 == Vaadin Flow Example
 
 include::partial$example/scalalib/web/11-vaadin.adoc[]
-
-
