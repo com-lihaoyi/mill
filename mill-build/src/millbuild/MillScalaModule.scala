@@ -78,9 +78,20 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
     super.scalacPluginMvnDeps() ++
       Option.when(binaryVersion != "3")(Deps.acyclic) ++
-      Option.when(hasModuleDefs)(Deps.millModuledefsPlugin) ++
+      (if (hasModuleDefs) Seq(
+         Deps.millModuledefsPlugin
+           // sourcecode is too old
+           .exclude("com.lihaoyi" -> "sourcecode_3"),
+         // when cleaning up, also cleanup [[allScalacOptions]]
+         Deps.sourcecode
+       )
+       else Seq()) ++
       Seq(Deps.unrollPlugin)
   }
+
+  override def allScalacOptions: T[Seq[String]] = super.allScalacOptions()
+    // we need to remove the manually added sourceode dep which is not an plugin
+    .filterNot(o => o.startsWith("-Xplugin:") && o.contains("sourcecode_3"))
 
   def mandatoryMvnDeps = Task {
     val sv = scalaVersion()
