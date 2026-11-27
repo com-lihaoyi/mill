@@ -30,6 +30,10 @@ include::partial$example/kotlinlib/linting/6-spotless.adoc[]
 
 include::partial$example/javalib/linting/6-spotless-ratchet.adoc[]
 
+=== Custom Formatter Steps
+
+include::partial$example/kotlinlib/linting/7-spotless-custom.adoc[]
+
 == Code Coverage with Kover
 
 include::partial$example/kotlinlib/linting/5-kover.adoc[]

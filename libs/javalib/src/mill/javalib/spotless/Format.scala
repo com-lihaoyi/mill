@@ -254,6 +254,21 @@ object Format {
   ) extends Step derives ReadWriter
 
   /**
+   * A custom formatting step. This can only be defined in a Mill module
+   * and not in the .spotless-formats.json.
+   * @param className The class implementing the com.diffplug.spotless.FormatterStep.
+   *                  Must have a default constructor that is used to instantiate the formatter.
+   * @param classPath The classpath of this formatting step, and where the [[className]] lives.
+   *                  These classpath will be loaded by the Spotless formatting,
+   *                  with the Spotless classes already defined.
+   *                  So, only libraries of the actual formatter implementation is required.
+   */
+  case class CustomFormat(
+      className: String,
+      classPath: Seq[PathRef]
+  ) extends Step
+
+  /**
    * A lint suppression definition.
    * @note When all members are `null`, all lints are suppressed.
    * @param path Relative path to file.

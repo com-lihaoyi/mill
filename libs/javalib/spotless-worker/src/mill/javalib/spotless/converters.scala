@@ -17,6 +17,7 @@ import os.Path
 import java.io.File
 import java.nio.charset.Charset
 import scala.jdk.CollectionConverters.*
+import scala.reflect.internal.util.ScalaClassLoader.URLClassLoader
 
 class ToFormatterStep(charset: Charset, provisioner: Provisioner)
     extends (Step => FormatterStep):
@@ -177,6 +178,14 @@ class ToFormatterStep(charset: Charset, provisioner: Provisioner)
         Option(version).getOrElse(FlexmarkStep.defaultVersion()),
         provisioner
       )
+    case step: CustomFormat =>
+      import step.*
+
+      val files = classPath.map(_.path.toURL)
+      val cp = new URLClassLoader(files, this.getClass.getClassLoader);
+      val formatterClass = cp.loadClass(className)
+      val formatter = formatterClass.getDeclaredConstructor().newInstance()
+      formatter.asInstanceOf[FormatterStep]
 
 def toLintSuppression(suppress: Suppress) = {
   import suppress.*

@@ -1,0 +1,80 @@
+// :api-spotless: {site-url}/api/latest/mill/javalib/spotless
+//
+// If the link:{api-spotless}/Format.html[format steps] provided by Mill's
+// https://github.com/diffplug/spotless[Spotless] plugin are not sufficient,
+// you can implement your own formatter step using the
+// link:{api-spotless}/Format$$CustomFormat.html[`Format.CustomFormat`] step.
+//
+// Define a module that extends link:{api-spotless}/SpotlessModule.html[SpotlessModule].
+// Then create a module that holds the dependencies required and your custom formatter steps.
+
+package build
+
+import mill.*
+import mill.kotlinlib.*
+import mill.javalib.spotless.*
+
+object `package` extends KotlinModule, SpotlessModule {
+  def kotlinVersion = "2.2.20"
+
+  // The `formatter` module contains the implementation of our custom formatter step.
+  object formatter extends KotlinModule {
+    def kotlinVersion = "2.2.20"
+    // The dependencies your formatter requires.
+    override def mvnDeps = Seq(
+      mvn"com.github.vertical-blank:sql-formatter:2.0.3"
+    )
+    // Required to have the Spotless API present. While formatting, Mill will provide it
+    override def compileMvnDeps = Seq(
+      mvn"com.diffplug.spotless:spotless-lib:3.3.1"
+    )
+  }
+
+  // Override `spotlessFormats` to configure the specifications in-code.
+  // The `Format.CustomFormat` step instantiates `formatter.SQLFormatter` class,
+  // loaded from the classpath of the `formatter` module, and applies it to SQL files
+  override def spotlessFormats = Task {
+    Seq(
+      // The list of formatters. In this example the custom format for SQL
+      Format("glob:src/**.sql")(
+        Format.CustomFormat(
+          className = "formatter.SQLFormatter",
+          classPath = formatter.runClasspath()
+        )
+      )
+    )
+  }
+}
+
+// The custom formatter step class must implement the
+// https://javadoc.io/doc/com.diffplug.spotless/spotless-lib/latest/com/diffplug/spotless/FormatterStep.html[`FormatterStep`]
+// interface.
+//
+// In this example we use the https://github.com/vertical-blank/sql-formatter[sql-formatter]
+// to format SQL files.
+
+/** See Also: formatter/src/formatter/SQLFormatter.kt */
+/** See Also: src/sql-script.sql */
+
+// Next, we run the `spotless` command to check/apply the format specifications.
+
+/** Usage
+> ./mill spotless --check    # check fails initially
+checking format in 1 sql files
+format errors in src/sql-script.sql
+format errors in 1 files
+error: ...format check failed for 1 files
+
+> ./mill spotless           # auto-fix format
+formatting src/sql-script.sql
+formatted 1 files
+
+> ./mill spotless           # fast incremental format
+1 sql files are already formatted
+*/
+
+// The `spotlessFormats` override can freely combine the `Format.CustomFormat` step
+// with the built-in steps. Overriding it will ignore the `.spotless-formats.json` file.
+//
+// For the full list of format steps and configuration options, see
+// link:{api-spotless}/Format.html[API documentation].

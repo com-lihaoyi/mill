@@ -37,6 +37,10 @@ include::partial$example/scalalib/linting/5-spotless.adoc[]
 
 include::partial$example/javalib/linting/6-spotless-ratchet.adoc[]
 
+=== Custom Formatter Steps
+
+include::partial$example/scalalib/linting/6-spotless-custom.adoc[]
+
 == Code Coverage with Scoverage
 
 include::partial$example/scalalib/linting/3-contrib-scoverage.adoc[]
