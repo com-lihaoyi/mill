@@ -2,6 +2,7 @@ package mill.scalanativelib.worker
 
 import java.io.File
 
+import mill.scalanativelib.api.GarbageCollectorConfig
 import mill.scalanativelib.worker.api.*
 import scala.scalanative.util.Scope
 import scala.scalanative.build.{
@@ -120,6 +121,65 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
       }
     } else Right(config)
   }
+
+  override def config(
+      mainClass: Either[String, String],
+      classpath: Seq[File],
+      nativeWorkdir: File,
+      nativeClang: File,
+      nativeClangPP: File,
+      nativeTarget: Option[String],
+      nativeCompileOptions: Seq[String],
+      nativeLinkingOptions: Seq[String],
+      nativeGC: String,
+      nativeLinkStubs: Boolean,
+      nativeLTO: String,
+      releaseMode: String,
+      nativeOptimize: Boolean,
+      nativeEmbedResources: Boolean,
+      nativeIncrementalCompilation: Boolean,
+      nativeDump: Boolean,
+      nativeMultithreading: Option[Boolean],
+      nativeServiceProviders: Map[String, Seq[String]],
+      logLevel: NativeLogLevel,
+      buildTarget: BuildTarget,
+      sourceLevelDebuggingConfig: SourceLevelDebuggingConfig,
+      baseName: String,
+      gcOptions: GarbageCollectorConfig
+  ): Either[String, Config] =
+    config(
+      mainClass,
+      classpath,
+      nativeWorkdir,
+      nativeClang,
+      nativeClangPP,
+      nativeTarget,
+      nativeCompileOptions,
+      nativeLinkingOptions,
+      nativeGC,
+      nativeLinkStubs,
+      nativeLTO,
+      releaseMode,
+      nativeOptimize,
+      nativeEmbedResources,
+      nativeIncrementalCompilation,
+      nativeDump,
+      nativeMultithreading,
+      nativeServiceProviders,
+      logLevel,
+      buildTarget,
+      sourceLevelDebuggingConfig,
+      baseName
+    ).flatMap { config =>
+      if (gcOptions == GarbageCollectorConfig.empty) Right(config)
+      else {
+        try Right(GarbageCollectorConfig0513(config, gcOptions))
+        catch {
+          case e: IllegalArgumentException =>
+            Left(s"Invalid nativeGarbageCollectorConfig: ${e.getMessage}")
+        }
+      }
+    }
 
   def nativeLink(nativeConfig: Object, outDirectory: File): File = {
     val config = nativeConfig.asInstanceOf[Config]

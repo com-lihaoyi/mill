@@ -1,7 +1,7 @@
 package hellotest
 
-import hello.*
-import utest.*
+import hello.ArgsParser
+import utest.{TestSuite, Tests, assert, test}
 
 object ArgsParserTests extends TestSuite {
 

@@ -3,6 +3,8 @@ package mill.scalanativelib.worker.api
 import java.io.File
 import java.nio.file.Path
 
+import mill.scalanativelib.api.GarbageCollectorConfig
+
 private[scalanativelib] trait ScalaNativeWorkerApi {
 
   def discoverClang(): File
@@ -35,6 +37,58 @@ private[scalanativelib] trait ScalaNativeWorkerApi {
       sourceLevelDebuggingConfig: SourceLevelDebuggingConfig,
       baseName: String
   ): Either[String, Object]
+
+  def config(
+      mainClass: Either[String, String],
+      classpath: Seq[File],
+      nativeWorkdir: File,
+      nativeClang: File,
+      nativeClangPP: File,
+      nativeTarget: Option[String],
+      nativeCompileOptions: Seq[String],
+      nativeLinkingOptions: Seq[String],
+      nativeGC: String,
+      nativeLinkStubs: Boolean,
+      nativeLTO: String,
+      releaseMode: String,
+      nativeOptimize: Boolean,
+      nativeEmbedResources: Boolean,
+      nativeIncrementalCompilation: Boolean,
+      nativeDump: Boolean,
+      nativeMultithreading: Option[Boolean],
+      nativeServiceProviders: Map[String, Seq[String]],
+      logLevel: NativeLogLevel,
+      buildTarget: BuildTarget,
+      sourceLevelDebuggingConfig: SourceLevelDebuggingConfig,
+      baseName: String,
+      gcOptions: GarbageCollectorConfig
+  ): Either[String, Object] =
+    if (gcOptions == GarbageCollectorConfig.empty)
+      config(
+        mainClass,
+        classpath,
+        nativeWorkdir,
+        nativeClang,
+        nativeClangPP,
+        nativeTarget,
+        nativeCompileOptions,
+        nativeLinkingOptions,
+        nativeGC,
+        nativeLinkStubs,
+        nativeLTO,
+        releaseMode,
+        nativeOptimize,
+        nativeEmbedResources,
+        nativeIncrementalCompilation,
+        nativeDump,
+        nativeMultithreading,
+        nativeServiceProviders,
+        logLevel,
+        buildTarget,
+        sourceLevelDebuggingConfig,
+        baseName
+      )
+    else Left("The Scala Native worker does not support nativeGarbageCollectorConfig; update Mill")
 
   def nativeLink(nativeConfig: Object, outPath: File): File
 

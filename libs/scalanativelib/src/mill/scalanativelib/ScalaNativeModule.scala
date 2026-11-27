@@ -17,6 +17,7 @@ import mill.scalanativelib.worker.{
   api as workerApi
 }
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
+import mill.util.Version
 import os.{Path, Shellable}
 
 import java.lang
@@ -180,6 +181,24 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     nativeGCInput().getOrElse(withScalaNativeBridge.apply().apply(_.defaultGarbageCollector()))
   }
 
+  /** Tunable garbage collector options for Scala Native 0.5.13 and newer. */
+  def nativeGarbageCollectorConfig: T[GarbageCollectorConfig] = Task {
+    GarbageCollectorConfig.empty
+  }
+
+  private[scalanativelib] def validatedGarbageCollectorConfig: T[GarbageCollectorConfig] = Task {
+    val options = nativeGarbageCollectorConfig()
+    val version = scalaNativeVersion()
+    if (
+      options != GarbageCollectorConfig.empty &&
+      !Version.isAtLeast(version, "0.5.13")(using Version.MavenOrdering)
+    ) {
+      Result.Failure(
+        s"nativeGarbageCollectorConfig requires Scala Native 0.5.13 or newer (got $version)"
+      )
+    } else Result.Success(options)
+  }
+
   def nativeTarget: T[Option[String]] = Task { None }
 
   // Options that are passed to clang during compilation
@@ -279,7 +298,8 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
       toWorkerApi(logLevel()),
       toWorkerApi(nativeBuildTarget()),
       toWorkerApi(nativeSourceLevelDebuggingConfig()),
-      nativeBaseName()
+      nativeBaseName(),
+      validatedGarbageCollectorConfig()
     )) match {
       case Right(config) => Result.Success(NativeConfig(config))
       case Left(error) => Result.Failure(error)

@@ -1,4 +1,4 @@
-import utest.*
+import utest.{TestSuite, Tests, test}
 
 object EmptyPackageTests extends TestSuite {
   val tests = Tests {
