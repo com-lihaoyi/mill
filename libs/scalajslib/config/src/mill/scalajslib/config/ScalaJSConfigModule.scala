@@ -95,6 +95,7 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
     case api.ModuleKind.CommonJSModule => workerApi.ModuleKind.CommonJSModule
     case api.ModuleKind.ESModule => workerApi.ModuleKind.ESModule
     case api.ModuleKind.WasmComponent => workerApi.ModuleKind.WasmComponent
+    case api.ModuleKind.WasmModule => workerApi.ModuleKind.WasmModule
   }
 
   private def toWorkerApi(esFeatures: api.ESFeatures): workerApi.ESFeatures = workerApi.ESFeatures(
@@ -159,7 +160,8 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
       scalaJSSourceMap = scalaJSSourceMap(),
       patterns = toWorkerApi(scalaJSOutputPatterns()),
       useWebAssembly = scalaJSUseWebAssembly(),
-      useWebAssemblyJSPI = scalaJSUseWebAssemblyJSPI()
+      useWebAssemblyJSPI = scalaJSUseWebAssemblyJSPI(),
+      experimentalUseCustomDescriptors = scalaJSExperimentalUseCustomDescriptors()
     )
   }
 
@@ -202,6 +204,7 @@ trait ScalaJSConfigModule extends ScalaJSModule { outer =>
     case sjs.ModuleKind.NoModule => api.ModuleKind.NoModule
     case sjs.ModuleKind.ESModule => api.ModuleKind.ESModule
     case sjs.ModuleKind.CommonJSModule => api.ModuleKind.CommonJSModule
+    case mk if ScalaJSConfig.isWasmModule(mk) => api.ModuleKind.WasmModule
   }
 
   private def fromSjs(report: sjs.Report, dest: os.Path): api.Report = {
@@ -257,6 +260,8 @@ private[mill] object ScalaJSConfigModule {
       case api.ModuleKind.NoModule => Input.Script(path)
       case api.ModuleKind.ESModule => Input.ESModule(path)
       case api.ModuleKind.CommonJSModule => Input.CommonJSModule(path)
+      case api.ModuleKind.WasmModule =>
+        throw Exception(ScalaJSConfig.wasmModuleRunError)
       case api.ModuleKind.WasmComponent =>
         throw Exception(
           "Running or testing a ModuleKind.WasmComponent module is not supported yet: " +
@@ -282,7 +287,10 @@ private[mill] object ScalaJSConfigModule {
 
     var config0 = config
       .withSemantics(sjs.Semantics.Defaults.optimized)
-      .withClosureCompilerIfAvailable(config.moduleKind != sjs.ModuleKind.ESModule)
+      .withClosureCompilerIfAvailable(
+        config.moduleKind == sjs.ModuleKind.NoModule ||
+          config.moduleKind == sjs.ModuleKind.CommonJSModule
+      )
 
     if (ScalaJSConfig.minorIsGreaterThanOrEqual(ScalaJSVersions.current, 16))
       config0 = config0.withMinify(true)

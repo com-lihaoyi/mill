@@ -17,7 +17,8 @@ object ScalaJSConfigVersionGuardTests extends TestSuite {
       esFeatures: ESFeatures,
       moduleKind: ModuleKind = ModuleKind.NoModule,
       useWebAssembly: Boolean = false,
-      useWebAssemblyJSPI: Boolean = false
+      useWebAssemblyJSPI: Boolean = false,
+      experimentalUseCustomDescriptors: Boolean = false
   ) =
     ScalaJSConfig.config(
       sjsVersion = sjsVersion,
@@ -34,7 +35,8 @@ object ScalaJSConfigVersionGuardTests extends TestSuite {
         sourceMapURI = "%s.js.map"
       ),
       useWebAssembly = useWebAssembly,
-      useWebAssemblyJSPI = useWebAssemblyJSPI
+      useWebAssemblyJSPI = useWebAssemblyJSPI,
+      experimentalUseCustomDescriptors = experimentalUseCustomDescriptors
     )
 
   val tests: Tests = Tests {
@@ -136,6 +138,79 @@ object ScalaJSConfigVersionGuardTests extends TestSuite {
         useWebAssemblyJSPI = true
       )
       assert(config.wasmFeatures.useJSPI)
+    }
+
+    test("WasmModule requires Scala.js 1.23") {
+      val ex = assertThrows[Exception] {
+        makeConfig("1.22.0", makeESFeatures(ESVersion.ES2015), ModuleKind.WasmModule)
+      }
+      assert(ex.getMessage.contains("ModuleKind.WasmModule requires Scala.js >= 1.23.0"))
+    }
+
+    test("WasmModule needs neither the ES backend switch nor ES2022") {
+      val config = makeConfig("1.23.0", makeESFeatures(ESVersion.ES2015), ModuleKind.WasmModule)
+      assert(config.moduleKind == org.scalajs.linker.interface.ModuleKind.WasmModule)
+      assert(!config.esFeatures.useWebAssembly)
+      assert(!config.wasmFeatures.experimentalUseCustomDescriptors)
+      assert(!ScalaJSConfigModule.fullOptConfig(config).closureCompilerIfAvailable)
+    }
+
+    test("Custom Descriptors require Scala.js 1.23") {
+      val ex = assertThrows[Exception] {
+        makeConfig(
+          "1.22.0",
+          makeESFeatures(ESVersion.ES2022),
+          ModuleKind.ESModule,
+          useWebAssembly = true,
+          experimentalUseCustomDescriptors = true
+        )
+      }
+      assert(ex.getMessage.contains(
+        "scalaJSExperimentalUseCustomDescriptors requires Scala.js >= 1.23.0"
+      ))
+    }
+
+    test("Custom Descriptors require Wasm") {
+      val ex = assertThrows[Exception] {
+        makeConfig(
+          "1.23.0",
+          makeESFeatures(ESVersion.ES2015),
+          experimentalUseCustomDescriptors = true
+        )
+      }
+      assert(ex.getMessage.contains("requires the WebAssembly backend"))
+    }
+
+    test("Custom Descriptors and JSPI are independent") {
+      for (
+        moduleKind <- Seq(ModuleKind.ESModule, ModuleKind.WasmModule);
+        jspi <- Seq(false, true); descriptors <- Seq(false, true)
+      ) {
+        val config = makeConfig(
+          "1.23.0",
+          makeESFeatures(ESVersion.ES2022),
+          moduleKind,
+          useWebAssembly = moduleKind == ModuleKind.ESModule,
+          useWebAssemblyJSPI = jspi,
+          experimentalUseCustomDescriptors = descriptors
+        )
+        assert(config.wasmFeatures.useJSPI == jspi)
+        assert(config.wasmFeatures.experimentalUseCustomDescriptors == descriptors)
+      }
+    }
+
+    test("WasmModule is rejected by JavaScript runner") {
+      val report = mill.scalajslib.api.Report(
+        Seq(mill.scalajslib.api.Report.Module(
+          "main",
+          "main.wasm",
+          None,
+          mill.scalajslib.api.ModuleKind.WasmModule
+        )),
+        mill.PathRef(os.pwd)
+      )
+      val ex = assertThrows[Exception] { ScalaJSConfigModule.jsEnvInputs(report) }
+      assert(ex.getMessage.contains(ScalaJSConfig.wasmModuleRunError))
     }
 
     test("ES5_1 with Scala.js 1.5 succeeds") {

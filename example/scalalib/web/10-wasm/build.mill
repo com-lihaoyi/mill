@@ -5,20 +5,21 @@ import mill.scalajslib.api.*
 object wasm extends ScalaJSModule {
   override def scalaVersion = "3.8.2"
 
-  override def scalaJSVersion = "1.20.2"
+  override def scalaJSVersion = "1.23.0"
 
   override def moduleKind = ModuleKind.ESModule
 
   override def moduleSplitStyle = ModuleSplitStyle.FewestModules
 
-  override def scalaJSExperimentalUseWebAssembly = true
+  override def scalaJSUseWebAssembly = true
+
+  override def esFeatures = super.esFeatures().withESVersion(ESVersion.ES2022)
 }
 
-// This build defines a single `ScalaJSModule` that uses the `WASM` backend of the scala JS linker.
-// The release notes that introduced scalaJS wasm are here;
-// https://www.scala-js.org/news/2024/09/28/announcing-scalajs-1.17.0/
-// and are worth reading. They include information such as the scala JS requirements to successfully emit wasm,
-// the flags needed to run in browser and the minimum node version (22) required to actually run the wasm output.
+// This build uses the Scala.js WebAssembly backend with an ECMAScript module
+// interface. Scala.js 1.22.0+ requires ES2022 or later for this mode.
+// The host must support Wasm 3.0; see
+// https://www.scala-js.org/doc/project/webassembly.html for the requirements.
 
 /** Usage
 
