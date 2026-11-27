@@ -4,7 +4,7 @@ import com.vaadin.experimental.FeatureFlags
 import com.vaadin.flow.server.frontend.scanner.{ClassFinder, FrontendDependenciesScanner}
 
 /**
- * The scanner of the production build, for Flow 25.3.4 and newer: `createScanner`
+ * The scanner of the production build, for Flow 25.3.9 and newer: `createScanner`
  * also takes `productionMode`, passed as `true` like the Maven plugin does.
  */
 private[worker] object FrontendScanner {
