@@ -446,5 +446,79 @@ object ScriptTests extends TestSuite {
         }
       }
     }
+
+    // https://central.sonatype.org/faq/429-tooling-provider/#identify-your-tool-in-the-user-agent
+    // The `User-Agent` is the name and `major.minor` version of the script itself, fixed when the
+    // script is generated, followed by `curl`. It does not depend on the Mill version being downloaded.
+    def expectedUserAgent(scriptName: String): String = {
+      val script = """\d+\.\d+""".r.findPrefixOf(sys.env("MILL_EXPECTED_DEFAULT_VERSION")) match {
+        case Some(majorMinor) => s"$scriptName/$majorMinor"
+        case None => scriptName
+      }
+      s"$script curl"
+    }
+
+    def curlUserAgent(millVersion: String): String = {
+      val shScript = os.Path(sys.env("MILL_TEST_SH_SCRIPT"), os.pwd)
+      val tmp = os.temp.dir()
+      val recordedArgs = tmp / "curl-args.txt"
+      val fakeBin = tmp / "bin"
+      os.write(
+        fakeBin / "curl",
+        """#!/bin/sh
+          |for arg in "$@"; do printf '%s\n' "$arg" >> "$MILL_TEST_CURL_ARGS"; done
+          |while [ $# -gt 0 ]; do
+          |  if [ "$1" = "-o" ]; then : > "$2"; fi
+          |  shift
+          |done
+          |exit 22
+          |""".stripMargin,
+        perms = "rwxr-xr-x",
+        createFolders = true
+      )
+
+      // The dry run exits before `curl`, so put a fake `curl` on the `PATH` that records its
+      // arguments, and run the compiled `mill.sh` with `sh` up to that point.
+      val res = os.call(
+        cmd = Seq("sh", shScript.toString),
+        cwd = tmp,
+        env = Map(
+          "MILL_VERSION" -> millVersion,
+          "MILL_FINAL_DOWNLOAD_FOLDER" -> (tmp / "download").toString,
+          "MILL_TEST_CURL_ARGS" -> recordedArgs.toString,
+          "PATH" -> s"$fakeBin${java.io.File.pathSeparator}${sys.env("PATH")}",
+          "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> null
+        ),
+        check = false,
+        stderr = os.Pipe
+      )
+      // The fake `curl` fails, so the script must fail rather than launch Mill
+      assert(res.exitCode == 22)
+
+      val args = os.read.lines(recordedArgs)
+      val flag = args.indexOf("-A")
+      assert(flag >= 0)
+      args(flag + 1)
+    }
+
+    test("downloadUserAgent") {
+      test("shScript") {
+        val shScript = os.Path(sys.env("MILL_TEST_SH_SCRIPT"), os.pwd)
+        assert(os.read(shScript).contains(s"""-A "${expectedUserAgent("mill.sh")}" """))
+      }
+      test("batScript") {
+        val batScript = os.Path(sys.env("MILL_TEST_BAT_SCRIPT"), os.pwd)
+        assert(os.read(batScript).contains(s"""-A "${expectedUserAgent("mill.bat")}" """))
+      }
+      // `mill.sh` is not run on Windows, which uses `mill.bat`
+      test("shScriptCurlArgs") {
+        if (!scala.util.Properties.isWin) {
+          val expected = expectedUserAgent("mill.sh")
+          assert(curlUserAgent("1.4.0") == expected)
+          assert(curlUserAgent("0.12.0") == expected)
+          assert(curlUserAgent("custom") == expected)
+        }
+      }
+    }
   }
 }

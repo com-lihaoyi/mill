@@ -251,7 +251,8 @@ if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
 
     echo Downloading mill !MILL_VERSION! from !MILL_DOWNLOAD_URL! ... 1>&2
 
-    curl -f -L "!MILL_DOWNLOAD_URL!" -o "!MILL_TEMP_DOWNLOAD_FILE!"
+    rem https://central.sonatype.org/faq/429-tooling-provider/#identify-your-tool-in-the-user-agent
+    curl -f -L -A "mill.bat/1.4 curl" "!MILL_DOWNLOAD_URL!" -o "!MILL_TEMP_DOWNLOAD_FILE!"
 
     if not exist "%MILL_FINAL_DOWNLOAD_FOLDER%" mkdir "%MILL_FINAL_DOWNLOAD_FOLDER%"
     move /y "!MILL_TEMP_DOWNLOAD_FILE!" "%MILL%"
