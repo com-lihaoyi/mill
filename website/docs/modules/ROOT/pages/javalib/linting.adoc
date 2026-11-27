@@ -35,6 +35,10 @@ include::partial$example/javalib/linting/5-spotless.adoc[]
 
 include::partial$example/javalib/linting/6-spotless-ratchet.adoc[]
 
+=== Custom Formatter Steps
+
+include::partial$example/javalib/linting/6-spotless-custom.adoc[]
+
 == Code Coverage with Jacoco
 
 Mill supports Java code coverage analysis via the mill-jacoco plugin. See the
