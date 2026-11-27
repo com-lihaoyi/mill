@@ -1,60 +1,38 @@
 package mill.scalanativelib
 
 import mill.*
-import mill.api.ExecResult
-import mill.javalib.testrunner.TestResult
+import mill.api.{ExecResult, ExecutionPaths}
 import mill.scalanativelib.api.*
 import mill.testkit.UnitTester
+import scala.xml.XML
 import utest.*
 
 object TestingTests extends TestSuite {
   import CompileRunTests.*
   def tests: Tests = Tests {
 
-    def runTests(testTask: Task.Named[(msg: String, results: Seq[TestResult])])
-        : Unit =
-      UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
-        val Left(_: ExecResult.Failure[_]) = eval(testTask).runtimeChecked
-
-//        val (doneMsg, testResults) = res
-//        testResults
-//          .groupBy(_.fullyQualifiedName)
-//          .view
-//          .mapValues(_.map(e => e.selector -> e).toMap)
-//          .toMap
-      }
-
-    def checkUtest(
-        scalaVersion: String,
-        scalaNativeVersion: String,
-        mode: ReleaseMode,
-        cached: Boolean
-    ) = {
-      runTests(
-        if (!cached)
-          HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).test.testForked()
-        else HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).test.testCached
-      )
-
-//      val mainTests = resultMap("hellotest.MainTests")
-//      val argParserTests = resultMap("hellotest.ArgsParserTests")
-//
-//      assert(
-//        mainTests.size == 3,
-//        mainTests("hellotest.MainTests.vmName.containNative").status == "Success",
-//        mainTests("hellotest.MainTests.vmName.containScala").status == "Success",
-//        argParserTests.size == 2,
-//        argParserTests("hellotest.ArgsParserTests.one").status == "Success",
-//        argParserTests("hellotest.ArgsParserTests.two").status == "Failure"
-//      )
-    }
-
     test("test") - {
-      val cached = false
+      testAllMatrix { (scalaVersion, scalaNativeVersion, mode) =>
+        UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
+          val testTask =
+            HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).test.testForked()
+          val Left(_: ExecResult.Failure[?]) = eval(testTask).runtimeChecked
 
-      testAllMatrix((scala, scalaNative, releaseMode) =>
-        checkUtest(scala, scalaNative, releaseMode, cached)
-      )
+          // A compilation or setup failure cannot produce a report for the fixture's tests.
+          val reportPath = ExecutionPaths.resolve(eval.outPath, testTask).dest / "test-report.xml"
+          assert(os.exists(reportPath))
+          val report = XML.loadFile(reportPath.toIO)
+          val failed = (report \\ "testcase").filter(testCase => (testCase \ "failure").nonEmpty)
+
+          assert(
+            (report \@ "tests") == "6",
+            (report \@ "errors") == "0",
+            (report \@ "skipped") == "0",
+            failed.map(testCase => (testCase \@ "classname", testCase \@ "name")) ==
+              Seq(("hellotest.ArgsParserTests", "two"))
+          )
+        }
+      }
     }
 
     def checkInheritedTasks[A](task: ScalaNativeModule => T[A], expected: A) =

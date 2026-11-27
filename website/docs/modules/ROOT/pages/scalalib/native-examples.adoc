@@ -28,3 +28,45 @@ include::partial$example/scalalib/native/3-multi-module.adoc[]
 
 include::partial$example/scalalib/native/4-common-config.adoc[]
 
+== Garbage Collector Tuning
+
+Use Scala Native 0.5.13 or newer to set build-time garbage collector defaults.
+In `build.mill`, select the collector with `nativeGC` and configure it separately
+with `nativeGarbageCollectorConfig`:
+
+[source,scala]
+----
+package build
+
+import mill.*
+import mill.scalanativelib.ScalaNativeModule
+import mill.scalanativelib.api.GarbageCollectorConfig
+
+object app extends ScalaNativeModule {
+  def scalaVersion = "3.3.7"
+  def scalaNativeVersion = "0.5.13"
+
+  override def nativeGC: T[String] = "immix"
+  override def nativeGarbageCollectorConfig: T[GarbageCollectorConfig] =
+    GarbageCollectorConfig.empty
+      .withInitialHeapSizeBytes(16L * 1024 * 1024)
+      .withMaxHeapSizeBytes(128L * 1024 * 1024)
+}
+----
+
+With your application sources in `app/src`, run `./mill app.nativeLink`.
+Run `./mill show app.nativeGarbageCollectorConfig` to inspect the configured
+overrides; this does not resolve runtime values. Here the heap defaults are
+16 MiB and 128 MiB: setters ending in `Bytes` take bytes, and setters ending
+in `Millis` take milliseconds.
+
+Omitted options keep Scala Native's usual defaults and environment behavior.
+For settings that support runtime overrides, environment variables such as
+`GC_MAXIMUM_HEAP_SIZE` can override the compiled defaults without rebuilding.
+Options vary by collector; invalid or unsupported values produce a
+`nativeLink` error. See
+https://scala-native.org/en/latest/user/runtime.html[Scala Native's garbage collector documentation].
+
+Relative paths set by `withLogFile` and `withStatsFile` are resolved from
+the running program's working directory, not the Mill module directory.
+Collection statistics require `withStatsEnabled(true)`.
