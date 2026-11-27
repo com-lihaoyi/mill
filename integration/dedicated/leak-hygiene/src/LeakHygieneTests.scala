@@ -71,7 +71,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               1
             ),
             ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 1),
-            ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1)
+            ("mill.javalib.zinc.ZincWorker#scalaCompilerCache setup classLoader", 1)
           )
         )
         checkThreads(tester)(
@@ -102,7 +102,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
                 1
               ),
               ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
-              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 2),
+              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache setup classLoader", 2),
               ("mill.kotlinlib.KotlinWorkerManager", 1)
             )
           )
@@ -136,7 +136,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
                 1
               ),
               ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
-              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 2),
+              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache setup classLoader", 2),
               ("mill.kotlinlib.KotlinWorkerManager", 1)
             )
           )
@@ -199,7 +199,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
                 1
               ),
               ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
-              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
+              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache setup classLoader", 1),
               ("mill.kotlinlib.KotlinWorkerManager", 1)
             )
           )
@@ -234,7 +234,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
                 1
               ),
               ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
-              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
+              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache setup classLoader", 1),
               ("mill.kotlinlib.KotlinWorkerManager", 1)
             )
           )
@@ -271,7 +271,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
                 1
               ),
               ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
-              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
+              ("mill.javalib.zinc.ZincWorker#scalaCompilerCache setup classLoader", 1),
               ("mill.kotlinlib.KotlinWorkerManager", 1)
             )
           )
@@ -305,7 +305,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               1
             ),
             ("mill.javalib.JvmWorkerModule#internalWorkerClassLoader", 2),
-            ("mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader", 1),
+            ("mill.javalib.zinc.ZincWorker#scalaCompilerCache setup classLoader", 1),
             ("mill.kotlinlib.KotlinWorkerManager", 1)
           )
         )
