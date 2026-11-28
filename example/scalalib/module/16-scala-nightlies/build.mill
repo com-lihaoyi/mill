@@ -32,9 +32,13 @@ object qux extends ScalaNightlyModule {
 }
 
 // Nightly versions are meant to try out upcoming compiler changes in your project,
-// so Mill warns you whenever it picks one. The latest nightly is looked up on every
-// run, but the repository metadata listing the nightly versions is cached by coursier
-// (for 24 hours by default), and only the cached metadata is used with `--offline`.
+// so Mill warns you when it first picks one, and whenever the picked nightly version
+// changes, e.g. after a newer nightly gets published.
+//
+// The available nightlies are listed on every run, but the repository metadata listing
+// them is cached by coursier (for 24 hours by default), and only the cached metadata is
+// used with `--offline`. The nightly version is only picked again when that list or
+// `scalaNightlyVersionPrefix` change.
 
 /** Usage
 
